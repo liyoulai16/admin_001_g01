@@ -405,7 +405,8 @@ const handleSubmit = () => {
   border-radius: 15px;
   padding: 30px;
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
-  height: fit-content;
+  display: flex;
+  flex-direction: column;
 }
 
 .form-intro {
@@ -418,6 +419,8 @@ const handleSubmit = () => {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  flex: 1;
+  justify-content: center;
 }
 
 .form-row {
