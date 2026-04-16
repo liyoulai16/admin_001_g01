@@ -135,9 +135,26 @@
                     v-model="formData.message" 
                     placeholder="请详细描述您的问题或需求..."
                     class="form-textarea"
-                    rows="4"
+                    rows="6"
                     required
                   ></textarea>
+                </div>
+
+                <div class="form-highlights">
+                  <div class="highlight-item">
+                    <span class="highlight-icon">✨</span>
+                    <div class="highlight-content">
+                      <h4>专业客服团队</h4>
+                      <p>5年以上社区服务经验，熟悉各类问题处理流程</p>
+                    </div>
+                  </div>
+                  <div class="highlight-item">
+                    <span class="highlight-icon">📋</span>
+                    <div class="highlight-content">
+                      <h4>全程跟踪服务</h4>
+                      <p>从提交到解决，每一步都有记录可查</p>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -493,7 +510,7 @@ const handleSubmit = () => {
   grid-row: 1 / span 2;
   background: white;
   border-radius: 15px;
-  padding: 30px;
+  padding: 25px;
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
@@ -516,6 +533,42 @@ const handleSubmit = () => {
   display: flex;
   flex-direction: column;
   gap: 14px;
+}
+
+.form-highlights {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.highlight-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  background: linear-gradient(135deg, rgba(52, 152, 219, 0.03), rgba(46, 204, 113, 0.03));
+  border-radius: 8px;
+  border: 1px solid rgba(52, 152, 219, 0.1);
+}
+
+.highlight-icon {
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+
+.highlight-content h4 {
+  font-size: 0.9rem;
+  color: #2c3e50;
+  margin-bottom: 3px;
+  font-weight: 600;
+}
+
+.highlight-content p {
+  font-size: 0.8rem;
+  color: #7f8c8d;
+  margin: 0;
+  line-height: 1.4;
 }
 
 .form-footer {
@@ -629,7 +682,7 @@ const handleSubmit = () => {
   grid-row: 3;
   background: white;
   border-radius: 15px;
-  padding: 30px;
+  padding: 25px;
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
@@ -783,6 +836,10 @@ const handleSubmit = () => {
   .form-tips {
     flex-direction: column;
     gap: 10px;
+  }
+
+  .form-highlights {
+    grid-template-columns: 1fr;
   }
 }
 </style>
