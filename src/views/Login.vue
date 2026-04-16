@@ -1,12 +1,15 @@
 <template>
   <div class="login-container">
+    <div class="particles">
+      <div v-for="i in 30" :key="i" class="particle" :style="getParticleStyle(i)"></div>
+    </div>
     <div class="login-card">
       <div class="login-header">
-        <span class="logo-icon">🏠</span>
-        <h1 class="login-title">社区生活服务</h1>
-        <p class="login-subtitle">欢迎回来，请登录您的账户</p>
+        <span class="logo-icon animate-float">🏠</span>
+        <h1 class="login-title animate-slide-up">社区生活服务</h1>
+        <p class="login-subtitle animate-slide-up-delay">欢迎回来，请登录您的账户</p>
       </div>
-      <form class="login-form" @submit.prevent="handleLogin">
+      <form class="login-form animate-fade-in" @submit.prevent="handleLogin">
         <div class="form-group">
           <label class="form-label" for="username">用户名</label>
           <input 
@@ -30,13 +33,14 @@
             @keyup.enter="handleLogin"
           />
         </div>
-        <div v-if="errorMessage" class="error-message">
+        <div v-if="errorMessage" class="error-message animate-shake">
           {{ errorMessage }}
         </div>
         <button 
           type="submit" 
           class="login-btn"
           :disabled="isLoading"
+          :class="{ 'animate-pulse': isLoading }"
         >
           <span v-if="!isLoading">登录</span>
           <span v-else>登录中...</span>
@@ -47,7 +51,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -55,6 +59,22 @@ const username = ref('')
 const password = ref('')
 const errorMessage = ref('')
 const isLoading = ref(false)
+
+const getParticleStyle = (index) => {
+  const size = Math.random() * 8 + 4
+  const left = Math.random() * 100
+  const duration = Math.random() * 20 + 15
+  const delay = Math.random() * 5
+  
+  return {
+    width: `${size}px`,
+    height: `${size}px`,
+    left: `${left}%`,
+    animationDuration: `${duration}s`,
+    animationDelay: `${delay}s`,
+    opacity: Math.random() * 0.5 + 0.2
+  }
+}
 
 const handleLogin = () => {
   errorMessage.value = ''
@@ -97,6 +117,43 @@ const handleLogin = () => {
   justify-content: center;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.particles {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.particle {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  bottom: -100px;
+  animation: float-up linear infinite;
+}
+
+@keyframes float-up {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100vh) rotate(720deg);
+    opacity: 0;
+  }
 }
 
 .login-card {
@@ -106,6 +163,20 @@ const handleLogin = () => {
   padding: 40px;
   width: 100%;
   max-width: 420px;
+  position: relative;
+  z-index: 10;
+  animation: card-enter 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes card-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .login-header {
@@ -119,6 +190,30 @@ const handleLogin = () => {
   margin-bottom: 15px;
 }
 
+.animate-float {
+  animation: float 3s ease-in-out infinite, icon-enter 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.1s both;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes icon-enter {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 .login-title {
   font-size: 1.8rem;
   color: #2c3e50;
@@ -129,9 +224,70 @@ const handleLogin = () => {
   background-clip: text;
 }
 
+.animate-slide-up {
+  animation: slide-up 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.2s both;
+}
+
+.animate-slide-up-delay {
+  animation: slide-up 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.3s both;
+}
+
+@keyframes slide-up {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .login-subtitle {
   font-size: 1rem;
   color: #7f8c8d;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.4s both;
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-5px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(5px);
+  }
+}
+
+.animate-pulse {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
 }
 
 .login-form {
