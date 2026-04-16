@@ -25,7 +25,7 @@
             id="password"
             v-model="password" 
             class="form-input"
-            placeholder="请输入密码"
+            placeholder="请输入密码（6-16位）"
             autocomplete="current-password"
             @keyup.enter="handleLogin"
           />
@@ -42,9 +42,6 @@
           <span v-else>登录中...</span>
         </button>
       </form>
-      <div class="login-footer">
-        <p class="hint-text">默认账户：用户名 <span class="highlight">user_01</span>，密码 <span class="highlight">123456</span></p>
-      </div>
     </div>
   </div>
 </template>
@@ -69,6 +66,11 @@ const handleLogin = () => {
   
   if (!password.value) {
     errorMessage.value = '请输入密码'
+    return
+  }
+  
+  if (password.value.length < 6 || password.value.length > 16) {
+    errorMessage.value = '密码长度必须为6-16位'
     return
   }
   
@@ -198,21 +200,6 @@ const handleLogin = () => {
 .login-btn:disabled {
   opacity: 0.7;
   cursor: not-allowed;
-}
-
-.login-footer {
-  margin-top: 25px;
-  text-align: center;
-}
-
-.hint-text {
-  font-size: 0.85rem;
-  color: #95a5a6;
-}
-
-.highlight {
-  color: #3498db;
-  font-weight: 600;
 }
 
 @media (max-width: 480px) {

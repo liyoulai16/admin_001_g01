@@ -14,7 +14,6 @@
         </nav>
         <div class="user-section">
           <template v-if="isLoggedIn">
-            <span class="username">👤 {{ username }}</span>
             <button class="logout-btn" @click="handleLogout">退出</button>
           </template>
           <template v-else>
@@ -33,7 +32,6 @@
         <router-link to="/about" class="mobile-nav-link" @click="closeMobileMenu">关于我们</router-link>
         <router-link to="/contact" class="mobile-nav-link" @click="closeMobileMenu">联系我们</router-link>
         <div class="mobile-user-section" v-if="isLoggedIn">
-          <span class="mobile-username">👤 {{ username }}</span>
           <button class="mobile-logout-btn" @click="handleLogout">退出登录</button>
         </div>
         <router-link to="/login" class="mobile-nav-link" v-else @click="closeMobileMenu">登录</router-link>
@@ -287,22 +285,16 @@ onMounted(() => {
 .user-section {
   display: flex;
   align-items: center;
-  gap: 15px;
-}
-
-.username {
-  font-size: 0.95rem;
-  color: #2c3e50;
-  font-weight: 500;
 }
 
 .logout-btn {
-  padding: 8px 16px;
+  padding: 8px 20px;
   background: linear-gradient(135deg, #e74c3c, #c0392b);
   color: white;
   border: none;
   border-radius: 8px;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
 }
@@ -330,15 +322,6 @@ onMounted(() => {
 .mobile-user-section {
   padding: 15px 20px;
   border-top: 1px solid #e4e8eb;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.mobile-username {
-  font-size: 0.95rem;
-  color: #2c3e50;
-  font-weight: 500;
 }
 
 .mobile-logout-btn {
