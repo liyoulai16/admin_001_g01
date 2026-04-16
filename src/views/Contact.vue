@@ -145,6 +145,48 @@
             <h3>留言提交成功！</h3>
             <p>感谢您的留言，我们会尽快与您联系。</p>
           </div>
+
+          <div class="extra-info-section" v-else>
+            <h3 class="extra-title">为什么选择我们？</h3>
+            <div class="extra-features">
+              <div class="extra-feature">
+                <span class="extra-icon">⚡</span>
+                <div class="extra-content">
+                  <h4>快速响应</h4>
+                  <p>平均15分钟内回复您的咨询</p>
+                </div>
+              </div>
+              <div class="extra-feature">
+                <span class="extra-icon">🛡️</span>
+                <div class="extra-content">
+                  <h4>安全保障</h4>
+                  <p>您的个人信息严格保密</p>
+                </div>
+              </div>
+              <div class="extra-feature">
+                <span class="extra-icon">💯</span>
+                <div class="extra-content">
+                  <h4>专业团队</h4>
+                  <p>10年+社区服务经验</p>
+                </div>
+              </div>
+              <div class="extra-feature">
+                <span class="extra-icon">🌟</span>
+                <div class="extra-content">
+                  <h4>用户好评</h4>
+                  <p>98%的用户满意度</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="contact-cta">
+              <p class="cta-text">
+                <span class="cta-icon">📞</span>
+                紧急问题？直接拨打客服热线
+              </p>
+              <p class="cta-phone">400-123-4567</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -411,16 +453,14 @@ const handleSubmit = () => {
 
 .form-intro {
   color: #7f8c8d;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
   font-size: 0.95rem;
 }
 
 .contact-form {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  flex: 1;
-  justify-content: center;
+  gap: 16px;
 }
 
 .form-row {
@@ -504,6 +544,100 @@ const handleSubmit = () => {
   color: #155724;
 }
 
+.extra-info-section {
+  margin-top: 30px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.extra-title {
+  font-size: 1.1rem;
+  color: #2c3e50;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e4e8eb;
+}
+
+.extra-features {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.extra-feature {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+.extra-feature:hover {
+  background: linear-gradient(135deg, rgba(52, 152, 219, 0.1), rgba(46, 204, 113, 0.1));
+  transform: translateY(-2px);
+}
+
+.extra-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.extra-content h4 {
+  font-size: 0.95rem;
+  color: #2c3e50;
+  margin-bottom: 3px;
+}
+
+.extra-content p {
+  font-size: 0.85rem;
+  color: #7f8c8d;
+  margin: 0;
+}
+
+.contact-cta {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  color: white;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(102, 126, 234, 0);
+  }
+}
+
+.cta-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+  opacity: 0.9;
+}
+
+.cta-icon {
+  font-size: 1.2rem;
+}
+
+.cta-phone {
+  font-size: 1.4rem;
+  font-weight: bold;
+  margin: 0;
+  letter-spacing: 1px;
+}
+
 @media (max-width: 992px) {
   .contact-content {
     grid-template-columns: 1fr;
@@ -534,6 +668,14 @@ const handleSubmit = () => {
 
   .contact-form-section {
     padding: 20px;
+  }
+
+  .extra-features {
+    grid-template-columns: 1fr;
+  }
+
+  .extra-info-section {
+    margin-top: 20px;
   }
 }
 </style>
