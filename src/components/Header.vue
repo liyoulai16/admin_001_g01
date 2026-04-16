@@ -12,6 +12,15 @@
           <router-link to="/about" class="nav-link" :class="{ active: $route.path === '/about' }">关于我们</router-link>
           <router-link to="/contact" class="nav-link" :class="{ active: $route.path === '/contact' }">联系我们</router-link>
         </nav>
+        <div class="user-section">
+          <template v-if="isLoggedIn">
+            <span class="username">👤 {{ username }}</span>
+            <button class="logout-btn" @click="handleLogout">退出</button>
+          </template>
+          <template v-else>
+            <router-link to="/login" class="login-link">登录</router-link>
+          </template>
+        </div>
         <button class="mobile-menu-btn" @click="toggleMobileMenu">
           <span class="menu-icon"></span>
         </button>
@@ -23,15 +32,29 @@
         <router-link to="/services" class="mobile-nav-link" @click="closeMobileMenu">服务列表</router-link>
         <router-link to="/about" class="mobile-nav-link" @click="closeMobileMenu">关于我们</router-link>
         <router-link to="/contact" class="mobile-nav-link" @click="closeMobileMenu">联系我们</router-link>
+        <div class="mobile-user-section" v-if="isLoggedIn">
+          <span class="mobile-username">👤 {{ username }}</span>
+          <button class="mobile-logout-btn" @click="handleLogout">退出登录</button>
+        </div>
+        <router-link to="/login" class="mobile-nav-link" v-else @click="closeMobileMenu">登录</router-link>
       </nav>
     </div>
   </header>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const isMobileMenuOpen = ref(false)
+const isLoggedIn = ref(false)
+const username = ref('')
+
+const checkLoginStatus = () => {
+  isLoggedIn.value = localStorage.getItem('isLoggedIn') === 'true'
+  username.value = localStorage.getItem('username') || ''
+}
 
 const toggleMobileMenu = () => {
   isMobileMenuOpen.value = !isMobileMenuOpen.value
@@ -40,6 +63,19 @@ const toggleMobileMenu = () => {
 const closeMobileMenu = () => {
   isMobileMenuOpen.value = false
 }
+
+const handleLogout = () => {
+  localStorage.removeItem('isLoggedIn')
+  localStorage.removeItem('username')
+  isLoggedIn.value = false
+  username.value = ''
+  closeMobileMenu()
+  router.push('/login')
+}
+
+onMounted(() => {
+  checkLoginStatus()
+})
 </script>
 
 <style scoped>
@@ -248,7 +284,83 @@ const closeMobileMenu = () => {
   transform: scaleY(1);
 }
 
+.user-section {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.username {
+  font-size: 0.95rem;
+  color: #2c3e50;
+  font-weight: 500;
+}
+
+.logout-btn {
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.logout-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+}
+
+.login-link {
+  padding: 8px 20px;
+  background: linear-gradient(135deg, #3498db, #2ecc71);
+  color: white;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.login-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+}
+
+.mobile-user-section {
+  padding: 15px 20px;
+  border-top: 1px solid #e4e8eb;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mobile-username {
+  font-size: 0.95rem;
+  color: #2c3e50;
+  font-weight: 500;
+}
+
+.mobile-logout-btn {
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.mobile-logout-btn:hover {
+  background: linear-gradient(135deg, #c0392b, #a93226);
+}
+
 @media (max-width: 768px) {
+  .user-section {
+    display: none;
+  }
   .nav {
     display: none;
   }
