@@ -13,29 +13,17 @@
           <div class="contact-cards-section">
             <h2 class="section-title">联系方式</h2>
             <div class="contact-cards">
-              <div class="contact-card">
-                <span class="contact-icon">📞</span>
-                <h3 class="contact-title">客服热线</h3>
-                <p class="contact-detail">400-123-4567</p>
-                <p class="contact-hint">工作时间：09:00 - 18:00</p>
-              </div>
-              <div class="contact-card">
-                <span class="contact-icon">📧</span>
-                <h3 class="contact-title">电子邮箱</h3>
-                <p class="contact-detail">service@community.com</p>
-                <p class="contact-hint">24小时内回复</p>
-              </div>
-              <div class="contact-card">
-                <span class="contact-icon">📍</span>
-                <h3 class="contact-title">公司地址</h3>
-                <p class="contact-detail">幸福社区服务中心</p>
-                <p class="contact-hint">欢迎前来咨询</p>
-              </div>
-              <div class="contact-card">
-                <span class="contact-icon">💬</span>
-                <h3 class="contact-title">在线客服</h3>
-                <p class="contact-detail">微信公众号</p>
-                <p class="contact-hint">扫码关注咨询</p>
+              <div 
+                v-for="(card, index) in contactCards" 
+                :key="index"
+                class="contact-card"
+                :class="{ active: activeCard === index }"
+                @click="toggleCard(index)"
+              >
+                <span class="contact-icon">{{ card.icon }}</span>
+                <h3 class="contact-title">{{ card.title }}</h3>
+                <p class="contact-detail">{{ card.detail }}</p>
+                <p class="contact-hint">{{ card.hint }}</p>
               </div>
             </div>
           </div>
@@ -234,6 +222,38 @@
 import { ref, reactive } from 'vue'
 
 const openFaq = ref(null)
+const activeCard = ref(null)
+
+const contactCards = ref([
+  {
+    icon: '📞',
+    title: '客服热线',
+    detail: '400-123-4567',
+    hint: '工作时间：09:00 - 18:00'
+  },
+  {
+    icon: '📧',
+    title: '电子邮箱',
+    detail: 'service@community.com',
+    hint: '24小时内回复'
+  },
+  {
+    icon: '📍',
+    title: '公司地址',
+    detail: '幸福社区服务中心',
+    hint: '欢迎前来咨询'
+  },
+  {
+    icon: '💬',
+    title: '在线客服',
+    detail: '微信公众号',
+    hint: '扫码关注咨询'
+  }
+])
+
+const toggleCard = (index) => {
+  activeCard.value = activeCard.value === index ? null : index
+}
 
 const formData = reactive({
   name: '',
@@ -359,7 +379,6 @@ const handleSubmit = () => {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 20px;
-  margin-bottom: 40px;
 }
 
 .contact-card {
@@ -374,6 +393,31 @@ const handleSubmit = () => {
 .contact-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+}
+
+.contact-card.active {
+  background: linear-gradient(135deg, #3498db, #2ecc71);
+  transform: scale(1.02);
+  box-shadow: 0 10px 30px rgba(52, 152, 219, 0.3);
+}
+
+.contact-card.active .contact-title,
+.contact-card.active .contact-detail,
+.contact-card.active .contact-hint {
+  color: white;
+}
+
+.contact-card.active .contact-icon {
+  animation: bounce 0.5s ease;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
 }
 
 .contact-icon {
