@@ -9,32 +9,34 @@
 
     <div class="container">
       <div class="contact-content">
-        <div class="contact-info-section">
-          <h2 class="section-title">联系方式</h2>
-          <div class="contact-cards">
-            <div class="contact-card">
-              <span class="contact-icon">📞</span>
-              <h3 class="contact-title">客服热线</h3>
-              <p class="contact-detail">400-123-4567</p>
-              <p class="contact-hint">工作时间：09:00 - 18:00</p>
-            </div>
-            <div class="contact-card">
-              <span class="contact-icon">📧</span>
-              <h3 class="contact-title">电子邮箱</h3>
-              <p class="contact-detail">service@community.com</p>
-              <p class="contact-hint">24小时内回复</p>
-            </div>
-            <div class="contact-card">
-              <span class="contact-icon">📍</span>
-              <h3 class="contact-title">公司地址</h3>
-              <p class="contact-detail">幸福社区服务中心</p>
-              <p class="contact-hint">欢迎前来咨询</p>
-            </div>
-            <div class="contact-card">
-              <span class="contact-icon">💬</span>
-              <h3 class="contact-title">在线客服</h3>
-              <p class="contact-detail">微信公众号</p>
-              <p class="contact-hint">扫码关注咨询</p>
+        <div class="left-column">
+          <div class="contact-cards-section">
+            <h2 class="section-title">联系方式</h2>
+            <div class="contact-cards">
+              <div class="contact-card">
+                <span class="contact-icon">📞</span>
+                <h3 class="contact-title">客服热线</h3>
+                <p class="contact-detail">400-123-4567</p>
+                <p class="contact-hint">工作时间：09:00 - 18:00</p>
+              </div>
+              <div class="contact-card">
+                <span class="contact-icon">📧</span>
+                <h3 class="contact-title">电子邮箱</h3>
+                <p class="contact-detail">service@community.com</p>
+                <p class="contact-hint">24小时内回复</p>
+              </div>
+              <div class="contact-card">
+                <span class="contact-icon">📍</span>
+                <h3 class="contact-title">公司地址</h3>
+                <p class="contact-detail">幸福社区服务中心</p>
+                <p class="contact-hint">欢迎前来咨询</p>
+              </div>
+              <div class="contact-card">
+                <span class="contact-icon">💬</span>
+                <h3 class="contact-title">在线客服</h3>
+                <p class="contact-detail">微信公众号</p>
+                <p class="contact-hint">扫码关注咨询</p>
+              </div>
             </div>
           </div>
 
@@ -78,76 +80,94 @@
           </div>
         </div>
 
-        <div class="contact-form-section">
-          <h2 class="section-title">在线留言</h2>
-          <p class="form-intro">
-            填写以下表单，我们会尽快与您联系。
-          </p>
-          <form class="contact-form" @submit.prevent="handleSubmit">
-            <div class="form-row">
-              <div class="form-group">
-                <label class="form-label">姓名 *</label>
-                <input 
-                  type="text" 
-                  v-model="formData.name" 
-                  placeholder="请输入您的姓名"
-                  class="form-input"
-                  required
-                />
+        <div class="right-column">
+          <div class="contact-form-section">
+            <h2 class="section-title">在线留言</h2>
+            <p class="form-intro">
+              填写以下表单，我们会尽快与您联系。
+            </p>
+            <form class="contact-form" @submit.prevent="handleSubmit">
+              <div class="form-fields">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">姓名 *</label>
+                    <input 
+                      type="text" 
+                      v-model="formData.name" 
+                      placeholder="请输入您的姓名"
+                      class="form-input"
+                      required
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">电话 *</label>
+                    <input 
+                      type="tel" 
+                      v-model="formData.phone" 
+                      placeholder="请输入您的电话"
+                      class="form-input"
+                      required
+                    />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">邮箱</label>
+                  <input 
+                    type="email" 
+                    v-model="formData.email" 
+                    placeholder="请输入您的邮箱"
+                    class="form-input"
+                  />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">咨询类型</label>
+                  <select v-model="formData.type" class="form-select">
+                    <option value="">请选择咨询类型</option>
+                    <option value="service">服务咨询</option>
+                    <option value="complaint">投诉建议</option>
+                    <option value="cooperation">商务合作</option>
+                    <option value="other">其他问题</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">留言内容 *</label>
+                  <textarea 
+                    v-model="formData.message" 
+                    placeholder="请详细描述您的问题或需求..."
+                    class="form-textarea"
+                    rows="4"
+                    required
+                  ></textarea>
+                </div>
               </div>
-              <div class="form-group">
-                <label class="form-label">电话 *</label>
-                <input 
-                  type="tel" 
-                  v-model="formData.phone" 
-                  placeholder="请输入您的电话"
-                  class="form-input"
-                  required
-                />
-              </div>
-            </div>
-            <div class="form-group">
-              <label class="form-label">邮箱</label>
-              <input 
-                type="email" 
-                v-model="formData.email" 
-                placeholder="请输入您的邮箱"
-                class="form-input"
-              />
-            </div>
-            <div class="form-group">
-              <label class="form-label">咨询类型</label>
-              <select v-model="formData.type" class="form-select">
-                <option value="">请选择咨询类型</option>
-                <option value="service">服务咨询</option>
-                <option value="complaint">投诉建议</option>
-                <option value="cooperation">商务合作</option>
-                <option value="other">其他问题</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">留言内容 *</label>
-              <textarea 
-                v-model="formData.message" 
-                placeholder="请详细描述您的问题或需求..."
-                class="form-textarea"
-                rows="5"
-                required
-              ></textarea>
-            </div>
-            <button type="submit" class="submit-btn">
-              提交留言
-            </button>
-          </form>
 
-          <div class="success-message" v-if="showSuccess">
-            <span class="success-icon">✅</span>
-            <h3>留言提交成功！</h3>
-            <p>感谢您的留言，我们会尽快与您联系。</p>
+              <div class="form-footer">
+                <div class="form-tips">
+                  <div class="tip-item">
+                    <span class="tip-icon">⏱️</span>
+                    <span>提交后15分钟内回复</span>
+                  </div>
+                  <div class="tip-item">
+                    <span class="tip-icon">🔒</span>
+                    <span>信息安全加密保护</span>
+                  </div>
+                </div>
+
+                <button type="submit" class="submit-btn">
+                  提交留言
+                </button>
+              </div>
+            </form>
+
+            <div class="success-message" v-if="showSuccess">
+              <span class="success-icon">✅</span>
+              <h3>留言提交成功！</h3>
+              <p>感谢您的留言，我们会尽快与您联系。</p>
+            </div>
           </div>
 
-          <div class="extra-info-section" v-else>
-            <h3 class="extra-title">为什么选择我们？</h3>
+          <div class="extra-info-section">
+            <h3 class="section-title">为什么选择我们？</h3>
             <div class="extra-features">
               <div class="extra-feature">
                 <span class="extra-icon">⚡</span>
@@ -280,8 +300,34 @@ const handleSubmit = () => {
 .contact-content {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 50px;
+  grid-template-rows: auto auto auto;
+  gap: 30px 50px;
   padding: 60px 0;
+}
+
+.left-column {
+  display: contents;
+}
+
+.right-column {
+  display: contents;
+}
+
+.contact-cards-section {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.working-hours {
+  grid-column: 1;
+  grid-row: 2;
+  margin-bottom: 0;
+}
+
+.faq-section {
+  grid-column: 1;
+  grid-row: 3;
+  margin-bottom: 0;
 }
 
 .section-title {
@@ -443,6 +489,8 @@ const handleSubmit = () => {
 }
 
 .contact-form-section {
+  grid-column: 2;
+  grid-row: 1 / span 2;
   background: white;
   border-radius: 15px;
   padding: 30px;
@@ -460,7 +508,18 @@ const handleSubmit = () => {
 .contact-form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
+  flex: 1;
+}
+
+.form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.form-footer {
+  margin-top: auto;
 }
 
 .form-row {
@@ -505,6 +564,27 @@ const handleSubmit = () => {
   min-height: 120px;
 }
 
+.form-tips {
+  display: flex;
+  gap: 20px;
+  padding: 15px;
+  background: linear-gradient(135deg, rgba(52, 152, 219, 0.05), rgba(46, 204, 113, 0.05));
+  border-radius: 10px;
+  margin-top: 10px;
+}
+
+.tip-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.tip-icon {
+  font-size: 1rem;
+}
+
 .submit-btn {
   padding: 15px;
   background: linear-gradient(135deg, #3498db, #2ecc71);
@@ -513,7 +593,7 @@ const handleSubmit = () => {
   font-weight: bold;
   border-radius: 8px;
   transition: all 0.3s ease;
-  margin-top: 10px;
+  margin-top: 15px;
 }
 
 .submit-btn:hover {
@@ -545,19 +625,22 @@ const handleSubmit = () => {
 }
 
 .extra-info-section {
-  margin-top: 30px;
-  flex: 1;
+  grid-column: 2;
+  grid-row: 3;
+  background: white;
+  border-radius: 15px;
+  padding: 30px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
 }
 
-.extra-title {
-  font-size: 1.1rem;
+.extra-info-section .section-title {
+  font-size: 1.2rem;
+  margin-bottom: 20px;
   color: #2c3e50;
-  margin-bottom: 15px;
   padding-bottom: 10px;
-  border-bottom: 1px solid #e4e8eb;
+  border-bottom: 2px solid #e4e8eb;
 }
 
 .extra-features {
@@ -640,8 +723,30 @@ const handleSubmit = () => {
 
 @media (max-width: 992px) {
   .contact-content {
-    grid-template-columns: 1fr;
-    gap: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+  }
+
+  .left-column,
+  .right-column {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+  }
+
+  .contact-cards-section,
+  .working-hours,
+  .faq-section,
+  .contact-form-section,
+  .extra-info-section {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .working-hours,
+  .faq-section {
+    margin-bottom: 0;
   }
 }
 
@@ -666,7 +771,8 @@ const handleSubmit = () => {
     grid-template-columns: 1fr;
   }
 
-  .contact-form-section {
+  .contact-form-section,
+  .extra-info-section {
     padding: 20px;
   }
 
@@ -674,8 +780,9 @@ const handleSubmit = () => {
     grid-template-columns: 1fr;
   }
 
-  .extra-info-section {
-    margin-top: 20px;
+  .form-tips {
+    flex-direction: column;
+    gap: 10px;
   }
 }
 </style>
