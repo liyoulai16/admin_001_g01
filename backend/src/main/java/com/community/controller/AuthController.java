@@ -42,4 +42,10 @@ public class AuthController {
     public Result<String> health() {
         return Result.success("服务运行正常");
     }
+    
+    @GetMapping("/check-username")
+    public Result<Boolean> checkUsername(@RequestParam("username") String username) {
+        boolean exists = userService.checkUsernameExists(username);
+        return Result.success(exists);
+    }
 }

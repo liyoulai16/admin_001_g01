@@ -1,5 +1,9 @@
 <template>
   <div class="home">
+    <div v-if="showSuccessMessage" class="toast-message toast-success">
+      <span class="toast-icon">✓</span>
+      <span class="toast-text">登录成功！</span>
+    </div>
     <section class="hero">
       <div class="container">
         <div class="hero-content">
@@ -99,15 +103,26 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { services, categories } from '../data/services'
 
 const router = useRouter()
 const searchQuery = ref('')
+const showSuccessMessage = ref(false)
 
 const featuredServices = computed(() => {
   return services.slice(0, 4)
+})
+
+onMounted(() => {
+  if (localStorage.getItem('showLoginSuccess') === 'true') {
+    localStorage.removeItem('showLoginSuccess')
+    showSuccessMessage.value = true
+    setTimeout(() => {
+      showSuccessMessage.value = false
+    }, 3000)
+  }
 })
 
 const handleSearch = () => {
@@ -383,6 +398,57 @@ const goToServiceDetail = (id) => {
   font-size: 0.95rem;
   color: #7f8c8d;
   line-height: 1.6;
+}
+
+.toast-message {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 24px;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  z-index: 9999;
+  animation: toast-in 0.3s ease-out, toast-out 0.3s ease-in 2.7s forwards;
+}
+
+.toast-success {
+  background: linear-gradient(135deg, #27ae60, #2ecc71);
+  color: white;
+}
+
+.toast-icon {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.toast-text {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes toast-out {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100px);
+  }
 }
 
 @media (max-width: 768px) {

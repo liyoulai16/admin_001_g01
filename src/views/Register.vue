@@ -20,13 +20,23 @@
             id="username"
             v-model="username" 
             class="form-input"
-            :class="{ 'input-error': usernameError }"
+            :class="{ 'input-error': usernameError || usernameExists, 'input-valid': usernameAvailable }"
             placeholder="请输入用户名（3-50位）"
             autocomplete="username"
             maxlength="50"
             @input="validateUsername"
+            @blur="checkUsername"
           />
-          <div v-if="usernameError" class="field-error">
+          <div v-if="isCheckingUsername" class="field-checking">
+            正在检查用户名...
+          </div>
+          <div v-else-if="usernameAvailable" class="field-valid">
+            ✓ 用户名可用
+          </div>
+          <div v-else-if="usernameExists" class="field-error">
+            ✗ 用户名已存在
+          </div>
+          <div v-else-if="usernameError" class="field-error">
             {{ usernameError }}
           </div>
         </div>
@@ -157,6 +167,10 @@ const usernameError = ref('')
 const passwordError = ref('')
 const confirmPasswordError = ref('')
 
+const isCheckingUsername = ref(false)
+const usernameExists = ref(false)
+const usernameAvailable = ref(false)
+
 const passwordStrength = ref({
   level: 0,
   text: '',
@@ -191,6 +205,8 @@ const getParticleStyle = (index) => {
 
 const validateUsername = () => {
   usernameError.value = ''
+  usernameExists.value = false
+  usernameAvailable.value = false
   
   if (!username.value.trim()) {
     return
@@ -200,6 +216,41 @@ const validateUsername = () => {
     usernameError.value = '用户名至少需要3个字符'
   } else if (username.value.length > 50) {
     usernameError.value = '用户名不能超过50个字符'
+  }
+}
+
+const checkUsername = async () => {
+  if (!username.value.trim() || username.value.length < 3 || username.value.length > 50) {
+    return
+  }
+  
+  usernameExists.value = false
+  usernameAvailable.value = false
+  isCheckingUsername.value = true
+  
+  try {
+    const response = await fetch(`http://localhost:9090/api/auth/check-username?username=${encodeURIComponent(username.value)}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    
+    const data = await response.json()
+    
+    if (data.code === 200) {
+      if (data.data === true) {
+        usernameExists.value = true
+        usernameAvailable.value = false
+      } else {
+        usernameExists.value = false
+        usernameAvailable.value = true
+      }
+    }
+  } catch (error) {
+    console.error('检查用户名失败:', error)
+  } finally {
+    isCheckingUsername.value = false
   }
 }
 
@@ -292,6 +343,11 @@ const handleRegister = async () => {
   
   if (!username.value.trim()) {
     errorMessage.value = '请输入用户名'
+    return
+  }
+  
+  if (usernameExists.value) {
+    errorMessage.value = '用户名已存在，请更换用户名'
     return
   }
   
@@ -565,6 +621,29 @@ const handleRegister = async () => {
   font-size: 0.85rem;
   margin-top: 4px;
   padding-left: 4px;
+}
+
+.field-valid {
+  color: #27ae60;
+  font-size: 0.85rem;
+  margin-top: 4px;
+  padding-left: 4px;
+}
+
+.field-checking {
+  color: #3498db;
+  font-size: 0.85rem;
+  margin-top: 4px;
+  padding-left: 4px;
+}
+
+.input-valid {
+  border-color: #27ae60 !important;
+}
+
+.input-valid:focus {
+  border-color: #27ae60 !important;
+  box-shadow: 0 0 0 4px rgba(39, 174, 96, 0.1) !important;
 }
 
 .password-strength {

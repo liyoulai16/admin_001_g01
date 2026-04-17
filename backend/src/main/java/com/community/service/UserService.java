@@ -91,4 +91,12 @@ public class UserService {
         result.put("username", user.getUsername());
         return result;
     }
+    
+    public boolean checkUsernameExists(String username) {
+        User existingUser = userMapper.selectOne(
+            new LambdaQueryWrapper<User>()
+                .eq(User::getUsername, username)
+        );
+        return existingUser != null;
+    }
 }
