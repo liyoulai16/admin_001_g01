@@ -80,7 +80,7 @@ const getParticleStyle = (index) => {
   }
 }
 
-const handleLogin = () => {
+const handleLogin = async () => {
   errorMessage.value = ''
   
   if (!username.value.trim()) {
@@ -100,16 +100,37 @@ const handleLogin = () => {
   
   isLoading.value = true
   
-  setTimeout(() => {
-    if (username.value === 'user_01' && password.value === '123456') {
+  try {
+    const response = await fetch('http://localhost:9090/api/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        username: username.value,
+        password: password.value
+      })
+    })
+    
+    const data = await response.json()
+    
+    if (data.code === 200) {
       localStorage.setItem('isLoggedIn', 'true')
-      localStorage.setItem('username', username.value)
+      localStorage.setItem('username', data.data.username)
+      if (data.data.nickname) {
+        localStorage.setItem('nickname', data.data.nickname)
+      }
+      alert('登录成功！')
       router.push('/')
     } else {
-      errorMessage.value = '用户名或密码错误'
+      errorMessage.value = data.message || '登录失败，请重试'
       isLoading.value = false
     }
-  }, 500)
+  } catch (error) {
+    console.error('登录请求失败:', error)
+    errorMessage.value = '网络错误，请稍后重试'
+    isLoading.value = false
+  }
 }
 </script>
 
