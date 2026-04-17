@@ -3,6 +3,8 @@ package com.community.controller;
 import com.community.common.Result;
 import com.community.dto.LoginRequest;
 import com.community.dto.RegisterRequest;
+import com.community.dto.UpdatePasswordRequest;
+import com.community.dto.UpdateUserInfoRequest;
 import com.community.entity.User;
 import com.community.service.UserService;
 import org.springframework.validation.annotation.Validated;
@@ -64,5 +66,34 @@ public class AuthController {
         userInfo.put("status", user.getStatus());
         userInfo.put("createTime", user.getCreateTime());
         return Result.success(userInfo);
+    }
+    
+    @PostMapping("/update-info")
+    public Result<Map<String, Object>> updateUserInfo(@Validated @RequestBody UpdateUserInfoRequest request) {
+        Map<String, Object> result = userService.updateUserInfo(
+            request.getCurrentUsername(),
+            request.getNewUsername(),
+            request.getNickname()
+        );
+        if ((Boolean) result.get("success")) {
+            return Result.success((String) result.get("message"), result);
+        } else {
+            return Result.error((String) result.get("message"));
+        }
+    }
+    
+    @PostMapping("/update-password")
+    public Result<Map<String, Object>> updatePassword(@Validated @RequestBody UpdatePasswordRequest request) {
+        Map<String, Object> result = userService.updatePassword(
+            request.getUsername(),
+            request.getOldPassword(),
+            request.getNewPassword(),
+            request.getConfirmPassword()
+        );
+        if ((Boolean) result.get("success")) {
+            return Result.success((String) result.get("message"));
+        } else {
+            return Result.error((String) result.get("message"));
+        }
     }
 }
