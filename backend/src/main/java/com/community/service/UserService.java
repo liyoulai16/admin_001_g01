@@ -107,4 +107,82 @@ public class UserService {
                 .eq(User::getDeleted, 0)
         );
     }
+    
+    public Map<String, Object> updateUserInfo(String currentUsername, String newUsername, String nickname) {
+        Map<String, Object> result = new HashMap<>();
+        
+        User user = userMapper.selectOne(
+            new LambdaQueryWrapper<User>()
+                .eq(User::getUsername, currentUsername)
+                .eq(User::getDeleted, 0)
+        );
+        
+        if (user == null) {
+            result.put("success", false);
+            result.put("message", "用户不存在");
+            return result;
+        }
+        
+        if (!currentUsername.equals(newUsername)) {
+            User existingUser = userMapper.selectOne(
+                new LambdaQueryWrapper<User>()
+                    .eq(User::getUsername, newUsername)
+                    .eq(User::getDeleted, 0)
+            );
+            if (existingUser != null && !existingUser.getId().equals(user.getId())) {
+                result.put("success", false);
+                result.put("message", "新用户名已被使用");
+                return result;
+            }
+        }
+        
+        user.setUsername(newUsername);
+        user.setNickname(StringUtils.hasText(nickname) ? nickname : newUsername);
+        user.setUpdateTime(LocalDateTime.now());
+        
+        userMapper.updateById(user);
+        
+        result.put("success", true);
+        result.put("message", "修改成功");
+        result.put("username", user.getUsername());
+        result.put("nickname", user.getNickname());
+        return result;
+    }
+    
+    public Map<String, Object> updatePassword(String username, String oldPassword, String newPassword, String confirmPassword) {
+        Map<String, Object> result = new HashMap<>();
+        
+        if (!newPassword.equals(confirmPassword)) {
+            result.put("success", false);
+            result.put("message", "两次输入的新密码不一致");
+            return result;
+        }
+        
+        User user = userMapper.selectOne(
+            new LambdaQueryWrapper<User>()
+                .eq(User::getUsername, username)
+                .eq(User::getDeleted, 0)
+        );
+        
+        if (user == null) {
+            result.put("success", false);
+            result.put("message", "用户不存在");
+            return result;
+        }
+        
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            result.put("success", false);
+            result.put("message", "原密码错误");
+            return result;
+        }
+        
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setUpdateTime(LocalDateTime.now());
+        
+        userMapper.updateById(user);
+        
+        result.put("success", true);
+        result.put("message", "密码修改成功");
+        return result;
+    }
 }
