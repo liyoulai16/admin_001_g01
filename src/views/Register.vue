@@ -11,18 +11,30 @@
       </div>
       <form class="register-form animate-fade-in" @submit.prevent="handleRegister">
         <div class="form-group">
-          <label class="form-label" for="username">用户名</label>
+          <label class="form-label" for="username">
+            用户名
+            <span class="char-count">{{ username.length }}/50</span>
+          </label>
           <input 
             type="text" 
             id="username"
             v-model="username" 
             class="form-input"
+            :class="{ 'input-error': usernameError }"
             placeholder="请输入用户名（3-50位）"
             autocomplete="username"
+            maxlength="50"
+            @input="validateUsername"
           />
+          <div v-if="usernameError" class="field-error">
+            {{ usernameError }}
+          </div>
         </div>
         <div class="form-group">
-          <label class="form-label" for="nickname">昵称</label>
+          <label class="form-label" for="nickname">
+            昵称
+            <span class="char-count">{{ nickname.length }}/50</span>
+          </label>
           <input 
             type="text" 
             id="nickname"
@@ -30,30 +42,83 @@
             class="form-input"
             placeholder="请输入昵称（可选）"
             autocomplete="nickname"
+            maxlength="50"
           />
         </div>
         <div class="form-group">
-          <label class="form-label" for="password">密码</label>
+          <label class="form-label" for="password">
+            密码
+            <span class="char-count">{{ password.length }}/16</span>
+          </label>
           <input 
             type="password" 
             id="password"
             v-model="password" 
             class="form-input"
+            :class="{ 'input-error': passwordError }"
             placeholder="请输入密码（6-16位）"
             autocomplete="new-password"
+            maxlength="16"
+            @input="validatePassword"
           />
+          <div v-if="passwordStrength.level > 0" class="password-strength">
+            <div class="strength-bar">
+              <div 
+                class="strength-fill" 
+                :class="`strength-${passwordStrength.level}`"
+                :style="{ width: passwordStrength.width }"
+              ></div>
+            </div>
+            <span class="strength-text" :class="`text-${passwordStrength.level}`">
+              {{ passwordStrength.text }}
+            </span>
+          </div>
+          <div v-if="passwordError" class="field-error">
+            {{ passwordError }}
+          </div>
+          <div v-if="password && !passwordError" class="password-tips">
+            <span :class="passwordTip.hasLowercase ? 'tip-valid' : 'tip-invalid'">
+              {{ passwordTip.hasLowercase ? '✓' : '○' }} 包含小写字母
+            </span>
+            <span :class="passwordTip.hasUppercase ? 'tip-valid' : 'tip-invalid'">
+              {{ passwordTip.hasUppercase ? '✓' : '○' }} 包含大写字母
+            </span>
+            <span :class="passwordTip.hasNumber ? 'tip-valid' : 'tip-invalid'">
+              {{ passwordTip.hasNumber ? '✓' : '○' }} 包含数字
+            </span>
+            <span :class="passwordTip.hasSpecial ? 'tip-valid' : 'tip-invalid'">
+              {{ passwordTip.hasSpecial ? '✓' : '○' }} 包含特殊字符
+            </span>
+            <span :class="passwordTip.hasLength ? 'tip-valid' : 'tip-invalid'">
+              {{ passwordTip.hasLength ? '✓' : '○' }} 长度6-16位
+            </span>
+          </div>
         </div>
         <div class="form-group">
-          <label class="form-label" for="confirmPassword">确认密码</label>
+          <label class="form-label" for="confirmPassword">
+            确认密码
+            <span class="char-count">{{ confirmPassword.length }}/16</span>
+          </label>
           <input 
             type="password" 
             id="confirmPassword"
             v-model="confirmPassword" 
             class="form-input"
+            :class="{ 'input-error': confirmPasswordError }"
             placeholder="请再次输入密码"
             autocomplete="new-password"
+            maxlength="16"
+            @input="validateConfirmPassword"
             @keyup.enter="handleRegister"
           />
+          <div v-if="confirmPasswordError" class="field-error">
+            {{ confirmPasswordError }}
+          </div>
+          <div v-if="confirmPassword && !confirmPasswordError && password" class="match-status">
+            <span :class="passwordsMatch ? 'match-valid' : 'match-invalid'">
+              {{ passwordsMatch ? '✓ 密码匹配' : '✗ 密码不匹配' }}
+            </span>
+          </div>
         </div>
         <div v-if="errorMessage" class="error-message animate-shake">
           {{ errorMessage }}
@@ -88,6 +153,26 @@ const nickname = ref('')
 const errorMessage = ref('')
 const isLoading = ref(false)
 
+const usernameError = ref('')
+const passwordError = ref('')
+const confirmPasswordError = ref('')
+
+const passwordStrength = ref({
+  level: 0,
+  text: '',
+  width: '0%'
+})
+
+const passwordTip = ref({
+  hasLowercase: false,
+  hasUppercase: false,
+  hasNumber: false,
+  hasSpecial: false,
+  hasLength: false
+})
+
+const passwordsMatch = ref(false)
+
 const getParticleStyle = (index) => {
   const size = Math.random() * 8 + 4
   const left = Math.random() * 100
@@ -104,26 +189,114 @@ const getParticleStyle = (index) => {
   }
 }
 
+const validateUsername = () => {
+  usernameError.value = ''
+  
+  if (!username.value.trim()) {
+    return
+  }
+  
+  if (username.value.length < 3) {
+    usernameError.value = '用户名至少需要3个字符'
+  } else if (username.value.length > 50) {
+    usernameError.value = '用户名不能超过50个字符'
+  }
+}
+
+const validatePassword = () => {
+  passwordError.value = ''
+  const pwd = password.value
+  
+  if (!pwd) {
+    passwordStrength.value = { level: 0, text: '', width: '0%' }
+    passwordTip.value = {
+      hasLowercase: false,
+      hasUppercase: false,
+      hasNumber: false,
+      hasSpecial: false,
+      hasLength: false
+    }
+    return
+  }
+  
+  passwordTip.value.hasLowercase = /[a-z]/.test(pwd)
+  passwordTip.value.hasUppercase = /[A-Z]/.test(pwd)
+  passwordTip.value.hasNumber = /[0-9]/.test(pwd)
+  passwordTip.value.hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(pwd)
+  passwordTip.value.hasLength = pwd.length >= 6 && pwd.length <= 16
+  
+  let strengthScore = 0
+  
+  if (passwordTip.value.hasLowercase) strengthScore++
+  if (passwordTip.value.hasUppercase) strengthScore++
+  if (passwordTip.value.hasNumber) strengthScore++
+  if (passwordTip.value.hasSpecial) strengthScore++
+  if (pwd.length >= 8) strengthScore++
+  if (pwd.length >= 12) strengthScore++
+  
+  if (pwd.length < 6) {
+    passwordStrength.value = { level: 0, text: '', width: '0%' }
+    passwordError.value = '密码长度必须为6-16位'
+  } else if (pwd.length > 16) {
+    passwordStrength.value = { level: 0, text: '', width: '0%' }
+    passwordError.value = '密码长度必须为6-16位'
+  } else if (strengthScore <= 2) {
+    passwordStrength.value = { level: 1, text: '弱', width: '33%' }
+  } else if (strengthScore <= 4) {
+    passwordStrength.value = { level: 2, text: '中', width: '66%' }
+  } else {
+    passwordStrength.value = { level: 3, text: '强', width: '100%' }
+  }
+  
+  if (confirmPassword.value) {
+    validateConfirmPassword()
+  }
+}
+
+const validateConfirmPassword = () => {
+  confirmPasswordError.value = ''
+  
+  if (!confirmPassword.value) {
+    passwordsMatch.value = false
+    return
+  }
+  
+  if (!password.value) {
+    passwordsMatch.value = false
+    return
+  }
+  
+  if (confirmPassword.value.length < 6) {
+    confirmPasswordError.value = '密码长度必须为6-16位'
+    passwordsMatch.value = false
+  } else if (confirmPassword.value.length > 16) {
+    confirmPasswordError.value = '密码长度必须为6-16位'
+    passwordsMatch.value = false
+  } else if (password.value !== confirmPassword.value) {
+    passwordsMatch.value = false
+  } else {
+    passwordsMatch.value = true
+  }
+}
+
 const handleRegister = async () => {
   errorMessage.value = ''
+  
+  validateUsername()
+  validatePassword()
+  validateConfirmPassword()
+  
+  if (usernameError.value || passwordError.value || confirmPasswordError.value) {
+    return
+  }
   
   if (!username.value.trim()) {
     errorMessage.value = '请输入用户名'
     return
   }
   
-  if (username.value.length < 3 || username.value.length > 50) {
-    errorMessage.value = '用户名长度必须为3-50位'
-    return
-  }
-  
   if (!password.value) {
     errorMessage.value = '请输入密码'
-    return
-  }
-  
-  if (password.value.length < 6 || password.value.length > 16) {
-    errorMessage.value = '密码长度必须为6-16位'
     return
   }
   
@@ -367,6 +540,125 @@ const handleRegister = async () => {
   font-size: 0.95rem;
   font-weight: 600;
   color: #2c3e50;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.char-count {
+  font-size: 0.85rem;
+  color: #95a5a6;
+  font-weight: normal;
+}
+
+.input-error {
+  border-color: #e74c3c !important;
+}
+
+.input-error:focus {
+  border-color: #e74c3c !important;
+  box-shadow: 0 0 0 4px rgba(231, 76, 60, 0.1) !important;
+}
+
+.field-error {
+  color: #e74c3c;
+  font-size: 0.85rem;
+  margin-top: 4px;
+  padding-left: 4px;
+}
+
+.password-strength {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.strength-bar {
+  flex: 1;
+  height: 6px;
+  background: #e4e8eb;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.strength-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: all 0.3s ease;
+}
+
+.strength-1 {
+  background: #e74c3c;
+}
+
+.strength-2 {
+  background: #f39c12;
+}
+
+.strength-3 {
+  background: #27ae60;
+}
+
+.strength-text {
+  font-size: 0.9rem;
+  font-weight: 600;
+  min-width: 30px;
+}
+
+.text-1 {
+  color: #e74c3c;
+}
+
+.text-2 {
+  color: #f39c12;
+}
+
+.text-3 {
+  color: #27ae60;
+}
+
+.password-tips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e4e8eb;
+}
+
+.password-tips span {
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tip-valid {
+  color: #27ae60;
+}
+
+.tip-invalid {
+  color: #95a5a6;
+}
+
+.match-status {
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.match-valid {
+  color: #27ae60;
+  background: rgba(39, 174, 96, 0.1);
+}
+
+.match-invalid {
+  color: #e74c3c;
+  background: rgba(231, 76, 60, 0.1);
 }
 
 .form-input {
