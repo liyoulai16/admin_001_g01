@@ -1,15 +1,15 @@
 <template>
-  <div class="login-container">
+  <div class="register-container">
     <div class="particles">
       <div v-for="i in 30" :key="i" class="particle" :style="getParticleStyle(i)"></div>
     </div>
-    <div class="login-card">
-      <div class="login-header">
+    <div class="register-card">
+      <div class="register-header">
         <span class="logo-icon animate-float">🏠</span>
-        <h1 class="login-title animate-slide-up">社区生活服务</h1>
-        <p class="login-subtitle animate-slide-up-delay">欢迎回来，请登录您的账户</p>
+        <h1 class="register-title animate-slide-up">社区生活服务</h1>
+        <p class="register-subtitle animate-slide-up-delay">创建新账户，加入我们的社区</p>
       </div>
-      <form class="login-form animate-fade-in" @submit.prevent="handleLogin">
+      <form class="register-form animate-fade-in" @submit.prevent="handleRegister">
         <div class="form-group">
           <label class="form-label" for="username">用户名</label>
           <input 
@@ -17,8 +17,19 @@
             id="username"
             v-model="username" 
             class="form-input"
-            placeholder="请输入用户名"
+            placeholder="请输入用户名（3-50位）"
             autocomplete="username"
+          />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="nickname">昵称</label>
+          <input 
+            type="text" 
+            id="nickname"
+            v-model="nickname" 
+            class="form-input"
+            placeholder="请输入昵称（可选）"
+            autocomplete="nickname"
           />
         </div>
         <div class="form-group">
@@ -29,8 +40,19 @@
             v-model="password" 
             class="form-input"
             placeholder="请输入密码（6-16位）"
-            autocomplete="current-password"
-            @keyup.enter="handleLogin"
+            autocomplete="new-password"
+          />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="confirmPassword">确认密码</label>
+          <input 
+            type="password" 
+            id="confirmPassword"
+            v-model="confirmPassword" 
+            class="form-input"
+            placeholder="请再次输入密码"
+            autocomplete="new-password"
+            @keyup.enter="handleRegister"
           />
         </div>
         <div v-if="errorMessage" class="error-message animate-shake">
@@ -38,29 +60,31 @@
         </div>
         <button 
           type="submit" 
-          class="login-btn"
+          class="register-btn"
           :disabled="isLoading"
           :class="{ 'animate-pulse': isLoading }"
         >
-          <span v-if="!isLoading">登录</span>
-          <span v-else>登录中...</span>
+          <span v-if="!isLoading">注册</span>
+          <span v-else>注册中...</span>
         </button>
       </form>
-      <div class="login-footer animate-fade-in">
-        <p>还没有账户？</p>
-        <router-link to="/register" class="register-link">立即注册</router-link>
+      <div class="register-footer animate-fade-in">
+        <p>已有账户？</p>
+        <router-link to="/login" class="login-link">立即登录</router-link>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const username = ref('')
 const password = ref('')
+const confirmPassword = ref('')
+const nickname = ref('')
 const errorMessage = ref('')
 const isLoading = ref(false)
 
@@ -80,11 +104,16 @@ const getParticleStyle = (index) => {
   }
 }
 
-const handleLogin = () => {
+const handleRegister = async () => {
   errorMessage.value = ''
   
   if (!username.value.trim()) {
     errorMessage.value = '请输入用户名'
+    return
+  }
+  
+  if (username.value.length < 3 || username.value.length > 50) {
+    errorMessage.value = '用户名长度必须为3-50位'
     return
   }
   
@@ -98,23 +127,51 @@ const handleLogin = () => {
     return
   }
   
+  if (!confirmPassword.value) {
+    errorMessage.value = '请输入确认密码'
+    return
+  }
+  
+  if (password.value !== confirmPassword.value) {
+    errorMessage.value = '两次输入的密码不一致'
+    return
+  }
+  
   isLoading.value = true
   
-  setTimeout(() => {
-    if (username.value === 'user_01' && password.value === '123456') {
-      localStorage.setItem('isLoggedIn', 'true')
-      localStorage.setItem('username', username.value)
-      router.push('/')
+  try {
+    const response = await fetch('http://localhost:8080/api/auth/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        username: username.value,
+        password: password.value,
+        confirmPassword: confirmPassword.value,
+        nickname: nickname.value || null
+      })
+    })
+    
+    const data = await response.json()
+    
+    if (data.code === 200) {
+      alert('注册成功！')
+      router.push('/login')
     } else {
-      errorMessage.value = '用户名或密码错误'
+      errorMessage.value = data.message || '注册失败，请重试'
       isLoading.value = false
     }
-  }, 500)
+  } catch (error) {
+    console.error('注册请求失败:', error)
+    errorMessage.value = '网络错误，请稍后重试'
+    isLoading.value = false
+  }
 }
 </script>
 
 <style scoped>
-.login-container {
+.register-container {
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -160,7 +217,7 @@ const handleLogin = () => {
   }
 }
 
-.login-card {
+.register-card {
   background: white;
   border-radius: 20px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
@@ -183,7 +240,7 @@ const handleLogin = () => {
   }
 }
 
-.login-header {
+.register-header {
   text-align: center;
   margin-bottom: 30px;
 }
@@ -218,7 +275,7 @@ const handleLogin = () => {
   }
 }
 
-.login-title {
+.register-title {
   font-size: 1.8rem;
   color: #2c3e50;
   margin-bottom: 10px;
@@ -247,7 +304,7 @@ const handleLogin = () => {
   }
 }
 
-.login-subtitle {
+.register-subtitle {
   font-size: 1rem;
   color: #7f8c8d;
 }
@@ -294,10 +351,10 @@ const handleLogin = () => {
   }
 }
 
-.login-form {
+.register-form {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 15px;
 }
 
 .form-group {
@@ -340,7 +397,7 @@ const handleLogin = () => {
   text-align: center;
 }
 
-.login-btn {
+.register-btn {
   padding: 14px 30px;
   background: linear-gradient(135deg, #3498db, #2ecc71);
   color: white;
@@ -352,48 +409,48 @@ const handleLogin = () => {
   transition: all 0.3s ease;
 }
 
-.login-btn:hover:not(:disabled) {
+.register-btn:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 10px 25px rgba(52, 152, 219, 0.3);
 }
 
-.login-btn:disabled {
+.register-btn:disabled {
   opacity: 0.7;
   cursor: not-allowed;
 }
 
-.login-footer {
+.register-footer {
   text-align: center;
   margin-top: 20px;
   padding-top: 20px;
   border-top: 1px solid #e4e8eb;
 }
 
-.login-footer p {
+.register-footer p {
   margin: 0;
   color: #7f8c8d;
   display: inline;
   margin-right: 5px;
 }
 
-.register-link {
+.login-link {
   color: #3498db;
   text-decoration: none;
   font-weight: 600;
   transition: color 0.3s ease;
 }
 
-.register-link:hover {
+.login-link:hover {
   color: #2ecc71;
   text-decoration: underline;
 }
 
 @media (max-width: 480px) {
-  .login-card {
+  .register-card {
     padding: 30px 20px;
   }
   
-  .login-title {
+  .register-title {
     font-size: 1.5rem;
   }
 }
