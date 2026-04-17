@@ -53,7 +53,9 @@ const username = ref('')
 
 const checkLoginStatus = () => {
   isLoggedIn.value = localStorage.getItem('isLoggedIn') === 'true'
-  username.value = localStorage.getItem('username') || ''
+  const nickname = localStorage.getItem('nickname')
+  const storedUsername = localStorage.getItem('username') || ''
+  username.value = nickname || storedUsername
 }
 
 const toggleMobileMenu = () => {
@@ -67,6 +69,7 @@ const closeMobileMenu = () => {
 const handleLogout = () => {
   localStorage.removeItem('isLoggedIn')
   localStorage.removeItem('username')
+  localStorage.removeItem('nickname')
   isLoggedIn.value = false
   username.value = ''
   closeMobileMenu()
