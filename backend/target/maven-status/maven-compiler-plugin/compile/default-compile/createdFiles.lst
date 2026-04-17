@@ -1,0 +1,10 @@
+com\community\mapper\UserMapper.class
+com\community\controller\AuthController.class
+com\community\common\Result.class
+com\community\config\CorsConfig.class
+com\community\CommunityApplication.class
+com\community\entity\User.class
+com\community\config\MyMetaObjectHandler.class
+com\community\dto\LoginRequest.class
+com\community\service\UserService.class
+com\community\dto\RegisterRequest.class
