@@ -21,7 +21,7 @@ import Footer from './components/Footer.vue'
 const route = useRoute()
 
 const isLoginPage = computed(() => {
-  return route.path === '/login'
+  return route.path === '/login' || route.path === '/register'
 })
 </script>
 
