@@ -91,7 +91,7 @@ public class AuthController {
             request.getConfirmPassword()
         );
         if ((Boolean) result.get("success")) {
-            return Result.success((String) result.get("message"));
+            return Result.success((String) result.get("message"), null);
         } else {
             return Result.error((String) result.get("message"));
         }
