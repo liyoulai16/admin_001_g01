@@ -120,7 +120,7 @@ const handleLogin = async () => {
       if (data.data.nickname) {
         localStorage.setItem('nickname', data.data.nickname)
       }
-      alert('登录成功！')
+      localStorage.setItem('showLoginSuccess', 'true')
       router.push('/')
     } else {
       errorMessage.value = data.message || '登录失败，请重试'
