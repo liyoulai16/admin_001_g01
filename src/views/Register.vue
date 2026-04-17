@@ -152,7 +152,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -170,6 +170,8 @@ const confirmPasswordError = ref('')
 const isCheckingUsername = ref(false)
 const usernameExists = ref(false)
 const usernameAvailable = ref(false)
+
+let checkUsernameTimeout = null
 
 const passwordStrength = ref({
   level: 0,
@@ -224,34 +226,47 @@ const checkUsername = async () => {
     return
   }
   
-  usernameExists.value = false
-  usernameAvailable.value = false
-  isCheckingUsername.value = true
-  
-  try {
-    const response = await fetch(`http://localhost:9090/api/auth/check-username?username=${encodeURIComponent(username.value)}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-    
-    const data = await response.json()
-    
-    if (data.code === 200) {
-      if (data.data === true) {
-        usernameExists.value = true
-        usernameAvailable.value = false
-      } else {
-        usernameExists.value = false
-        usernameAvailable.value = true
-      }
-    }
-  } catch (error) {
-    console.error('检查用户名失败:', error)
-  } finally {
-    isCheckingUsername.value = false
+  if (checkUsernameTimeout) {
+    clearTimeout(checkUsernameTimeout)
   }
+  
+  checkUsernameTimeout = setTimeout(async () => {
+    if (isCheckingUsername.value) {
+      return
+    }
+    
+    usernameExists.value = false
+    usernameAvailable.value = false
+    isCheckingUsername.value = true
+    
+    try {
+      const response = await fetch(`http://localhost:9090/api/auth/check-username?username=${encodeURIComponent(username.value)}`, {
+        method: 'GET'
+      })
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
+      const data = await response.json()
+      
+      if (data.code === 200) {
+        if (data.data === true) {
+          usernameExists.value = true
+          usernameAvailable.value = false
+        } else {
+          usernameExists.value = false
+          usernameAvailable.value = true
+        }
+      } else {
+        console.error('检查用户名失败:', data.message)
+      }
+    } catch (error) {
+      console.error('检查用户名请求失败:', error)
+    } finally {
+      isCheckingUsername.value = false
+    }
+  }, 300)
 }
 
 const validatePassword = () => {

@@ -1,9 +1,23 @@
 <template>
   <div class="home">
-    <div v-if="showSuccessMessage" class="toast-message toast-success">
-      <span class="toast-icon">✓</span>
-      <span class="toast-text">登录成功！</span>
-    </div>
+    <Transition name="toast">
+      <div v-if="showSuccessMessage" class="toast-container">
+        <div class="toast-message toast-success">
+          <div class="toast-icon-wrapper">
+            <svg class="toast-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="toast-content">
+            <span class="toast-title">登录成功</span>
+            <span class="toast-subtitle">欢迎回来，{{ displayName }}！</span>
+          </div>
+          <div class="toast-progress">
+            <div class="toast-progress-bar"></div>
+          </div>
+        </div>
+      </div>
+    </Transition>
     <section class="hero">
       <div class="container">
         <div class="hero-content">
@@ -111,6 +125,10 @@ const router = useRouter()
 const searchQuery = ref('')
 const showSuccessMessage = ref(false)
 
+const displayName = computed(() => {
+  return localStorage.getItem('nickname') || localStorage.getItem('username') || '用户'
+})
+
 const featuredServices = computed(() => {
   return services.slice(0, 4)
 })
@@ -121,7 +139,7 @@ onMounted(() => {
     showSuccessMessage.value = true
     setTimeout(() => {
       showSuccessMessage.value = false
-    }, 3000)
+    }, 4000)
   }
 })
 
@@ -400,54 +418,122 @@ const goToServiceDetail = (id) => {
   line-height: 1.6;
 }
 
-.toast-message {
+.toast-container {
   position: fixed;
   top: 80px;
   right: 20px;
+  z-index: 9999;
+}
+
+.toast-message {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 16px 24px;
-  border-radius: 10px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  z-index: 9999;
-  animation: toast-in 0.3s ease-out, toast-out 0.3s ease-in 2.7s forwards;
+  gap: 14px;
+  padding: 18px 22px;
+  border-radius: 14px;
+  background: white;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.12),
+    0 2px 8px rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(0, 0, 0, 0.05);
+  position: relative;
+  overflow: hidden;
+  min-width: 280px;
 }
 
 .toast-success {
+  border-left: 4px solid #27ae60;
+}
+
+.toast-icon-wrapper {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
   background: linear-gradient(135deg, #27ae60, #2ecc71);
-  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
 }
 
 .toast-icon {
-  font-size: 1.2rem;
-  font-weight: bold;
+  width: 22px;
+  height: 22px;
+  color: white;
 }
 
-.toast-text {
+.toast-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.toast-title {
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.toast-subtitle {
+  font-size: 0.875rem;
+  color: #7f8c8d;
+  font-weight: 400;
+}
+
+.toast-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #f0f0f0;
+}
+
+.toast-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #27ae60, #2ecc71);
+  width: 100%;
+  animation: progress-shrink 3.8s linear forwards;
+}
+
+@keyframes progress-shrink {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+.toast-enter-active {
+  animation: toast-in 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toast-leave-active {
+  animation: toast-out 0.3s cubic-bezier(0.4, 0, 1, 1);
 }
 
 @keyframes toast-in {
   from {
     opacity: 0;
-    transform: translateX(100px);
+    transform: translateX(100%) translateY(0);
   }
   to {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateX(0) translateY(0);
   }
 }
 
 @keyframes toast-out {
   from {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateX(0) translateY(0);
   }
   to {
     opacity: 0;
-    transform: translateX(100px);
+    transform: translateX(100%) translateY(0);
   }
 }
 
