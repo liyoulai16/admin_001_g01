@@ -17,7 +17,7 @@
             id="username"
             v-model="username" 
             class="form-input"
-            placeholder="请输入用户名"
+            placeholder="请输入用户名（3-50位）"
             autocomplete="username"
           />
         </div>
