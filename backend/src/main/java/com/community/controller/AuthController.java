@@ -3,11 +3,13 @@ package com.community.controller;
 import com.community.common.Result;
 import com.community.dto.LoginRequest;
 import com.community.dto.RegisterRequest;
+import com.community.entity.User;
 import com.community.service.UserService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.annotation.Resource;
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -47,5 +49,20 @@ public class AuthController {
     public Result<Boolean> checkUsername(@RequestParam("username") String username) {
         boolean exists = userService.checkUsernameExists(username);
         return Result.success(exists);
+    }
+    
+    @GetMapping("/user-info")
+    public Result<Map<String, Object>> getUserInfo(@RequestParam("username") String username) {
+        User user = userService.getUserByUsername(username);
+        if (user == null) {
+            return Result.error("用户不存在");
+        }
+        Map<String, Object> userInfo = new HashMap<>();
+        userInfo.put("id", user.getId());
+        userInfo.put("username", user.getUsername());
+        userInfo.put("nickname", user.getNickname());
+        userInfo.put("status", user.getStatus());
+        userInfo.put("createTime", user.getCreateTime());
+        return Result.success(userInfo);
     }
 }
