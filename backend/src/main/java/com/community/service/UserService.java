@@ -99,4 +99,12 @@ public class UserService {
         );
         return existingUser != null;
     }
+    
+    public User getUserByUsername(String username) {
+        return userMapper.selectOne(
+            new LambdaQueryWrapper<User>()
+                .eq(User::getUsername, username)
+                .eq(User::getDeleted, 0)
+        );
+    }
 }
