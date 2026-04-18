@@ -216,6 +216,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import request, { removeToken, setToken, getToken } from '../utils/request'
 
 const router = useRouter()
 const isMobileMenuOpen = ref(false)
@@ -244,7 +245,7 @@ const passwordForm = reactive({
 })
 
 const checkLoginStatus = () => {
-  isLoggedIn.value = localStorage.getItem('isLoggedIn') === 'true'
+  isLoggedIn.value = localStorage.getItem('isLoggedIn') === 'true' && getToken()
   const nickname = localStorage.getItem('nickname')
   const storedUsername = localStorage.getItem('username') || ''
   username.value = nickname || storedUsername
@@ -262,6 +263,7 @@ const handleLogout = () => {
   localStorage.removeItem('isLoggedIn')
   localStorage.removeItem('username')
   localStorage.removeItem('nickname')
+  removeToken()
   isLoggedIn.value = false
   username.value = ''
   userInfo.value = null
@@ -277,16 +279,18 @@ const openProfileModal = async () => {
   activeTab.value = 'profile'
   resetForms()
   
-  const storedUsername = localStorage.getItem('username')
-  if (storedUsername) {
+  if (getToken()) {
     try {
-      const response = await fetch(`http://localhost:9090/api/auth/user-info?username=${encodeURIComponent(storedUsername)}`)
+      const response = await request('/api/auth/user-info')
       const data = await response.json()
       
       if (data.code === 200) {
         userInfo.value = data.data
         editForm.newUsername = data.data.username || ''
         editForm.nickname = data.data.nickname || ''
+      } else if (data.code === 401) {
+        handleLogout()
+        return
       }
     } catch (error) {
       console.error('获取用户信息失败:', error)
@@ -363,14 +367,9 @@ const saveUserInfo = async () => {
   isSaving.value = true
   
   try {
-    const storedUsername = localStorage.getItem('username')
-    const response = await fetch('http://localhost:9090/api/auth/update-info', {
+    const response = await request('/api/auth/update-info', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
       body: JSON.stringify({
-        currentUsername: storedUsername,
         newUsername: editForm.newUsername,
         nickname: editForm.nickname
       })
@@ -389,12 +388,19 @@ const saveUserInfo = async () => {
         localStorage.setItem('nickname', editForm.newUsername)
       }
       
+      if (data.data && data.data.token) {
+        setToken(data.data.token)
+      }
+      
       username.value = editForm.nickname || editForm.newUsername
       
       if (userInfo.value) {
         userInfo.value.username = editForm.newUsername
         userInfo.value.nickname = editForm.nickname || editForm.newUsername
       }
+    } else if (data.code === 401) {
+      handleLogout()
+      return
     } else {
       editError.value = data.message || '修改失败，请重试'
     }
@@ -438,14 +444,9 @@ const savePassword = async () => {
   isSavingPassword.value = true
   
   try {
-    const storedUsername = localStorage.getItem('username')
-    const response = await fetch('http://localhost:9090/api/auth/update-password', {
+    const response = await request('/api/auth/update-password', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
       body: JSON.stringify({
-        username: storedUsername,
         oldPassword: passwordForm.oldPassword,
         newPassword: passwordForm.newPassword,
         confirmPassword: passwordForm.confirmPassword
@@ -459,6 +460,9 @@ const savePassword = async () => {
       passwordForm.oldPassword = ''
       passwordForm.newPassword = ''
       passwordForm.confirmPassword = ''
+    } else if (data.code === 401) {
+      handleLogout()
+      return
     } else {
       passwordError.value = data.message || '密码修改失败，请重试'
     }

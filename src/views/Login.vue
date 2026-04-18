@@ -57,6 +57,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { setToken } from '../utils/request'
 
 const router = useRouter()
 const username = ref('')
@@ -119,6 +120,9 @@ const handleLogin = async () => {
       localStorage.setItem('username', data.data.username)
       if (data.data.nickname) {
         localStorage.setItem('nickname', data.data.nickname)
+      }
+      if (data.data.token) {
+        setToken(data.data.token)
       }
       localStorage.setItem('showLoginSuccess', 'true')
       router.push('/')
