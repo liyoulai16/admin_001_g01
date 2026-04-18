@@ -18,6 +18,10 @@ public class User {
     
     private String nickname;
     
+    private String phone;
+    
+    private String email;
+    
     private Integer status;
     
     @TableLogic

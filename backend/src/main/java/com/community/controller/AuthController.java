@@ -69,9 +69,10 @@ public class AuthController {
             return Result.error("用户不存在");
         }
         Map<String, Object> userInfo = new HashMap<>();
-        userInfo.put("id", user.getId());
         userInfo.put("username", user.getUsername());
         userInfo.put("nickname", user.getNickname());
+        userInfo.put("phone", user.getPhone());
+        userInfo.put("email", user.getEmail());
         userInfo.put("status", user.getStatus());
         userInfo.put("createTime", user.getCreateTime());
         return Result.success(userInfo);
@@ -83,7 +84,9 @@ public class AuthController {
         Map<String, Object> result = userService.updateUserInfo(
             currentUsername,
             request.getNewUsername(),
-            request.getNickname()
+            request.getNickname(),
+            request.getPhone(),
+            request.getEmail()
         );
         if ((Boolean) result.get("success")) {
             String newUsername = (String) result.get("username");
