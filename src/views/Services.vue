@@ -146,92 +146,102 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { services, categories } from '../data/services'
+import request from '../utils/request'
 
 const route = useRoute()
 const router = useRouter()
 
+const services = ref([])
+const categories = ref([])
 const searchQuery = ref('')
 const selectedCategory = ref('全部')
 const selectedPrice = ref('全部')
 const sortBy = ref('default')
+const loading = ref(false)
 
-const filteredServices = computed(() => {
-  let result = [...services]
+const filteredServices = computed(() => services.value)
 
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
-    result = result.filter(service => 
-      service.name.toLowerCase().includes(query) ||
-      service.description.toLowerCase().includes(query) ||
-      service.category.toLowerCase().includes(query)
-    )
-  }
+const fetchServices = async () => {
+  loading.value = true
+  try {
+    let priceRange = null
+    if (selectedPrice.value === '免费') {
+      priceRange = '免费'
+    } else if (selectedPrice.value === '低价') {
+      priceRange = '低价'
+    } else if (selectedPrice.value === '中价') {
+      priceRange = '中价'
+    } else if (selectedPrice.value === '高价') {
+      priceRange = '高价'
+    }
 
-  if (selectedCategory.value !== '全部') {
-    result = result.filter(service => service.category === selectedCategory.value)
-  }
+    let sortParam = null
+    if (sortBy.value === 'rating') {
+      sortParam = 'rating'
+    } else if (sortBy.value === 'reviews') {
+      sortParam = 'reviews'
+    } else if (sortBy.value === 'price-asc') {
+      sortParam = 'price-asc'
+    } else if (sortBy.value === 'price-desc') {
+      sortParam = 'price-desc'
+    }
 
-  if (selectedPrice.value !== '全部') {
-    result = result.filter(service => {
-      const priceMatch = service.price.match(/¥(\d+)/)
-      const price = priceMatch ? parseInt(priceMatch[1]) : 0
-      
-      switch (selectedPrice.value) {
-        case '免费':
-          return service.price.includes('免费')
-        case '低价':
-          return price < 50
-        case '中价':
-          return price >= 50 && price <= 100
-        case '高价':
-          return price > 100
-        default:
-          return true
-      }
+    const params = new URLSearchParams()
+    if (searchQuery.value) {
+      params.append('keyword', searchQuery.value)
+    }
+    if (selectedCategory.value !== '全部') {
+      params.append('category', selectedCategory.value)
+    }
+    if (priceRange) {
+      params.append('priceRange', priceRange)
+    }
+    if (sortParam) {
+      params.append('sortBy', sortParam)
+    }
+
+    const url = params.toString() 
+      ? `/api/services/search?${params.toString()}` 
+      : '/api/services/search'
+
+    const response = await request(url, {
+      method: 'GET'
     })
-  }
 
-  switch (sortBy.value) {
-    case 'rating':
-      result.sort((a, b) => b.rating - a.rating)
-      break
-    case 'reviews':
-      result.sort((a, b) => b.reviews - a.reviews)
-      break
-    case 'price-asc':
-      result.sort((a, b) => {
-        const priceA = parseInt(a.price.match(/¥(\d+)/)?.[1] || 0)
-        const priceB = parseInt(b.price.match(/¥(\d+)/)?.[1] || 0)
-        return priceA - priceB
-      })
-      break
-    case 'price-desc':
-      result.sort((a, b) => {
-        const priceA = parseInt(a.price.match(/¥(\d+)/)?.[1] || 0)
-        const priceB = parseInt(b.price.match(/¥(\d+)/)?.[1] || 0)
-        return priceB - priceA
-      })
-      break
+    if (response.ok) {
+      const data = await response.json()
+      if (data.code === 200 && data.data) {
+        services.value = data.data.services || []
+        if (categories.value.length === 0) {
+          categories.value = data.data.categories || []
+        }
+      }
+    }
+  } catch (error) {
+    console.error('获取服务数据失败:', error)
+  } finally {
+    loading.value = false
   }
-
-  return result
-})
+}
 
 const handleSearch = () => {
+  fetchServices()
 }
 
 const handleSort = () => {
+  fetchServices()
 }
 
 const selectCategory = (category) => {
   selectedCategory.value = category
+  fetchServices()
 }
 
 const selectPrice = (price) => {
   selectedPrice.value = price
+  fetchServices()
 }
 
 const goToServiceDetail = (id) => {
@@ -243,7 +253,12 @@ const resetFilters = () => {
   selectedCategory.value = '全部'
   selectedPrice.value = '全部'
   sortBy.value = 'default'
+  fetchServices()
 }
+
+watch([searchQuery, selectedCategory, selectedPrice, sortBy], () => {
+  fetchServices()
+}, { deep: true })
 
 onMounted(() => {
   const searchParam = route.query.search
@@ -256,6 +271,8 @@ onMounted(() => {
   if (categoryParam) {
     selectedCategory.value = decodeURIComponent(categoryParam)
   }
+  
+  fetchServices()
 })
 </script>
 

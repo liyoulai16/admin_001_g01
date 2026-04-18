@@ -161,12 +161,13 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { services } from '../data/services'
+import request from '../utils/request'
 
 const route = useRoute()
 const router = useRouter()
 
 const service = ref(null)
+const loading = ref(false)
 const bookingDate = ref('')
 const bookingTime = ref('')
 const phone = ref('')
@@ -197,6 +198,27 @@ const reviews = computed(() => [
   }
 ])
 
+const fetchServiceDetail = async () => {
+  loading.value = true
+  try {
+    const serviceId = route.params.id
+    const response = await request(`/api/services/${serviceId}`, {
+      method: 'GET'
+    })
+
+    if (response.ok) {
+      const data = await response.json()
+      if (data.code === 200 && data.data) {
+        service.value = data.data
+      }
+    }
+  } catch (error) {
+    console.error('获取服务详情失败:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
 const handleBooking = () => {
   if (!bookingDate.value) {
     alert('请选择预约日期')
@@ -219,8 +241,7 @@ const handleBooking = () => {
 }
 
 onMounted(() => {
-  const serviceId = parseInt(route.params.id)
-  service.value = services.find(s => s.id === serviceId) || null
+  fetchServiceDetail()
   
   const today = new Date()
   bookingDate.value = today.toISOString().split('T')[0]
