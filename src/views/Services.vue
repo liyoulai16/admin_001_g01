@@ -1,6 +1,9 @@
 <template>
   <div class="services">
     <div class="page-header">
+      <div class="particles">
+        <div v-for="i in 30" :key="i" class="particle" :style="getParticleStyle(i)"></div>
+      </div>
       <div class="container">
         <h1 class="page-title">服务列表</h1>
         <p class="page-subtitle">为您提供全方位的社区生活服务</p>
@@ -153,6 +156,22 @@ import request from '../utils/request'
 const route = useRoute()
 const router = useRouter()
 
+const getParticleStyle = (index) => {
+  const size = Math.random() * 8 + 4
+  const left = Math.random() * 100
+  const duration = Math.random() * 20 + 15
+  const delay = Math.random() * 5
+  
+  return {
+    width: `${size}px`,
+    height: `${size}px`,
+    left: `${left}%`,
+    animationDuration: `${duration}s`,
+    animationDelay: `${delay}s`,
+    opacity: Math.random() * 0.5 + 0.2
+  }
+}
+
 const services = ref([])
 const categories = ref([])
 const searchQuery = ref('')
@@ -286,6 +305,43 @@ onMounted(() => {
   padding: 50px 0;
   text-align: center;
   color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.particles {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.particle {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  bottom: -100px;
+  animation: float-up linear infinite;
+}
+
+@keyframes float-up {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-400px) rotate(720deg);
+    opacity: 0;
+  }
 }
 
 .page-title {

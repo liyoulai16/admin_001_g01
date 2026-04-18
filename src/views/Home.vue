@@ -19,6 +19,9 @@
       </div>
     </Transition>
     <section class="hero">
+      <div class="particles">
+        <div v-for="i in 30" :key="i" class="particle" :style="getParticleStyle(i)"></div>
+      </div>
       <div class="container">
         <div class="hero-content">
           <h1 class="hero-title">社区生活服务</h1>
@@ -125,6 +128,22 @@ const router = useRouter()
 const searchQuery = ref('')
 const showSuccessMessage = ref(false)
 
+const getParticleStyle = (index) => {
+  const size = Math.random() * 8 + 4
+  const left = Math.random() * 100
+  const duration = Math.random() * 20 + 15
+  const delay = Math.random() * 5
+  
+  return {
+    width: `${size}px`,
+    height: `${size}px`,
+    left: `${left}%`,
+    animationDuration: `${duration}s`,
+    animationDelay: `${delay}s`,
+    opacity: Math.random() * 0.5 + 0.2
+  }
+}
+
 const displayName = computed(() => {
   return localStorage.getItem('nickname') || localStorage.getItem('username') || '用户'
 })
@@ -168,6 +187,43 @@ const goToServiceDetail = (id) => {
   padding: 80px 0;
   text-align: center;
   color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.particles {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.particle {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  bottom: -100px;
+  animation: float-up linear infinite;
+}
+
+@keyframes float-up {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-500px) rotate(720deg);
+    opacity: 0;
+  }
 }
 
 .hero-title {
