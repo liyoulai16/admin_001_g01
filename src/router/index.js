@@ -9,10 +9,6 @@ import Register from '../views/Register.vue'
 
 const routes = [
   {
-    path: '/',
-    redirect: '/login'
-  },
-  {
     path: '/login',
     name: 'Login',
     component: Login,
@@ -25,7 +21,7 @@ const routes = [
     meta: { requiresAuth: false }
   },
   {
-    path: '/home',
+    path: '/',
     name: 'Home',
     component: Home,
     meta: { requiresAuth: true }
@@ -74,9 +70,7 @@ router.beforeEach((to, from, next) => {
   if (to.meta.requiresAuth && !isLoggedIn) {
     next('/login')
   } else if (to.path === '/login' && isLoggedIn) {
-    next('/home')
-  } else if (to.path === '/' && isLoggedIn) {
-    next('/home')
+    next('/')
   } else {
     next()
   }

@@ -2,12 +2,12 @@
   <header class="header">
     <div class="container">
       <div class="header-content">
-        <router-link to="/home" class="logo">
+        <router-link to="/" class="logo">
           <span class="logo-icon">🏠</span>
           <span class="logo-text">社区生活服务</span>
         </router-link>
         <nav class="nav">
-          <router-link to="/home" class="nav-link" :class="{ active: $route.path === '/home' }">首页</router-link>
+          <router-link to="/" class="nav-link" :class="{ active: $route.path === '/' }">首页</router-link>
           <router-link to="/services" class="nav-link" :class="{ active: $route.path === '/services' }">服务列表</router-link>
           <router-link to="/about" class="nav-link" :class="{ active: $route.path === '/about' }">关于我们</router-link>
           <router-link to="/contact" class="nav-link" :class="{ active: $route.path === '/contact' }">联系我们</router-link>
@@ -33,7 +33,7 @@
     </div>
     <div class="mobile-menu" :class="{ open: isMobileMenuOpen }">
       <nav class="mobile-nav">
-        <router-link to="/home" class="mobile-nav-link" @click="closeMobileMenu">首页</router-link>
+        <router-link to="/" class="mobile-nav-link" @click="closeMobileMenu">首页</router-link>
         <router-link to="/services" class="mobile-nav-link" @click="closeMobileMenu">服务列表</router-link>
         <router-link to="/about" class="mobile-nav-link" @click="closeMobileMenu">关于我们</router-link>
         <router-link to="/contact" class="mobile-nav-link" @click="closeMobileMenu">联系我们</router-link>
