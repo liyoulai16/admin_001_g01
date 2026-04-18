@@ -420,7 +420,7 @@ const handleRegister = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #8B7355 0%, #6B8E23 100%);
   padding: 20px;
   position: relative;
   overflow: hidden;
@@ -438,8 +438,8 @@ const handleRegister = async () => {
 
 .particle {
   position: absolute;
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
   bottom: -100px;
   animation: float-up linear infinite;
 }
@@ -523,7 +523,7 @@ const handleRegister = async () => {
   font-size: 1.8rem;
   color: #2c3e50;
   margin-bottom: 10px;
-  background: linear-gradient(135deg, #3498db, #2ecc71);
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -623,41 +623,41 @@ const handleRegister = async () => {
 }
 
 .input-error {
-  border-color: #e74c3c !important;
+  border-color: #C45B1A !important;
 }
 
 .input-error:focus {
-  border-color: #e74c3c !important;
+  border-color: #C45B1A !important;
   box-shadow: 0 0 0 4px rgba(231, 76, 60, 0.1) !important;
 }
 
 .field-error {
-  color: #e74c3c;
+  color: #C45B1A;
   font-size: 0.85rem;
   margin-top: 4px;
   padding-left: 4px;
 }
 
 .field-valid {
-  color: #27ae60;
+  color: #5D7C4A;
   font-size: 0.85rem;
   margin-top: 4px;
   padding-left: 4px;
 }
 
 .field-checking {
-  color: #3498db;
+  color: #6B8E23;
   font-size: 0.85rem;
   margin-top: 4px;
   padding-left: 4px;
 }
 
 .input-valid {
-  border-color: #27ae60 !important;
+  border-color: #5D7C4A !important;
 }
 
 .input-valid:focus {
-  border-color: #27ae60 !important;
+  border-color: #5D7C4A !important;
   box-shadow: 0 0 0 4px rgba(39, 174, 96, 0.1) !important;
 }
 
@@ -683,7 +683,7 @@ const handleRegister = async () => {
 }
 
 .strength-1 {
-  background: #e74c3c;
+  background: #C45B1A;
 }
 
 .strength-2 {
@@ -691,7 +691,7 @@ const handleRegister = async () => {
 }
 
 .strength-3 {
-  background: #27ae60;
+  background: #5D7C4A;
 }
 
 .strength-text {
@@ -701,7 +701,7 @@ const handleRegister = async () => {
 }
 
 .text-1 {
-  color: #e74c3c;
+  color: #C45B1A;
 }
 
 .text-2 {
@@ -709,7 +709,7 @@ const handleRegister = async () => {
 }
 
 .text-3 {
-  color: #27ae60;
+  color: #5D7C4A;
 }
 
 .password-tips {
@@ -731,7 +731,7 @@ const handleRegister = async () => {
 }
 
 .tip-valid {
-  color: #27ae60;
+  color: #5D7C4A;
 }
 
 .tip-invalid {
@@ -746,12 +746,12 @@ const handleRegister = async () => {
 }
 
 .match-valid {
-  color: #27ae60;
+  color: #5D7C4A;
   background: rgba(39, 174, 96, 0.1);
 }
 
 .match-invalid {
-  color: #e74c3c;
+  color: #C45B1A;
   background: rgba(231, 76, 60, 0.1);
 }
 
@@ -765,8 +765,8 @@ const handleRegister = async () => {
 }
 
 .form-input:focus {
-  border-color: #3498db;
-  box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.1);
+  border-color: #6B8E23;
+  box-shadow: 0 0 0 4px rgba(107, 142, 35, 0.1);
 }
 
 .form-input::placeholder {
@@ -785,7 +785,7 @@ const handleRegister = async () => {
 
 .register-btn {
   padding: 14px 30px;
-  background: linear-gradient(135deg, #3498db, #2ecc71);
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
   color: white;
   font-size: 1.1rem;
   font-weight: bold;
@@ -797,7 +797,7 @@ const handleRegister = async () => {
 
 .register-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(52, 152, 219, 0.3);
+  box-shadow: 0 10px 25px rgba(107, 142, 35, 0.3);
 }
 
 .register-btn:disabled {
@@ -820,14 +820,14 @@ const handleRegister = async () => {
 }
 
 .login-link {
-  color: #3498db;
+  color: #6B8E23;
   text-decoration: none;
   font-weight: 600;
   transition: color 0.3s ease;
 }
 
 .login-link:hover {
-  color: #2ecc71;
+  color: #8FBC8F;
   text-decoration: underline;
 }
 

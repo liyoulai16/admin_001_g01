@@ -244,12 +244,12 @@ onMounted(() => {
 }
 
 .breadcrumb a {
-  color: #3498db;
+  color: #6B8E23;
   transition: color 0.3s ease;
 }
 
 .breadcrumb a:hover {
-  color: #2980b9;
+  color: #6B8E23;
 }
 
 .separator {
@@ -297,7 +297,7 @@ onMounted(() => {
 
 .service-category-badge {
   display: inline-block;
-  background: linear-gradient(135deg, #3498db, #2ecc71);
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
   color: white;
   padding: 5px 15px;
   border-radius: 20px;
@@ -351,7 +351,7 @@ onMounted(() => {
 .price-value {
   font-size: 1.3rem;
   font-weight: bold;
-  color: #e74c3c;
+  color: #C45B1A;
 }
 
 .service-section {
@@ -397,7 +397,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #3498db, #2ecc71);
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
   color: white;
   border-radius: 50%;
   font-size: 0.8rem;
@@ -507,7 +507,7 @@ onMounted(() => {
 .price-display .price-value {
   font-size: 1.8rem;
   font-weight: bold;
-  color: #e74c3c;
+  color: #C45B1A;
 }
 
 .form-group {
@@ -537,7 +537,7 @@ onMounted(() => {
 .form-select:focus,
 .form-textarea:focus {
   outline: none;
-  border-color: #3498db;
+  border-color: #6B8E23;
 }
 
 .form-textarea {
@@ -547,7 +547,7 @@ onMounted(() => {
 .booking-btn {
   width: 100%;
   padding: 15px;
-  background: linear-gradient(135deg, #3498db, #2ecc71);
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
   color: white;
   font-size: 1.1rem;
   font-weight: bold;
@@ -558,7 +558,7 @@ onMounted(() => {
 
 .booking-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(52, 152, 219, 0.3);
+  box-shadow: 0 10px 20px rgba(107, 142, 35, 0.3);
 }
 
 .contact-list {
@@ -611,7 +611,7 @@ onMounted(() => {
 .back-btn {
   display: inline-block;
   padding: 12px 30px;
-  background: linear-gradient(135deg, #3498db, #2ecc71);
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
   color: white;
   border-radius: 25px;
   font-weight: bold;
@@ -620,7 +620,7 @@ onMounted(() => {
 
 .back-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(52, 152, 219, 0.3);
+  box-shadow: 0 10px 20px rgba(107, 142, 35, 0.3);
 }
 
 @media (max-width: 992px) {

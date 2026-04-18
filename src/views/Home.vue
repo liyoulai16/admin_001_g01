@@ -164,7 +164,7 @@ const goToServiceDetail = (id) => {
 }
 
 .hero {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #8B7355 0%, #6B8E23 100%);
   padding: 80px 0;
   text-align: center;
   color: white;
@@ -202,7 +202,7 @@ const goToServiceDetail = (id) => {
 
 .search-btn {
   padding: 18px 35px;
-  background: linear-gradient(135deg, #3498db, #2ecc71);
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
   color: white;
   font-size: 1rem;
   font-weight: bold;
@@ -210,7 +210,7 @@ const goToServiceDetail = (id) => {
 }
 
 .search-btn:hover {
-  background: linear-gradient(135deg, #2980b9, #27ae60);
+  background: linear-gradient(135deg, #556B2F, #5D7C4A);
 }
 
 .section-title {
@@ -229,7 +229,7 @@ const goToServiceDetail = (id) => {
   transform: translateX(-50%);
   width: 80px;
   height: 3px;
-  background: linear-gradient(135deg, #3498db, #2ecc71);
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
   border-radius: 2px;
 }
 
@@ -322,7 +322,7 @@ const goToServiceDetail = (id) => {
 
 .service-category {
   font-size: 0.85rem;
-  color: #3498db;
+  color: #6B8E23;
   margin-bottom: 10px;
 }
 
@@ -346,7 +346,7 @@ const goToServiceDetail = (id) => {
 .service-price {
   font-size: 1.1rem;
   font-weight: bold;
-  color: #e74c3c;
+  color: #C45B1A;
 }
 
 .service-rating {
@@ -377,7 +377,7 @@ const goToServiceDetail = (id) => {
 .view-all-btn {
   display: inline-block;
   padding: 12px 30px;
-  background: linear-gradient(135deg, #3498db, #2ecc71);
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
   color: white;
   border-radius: 50px;
   font-weight: bold;
@@ -386,7 +386,7 @@ const goToServiceDetail = (id) => {
 
 .view-all-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(52, 152, 219, 0.3);
+  box-shadow: 0 10px 20px rgba(107, 142, 35, 0.3);
 }
 
 .features-grid {
@@ -442,14 +442,14 @@ const goToServiceDetail = (id) => {
 }
 
 .toast-success {
-  border-left: 4px solid #27ae60;
+  border-left: 4px solid #5D7C4A;
 }
 
 .toast-icon-wrapper {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #27ae60, #2ecc71);
+  background: linear-gradient(135deg, #5D7C4A, #8FBC8F);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -493,7 +493,7 @@ const goToServiceDetail = (id) => {
 
 .toast-progress-bar {
   height: 100%;
-  background: linear-gradient(90deg, #27ae60, #2ecc71);
+  background: linear-gradient(90deg, #5D7C4A, #8FBC8F);
   width: 100%;
   animation: progress-shrink 3.8s linear forwards;
 }

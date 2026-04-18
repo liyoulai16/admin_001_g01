@@ -136,7 +136,7 @@
 }
 
 .page-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #8B7355 0%, #6B8E23 100%);
   padding: 50px 0;
   text-align: center;
   color: white;
@@ -175,7 +175,7 @@
   transform: translateX(-50%);
   width: 80px;
   height: 3px;
-  background: linear-gradient(135deg, #3498db, #2ecc71);
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
   border-radius: 2px;
 }
 
@@ -280,7 +280,7 @@
 }
 
 .stat-item {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #8B7355 0%, #6B8E23 100%);
   border-radius: 15px;
   padding: 30px;
   text-align: center;
@@ -333,7 +333,7 @@
 
 .member-role {
   font-size: 0.9rem;
-  color: #3498db;
+  color: #6B8E23;
   margin-bottom: 15px;
 }
 

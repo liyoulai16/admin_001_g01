@@ -529,7 +529,7 @@ onMounted(() => {
 }
 
 .logo-text {
-  background: linear-gradient(135deg, #3498db, #2ecc71);
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -543,7 +543,7 @@ onMounted(() => {
   left: 0;
   width: 0;
   height: 2px;
-  background: linear-gradient(135deg, #3498db, #2ecc71);
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
   transition: width 0.3s ease;
 }
 
@@ -582,7 +582,7 @@ onMounted(() => {
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, rgba(52, 152, 219, 0.1), rgba(46, 204, 113, 0.1));
+  background: linear-gradient(135deg, rgba(107, 142, 35, 0.1), rgba(143, 188, 143, 0.1));
   border-radius: 8px;
   opacity: 0;
   transition: opacity 0.3s ease;
@@ -596,13 +596,13 @@ onMounted(() => {
   left: 50%;
   width: 0;
   height: 2px;
-  background: linear-gradient(135deg, #3498db, #2ecc71);
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   transform: translateX(-50%);
 }
 
 .nav-link:hover {
-  color: #3498db;
+  color: #6B8E23;
   transform: translateY(-2px);
 }
 
@@ -615,7 +615,7 @@ onMounted(() => {
 }
 
 .nav-link.active {
-  color: #3498db;
+  color: #6B8E23;
   font-weight: 600;
 }
 
@@ -678,14 +678,14 @@ onMounted(() => {
   top: 0;
   width: 3px;
   height: 100%;
-  background: linear-gradient(135deg, #3498db, #2ecc71);
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
   transform: scaleY(0);
   transition: transform 0.3s ease;
 }
 
 .mobile-nav-link:hover {
   background-color: #f5f7fa;
-  color: #3498db;
+  color: #6B8E23;
   padding-left: 30px;
 }
 
@@ -710,7 +710,7 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  background: linear-gradient(135deg, #3498db, #2ecc71);
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
   color: white;
   border: none;
   border-radius: 8px;
@@ -722,7 +722,7 @@ onMounted(() => {
 
 .profile-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+  box-shadow: 0 5px 15px rgba(107, 142, 35, 0.3);
 }
 
 .profile-icon {
@@ -735,7 +735,7 @@ onMounted(() => {
 
 .logout-btn {
   padding: 8px 20px;
-  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  background: linear-gradient(135deg, #C45B1A, #9E3B1B);
   color: white;
   border: none;
   border-radius: 8px;
@@ -747,12 +747,12 @@ onMounted(() => {
 
 .logout-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+  box-shadow: 0 5px 15px rgba(196, 91, 26, 0.3);
 }
 
 .login-link {
   padding: 8px 20px;
-  background: linear-gradient(135deg, #3498db, #2ecc71);
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
   color: white;
   border-radius: 8px;
   font-size: 0.95rem;
@@ -762,7 +762,7 @@ onMounted(() => {
 
 .login-link:hover {
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+  box-shadow: 0 5px 15px rgba(107, 142, 35, 0.3);
 }
 
 .mobile-user-section {
@@ -781,7 +781,7 @@ onMounted(() => {
 
 .mobile-profile-btn {
   padding: 10px 16px;
-  background: linear-gradient(135deg, #3498db, #2ecc71);
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
   color: white;
   border: none;
   border-radius: 8px;
@@ -792,12 +792,12 @@ onMounted(() => {
 }
 
 .mobile-profile-btn:hover {
-  background: linear-gradient(135deg, #2980b9, #27ae60);
+  background: linear-gradient(135deg, #556B2F, #5D7C4A);
 }
 
 .mobile-logout-btn {
   padding: 10px 16px;
-  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  background: linear-gradient(135deg, #C45B1A, #9E3B1B);
   color: white;
   border: none;
   border-radius: 8px;
@@ -808,7 +808,7 @@ onMounted(() => {
 }
 
 .mobile-logout-btn:hover {
-  background: linear-gradient(135deg, #c0392b, #a93226);
+  background: linear-gradient(135deg, #9E3B1B, #a93226);
 }
 
 .modal-overlay {
@@ -879,7 +879,7 @@ onMounted(() => {
 }
 
 .modal-close-btn:hover {
-  background: #e74c3c;
+  background: #C45B1A;
   color: white;
   transform: rotate(90deg);
 }
@@ -909,13 +909,13 @@ onMounted(() => {
   left: 0;
   width: 100%;
   height: 2px;
-  background: linear-gradient(135deg, #3498db, #2ecc71);
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
   transform: scaleX(0);
   transition: transform 0.3s ease;
 }
 
 .modal-tab.active {
-  color: #3498db;
+  color: #6B8E23;
 }
 
 .modal-tab.active::after {
@@ -923,7 +923,7 @@ onMounted(() => {
 }
 
 .modal-tab:hover {
-  color: #3498db;
+  color: #6B8E23;
 }
 
 .modal-body {
@@ -949,7 +949,7 @@ onMounted(() => {
   width: 40px;
   height: 40px;
   border: 3px solid #e4e8eb;
-  border-top-color: #3498db;
+  border-top-color: #6B8E23;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -975,11 +975,11 @@ onMounted(() => {
   width: 90px;
   height: 90px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #3498db, #2ecc71);
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
   display: flex;
   justify-content: center;
   align-items: center;
-  box-shadow: 0 8px 25px rgba(52, 152, 219, 0.3);
+  box-shadow: 0 8px 25px rgba(107, 142, 35, 0.3);
 }
 
 .avatar-text {
@@ -1014,8 +1014,8 @@ onMounted(() => {
 
 .info-item.editable.editing {
   background: #fff;
-  border: 1px solid #3498db;
-  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+  border: 1px solid #6B8E23;
+  box-shadow: 0 0 0 3px rgba(107, 142, 35, 0.1);
 }
 
 .info-label {
@@ -1043,20 +1043,20 @@ onMounted(() => {
 }
 
 .info-input:focus {
-  border-color: #3498db;
-  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+  border-color: #6B8E23;
+  box-shadow: 0 0 0 3px rgba(107, 142, 35, 0.1);
 }
 
 .status-badge {
   padding: 4px 12px;
   border-radius: 20px;
   font-size: 0.85rem;
-  background: #e74c3c;
+  background: #C45B1A;
   color: white;
 }
 
 .status-badge.active {
-  background: #27ae60;
+  background: #5D7C4A;
 }
 
 .form-section {
@@ -1088,8 +1088,8 @@ onMounted(() => {
 }
 
 .form-input:focus {
-  border-color: #3498db;
-  box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.1);
+  border-color: #6B8E23;
+  box-shadow: 0 0 0 4px rgba(107, 142, 35, 0.1);
 }
 
 .form-input::placeholder {
@@ -1105,7 +1105,7 @@ onMounted(() => {
 
 .btn-primary {
   padding: 12px 28px;
-  background: linear-gradient(135deg, #3498db, #2ecc71);
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
   color: white;
   border: none;
   border-radius: 10px;
@@ -1117,7 +1117,7 @@ onMounted(() => {
 
 .btn-primary:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+  box-shadow: 0 5px 15px rgba(107, 142, 35, 0.3);
 }
 
 .btn-primary:disabled {

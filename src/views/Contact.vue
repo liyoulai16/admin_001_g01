@@ -318,7 +318,7 @@ const handleSubmit = () => {
 }
 
 .page-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #8B7355 0%, #6B8E23 100%);
   padding: 50px 0;
   text-align: center;
   color: white;
@@ -396,9 +396,9 @@ const handleSubmit = () => {
 }
 
 .contact-card.active {
-  background: linear-gradient(135deg, #3498db, #2ecc71);
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
   transform: scale(1.02);
-  box-shadow: 0 10px 30px rgba(52, 152, 219, 0.3);
+  box-shadow: 0 10px 30px rgba(107, 142, 35, 0.3);
 }
 
 .contact-card.active .contact-title,
@@ -435,7 +435,7 @@ const handleSubmit = () => {
 .contact-detail {
   font-size: 1rem;
   font-weight: bold;
-  color: #3498db;
+  color: #6B8E23;
   margin-bottom: 5px;
 }
 
@@ -480,7 +480,7 @@ const handleSubmit = () => {
 }
 
 .hours-time {
-  color: #3498db;
+  color: #6B8E23;
   font-weight: bold;
 }
 
@@ -498,11 +498,11 @@ const handleSubmit = () => {
 }
 
 .faq-item:hover {
-  border-color: #3498db;
+  border-color: #6B8E23;
 }
 
 .faq-item.open {
-  border-color: #3498db;
+  border-color: #6B8E23;
 }
 
 .faq-question {
@@ -516,7 +516,7 @@ const handleSubmit = () => {
 }
 
 .faq-item.open .faq-question {
-  background: linear-gradient(135deg, #3498db, #2ecc71);
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
   color: white;
 }
 
@@ -529,12 +529,12 @@ const handleSubmit = () => {
   background: white;
   border-radius: 50%;
   font-weight: bold;
-  color: #3498db;
+  color: #6B8E23;
   font-size: 1.2rem;
 }
 
 .faq-item.open .faq-icon {
-  color: #e74c3c;
+  color: #C45B1A;
 }
 
 .faq-text {
@@ -591,9 +591,9 @@ const handleSubmit = () => {
   align-items: flex-start;
   gap: 10px;
   padding: 12px;
-  background: linear-gradient(135deg, rgba(52, 152, 219, 0.03), rgba(46, 204, 113, 0.03));
+  background: linear-gradient(135deg, rgba(107, 142, 35, 0.03), rgba(143, 188, 143, 0.03));
   border-radius: 8px;
-  border: 1px solid rgba(52, 152, 219, 0.1);
+  border: 1px solid rgba(107, 142, 35, 0.1);
 }
 
 .highlight-icon {
@@ -653,7 +653,7 @@ const handleSubmit = () => {
 .form-select:focus,
 .form-textarea:focus {
   outline: none;
-  border-color: #3498db;
+  border-color: #6B8E23;
 }
 
 .form-textarea {
@@ -665,7 +665,7 @@ const handleSubmit = () => {
   display: flex;
   gap: 20px;
   padding: 15px;
-  background: linear-gradient(135deg, rgba(52, 152, 219, 0.05), rgba(46, 204, 113, 0.05));
+  background: linear-gradient(135deg, rgba(107, 142, 35, 0.05), rgba(143, 188, 143, 0.05));
   border-radius: 10px;
   margin-top: 10px;
 }
@@ -684,7 +684,7 @@ const handleSubmit = () => {
 
 .submit-btn {
   padding: 15px;
-  background: linear-gradient(135deg, #3498db, #2ecc71);
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
   color: white;
   font-size: 1.1rem;
   font-weight: bold;
@@ -695,7 +695,7 @@ const handleSubmit = () => {
 
 .submit-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(52, 152, 219, 0.3);
+  box-shadow: 0 10px 20px rgba(107, 142, 35, 0.3);
 }
 
 .success-message {
@@ -758,7 +758,7 @@ const handleSubmit = () => {
 }
 
 .extra-feature:hover {
-  background: linear-gradient(135deg, rgba(52, 152, 219, 0.1), rgba(46, 204, 113, 0.1));
+  background: linear-gradient(135deg, rgba(107, 142, 35, 0.1), rgba(143, 188, 143, 0.1));
   transform: translateY(-2px);
 }
 
@@ -780,7 +780,7 @@ const handleSubmit = () => {
 }
 
 .contact-cta {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #8B7355 0%, #6B8E23 100%);
   border-radius: 12px;
   padding: 20px;
   text-align: center;
