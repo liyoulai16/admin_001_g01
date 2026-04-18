@@ -1,12 +1,14 @@
 package com.community.controller;
 
 import com.community.common.Result;
+import com.community.context.LoginUserContext;
 import com.community.dto.LoginRequest;
 import com.community.dto.RegisterRequest;
 import com.community.dto.UpdatePasswordRequest;
 import com.community.dto.UpdateUserInfoRequest;
 import com.community.entity.User;
 import com.community.service.UserService;
+import com.community.util.JwtUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,10 +24,16 @@ public class AuthController {
     @Resource
     private UserService userService;
     
+    @Resource
+    private JwtUtils jwtUtils;
+    
     @PostMapping("/login")
     public Result<Map<String, Object>> login(@Validated @RequestBody LoginRequest request) {
         Map<String, Object> result = userService.login(request);
         if ((Boolean) result.get("success")) {
+            String username = (String) result.get("username");
+            String token = jwtUtils.generateToken(username);
+            result.put("token", token);
             return Result.success((String) result.get("message"), result);
         } else {
             return Result.error((String) result.get("message"));
@@ -54,8 +62,9 @@ public class AuthController {
     }
     
     @GetMapping("/user-info")
-    public Result<Map<String, Object>> getUserInfo(@RequestParam("username") String username) {
-        User user = userService.getUserByUsername(username);
+    public Result<Map<String, Object>> getUserInfo() {
+        String currentUsername = LoginUserContext.getCurrentUser();
+        User user = userService.getUserByUsername(currentUsername);
         if (user == null) {
             return Result.error("用户不存在");
         }
@@ -70,12 +79,18 @@ public class AuthController {
     
     @PostMapping("/update-info")
     public Result<Map<String, Object>> updateUserInfo(@Validated @RequestBody UpdateUserInfoRequest request) {
+        String currentUsername = LoginUserContext.getCurrentUser();
         Map<String, Object> result = userService.updateUserInfo(
-            request.getCurrentUsername(),
+            currentUsername,
             request.getNewUsername(),
             request.getNickname()
         );
         if ((Boolean) result.get("success")) {
+            String newUsername = (String) result.get("username");
+            if (!currentUsername.equals(newUsername)) {
+                String newToken = jwtUtils.generateToken(newUsername);
+                result.put("token", newToken);
+            }
             return Result.success((String) result.get("message"), result);
         } else {
             return Result.error((String) result.get("message"));
@@ -84,8 +99,9 @@ public class AuthController {
     
     @PostMapping("/update-password")
     public Result<Map<String, Object>> updatePassword(@Validated @RequestBody UpdatePasswordRequest request) {
+        String currentUsername = LoginUserContext.getCurrentUser();
         Map<String, Object> result = userService.updatePassword(
-            request.getUsername(),
+            currentUsername,
             request.getOldPassword(),
             request.getNewPassword(),
             request.getConfirmPassword()
