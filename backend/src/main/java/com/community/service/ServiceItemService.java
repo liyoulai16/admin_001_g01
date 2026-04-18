@@ -10,6 +10,7 @@ import org.springframework.util.StringUtils;
 
 import jakarta.annotation.Resource;
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -65,7 +66,7 @@ public class ServiceItemService {
         );
         
         if (category == null) {
-            return List.of();
+            return Collections.emptyList();
         }
         
         return getServicesByCategoryId(category.getId());
