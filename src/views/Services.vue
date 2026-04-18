@@ -265,7 +265,7 @@ onMounted(() => {
 }
 
 .page-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #8B7355 0%, #6B8E23 100%);
   padding: 50px 0;
   text-align: center;
   color: white;
@@ -332,7 +332,7 @@ onMounted(() => {
 
 .category-item.active,
 .price-item.active {
-  background: linear-gradient(135deg, #3498db, #2ecc71);
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
   color: white;
 }
 
@@ -364,7 +364,7 @@ onMounted(() => {
 
 .search-bar input:focus {
   outline: none;
-  border-color: #3498db;
+  border-color: #6B8E23;
 }
 
 .sort-select select {
@@ -379,7 +379,7 @@ onMounted(() => {
 
 .sort-select select:focus {
   outline: none;
-  border-color: #3498db;
+  border-color: #6B8E23;
 }
 
 .results-info {
@@ -390,7 +390,7 @@ onMounted(() => {
 
 .results-count {
   font-weight: bold;
-  color: #3498db;
+  color: #6B8E23;
 }
 
 .services-grid {
@@ -427,7 +427,7 @@ onMounted(() => {
 }
 
 .service-category-badge {
-  background: linear-gradient(135deg, #3498db, #2ecc71);
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
   color: white;
   padding: 5px 12px;
   border-radius: 20px;
@@ -474,7 +474,7 @@ onMounted(() => {
 .service-price {
   font-size: 1.2rem;
   font-weight: bold;
-  color: #e74c3c;
+  color: #C45B1A;
 }
 
 .service-rating-info {
@@ -521,7 +521,7 @@ onMounted(() => {
 
 .reset-btn {
   padding: 12px 30px;
-  background: linear-gradient(135deg, #3498db, #2ecc71);
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
   color: white;
   border-radius: 25px;
   font-size: 1rem;
@@ -530,7 +530,7 @@ onMounted(() => {
 
 .reset-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(52, 152, 219, 0.3);
+  box-shadow: 0 10px 20px rgba(107, 142, 35, 0.3);
 }
 
 @media (max-width: 992px) {

@@ -140,7 +140,7 @@ const handleLogin = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #8B7355 0%, #6B8E23 100%);
   padding: 20px;
   position: relative;
   overflow: hidden;
@@ -158,8 +158,8 @@ const handleLogin = async () => {
 
 .particle {
   position: absolute;
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
   bottom: -100px;
   animation: float-up linear infinite;
 }
@@ -243,7 +243,7 @@ const handleLogin = async () => {
   font-size: 1.8rem;
   color: #2c3e50;
   margin-bottom: 10px;
-  background: linear-gradient(135deg, #3498db, #2ecc71);
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -343,8 +343,8 @@ const handleLogin = async () => {
 }
 
 .form-input:focus {
-  border-color: #3498db;
-  box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.1);
+  border-color: #6B8E23;
+  box-shadow: 0 0 0 4px rgba(107, 142, 35, 0.1);
 }
 
 .form-input::placeholder {
@@ -363,7 +363,7 @@ const handleLogin = async () => {
 
 .login-btn {
   padding: 14px 30px;
-  background: linear-gradient(135deg, #3498db, #2ecc71);
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
   color: white;
   font-size: 1.1rem;
   font-weight: bold;
@@ -375,7 +375,7 @@ const handleLogin = async () => {
 
 .login-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(52, 152, 219, 0.3);
+  box-shadow: 0 10px 25px rgba(107, 142, 35, 0.3);
 }
 
 .login-btn:disabled {
@@ -398,14 +398,14 @@ const handleLogin = async () => {
 }
 
 .register-link {
-  color: #3498db;
+  color: #6B8E23;
   text-decoration: none;
   font-weight: 600;
   transition: color 0.3s ease;
 }
 
 .register-link:hover {
-  color: #2ecc71;
+  color: #8FBC8F;
   text-decoration: underline;
 }
 

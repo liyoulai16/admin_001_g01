@@ -73,7 +73,7 @@
 .footer-title {
   font-size: 1.3rem;
   margin-bottom: 15px;
-  background: linear-gradient(135deg, #3498db, #2ecc71);
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -98,7 +98,7 @@
 }
 
 .social-link:hover {
-  color: #3498db;
+  color: #6B8E23;
 }
 
 .footer-subtitle {
@@ -123,7 +123,7 @@
 }
 
 .footer-links a:hover {
-  color: #3498db;
+  color: #6B8E23;
 }
 
 .contact-info {
