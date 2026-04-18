@@ -125,7 +125,7 @@ const handleLogin = async () => {
         setToken(data.data.token)
       }
       localStorage.setItem('showLoginSuccess', 'true')
-      router.push('/home')
+      router.push('/')
     } else {
       errorMessage.value = data.message || '登录失败，请重试'
       isLoading.value = false
