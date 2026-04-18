@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JWT 接口测试</title>
+    <style>
+        body { font-family: Consolas, monospace; margin: 20px; background: #1e1e1e; color: #d4d4d4; }
+        h1 { color: #4ec9b0; }
+        h2 { color: #569cd6; margin-top: 30px; }
+        .test-section { background: #252526; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .test-item { margin: 10px 0; padding: 10px; background: #2d2d30; border-radius: 4px; }
+        .test-name { color: #ce9178; font-weight: bold; }
+        .test-url { color: #9cdcfe; }
+        .test-method { color: #c586c0; padding: 2px 8px; background: #3c3c3c; border-radius: 3px; font-size: 0.9em; }
+        .test-status { display: inline-block; padding: 2px 10px; border-radius: 3px; margin-left: 10px; }
+        .status-pass { background: #4caf50; color: white; }
+        .status-fail { background: #f44336; color: white; }
+        .status-pending { background: #ff9800; color: white; }
+        .test-response { margin-top: 10px; padding: 10px; background: #1e1e1e; border-radius: 4px; font-size: 0.9em; white-space: pre-wrap; word-break: break-all; }
+        .btn { padding: 10px 20px; background: #007acc; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 1em; }
+        .btn:hover { background: #1e90ff; }
+        .btn:disabled { background: #555; cursor: not-allowed; }
+        .success { color: #4caf50; }
+        .error { color: #f44336; }
+        .token-display { background: #1e1e1e; padding: 10px; border-radius: 4px; margin: 10px 0; word-break: break-all; color: #4ec9b0; }
+        #test-token { width: 100%; padding: 10px; background: #1e1e1e; border: 1px solid #3c3c3c; border-radius: 4px; color: #d4d4d4; font-family: Consolas, monospace; margin: 5px 0; }
+        hr { border: 1px solid #3c3c3c; margin: 20px 0; }
+        .summary { background: #252526; padding: 20px; border-radius: 5px; margin-top: 20px; }
+        .summary h3 { color: #4ec9b0; }
+        .summary-item { margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>🔐 JWT 接口测试</h1>
+    <p>后端服务: http://localhost:9090</p>
+    
+    <button id="run-all-btn" class="btn" onclick="runAllTests()">🚀 运行所有测试</button>
+    <hr>
+
+    <h2>📋 测试 1: 无需 Token 的接口（放行路径验证）</h2>
+    <div id="test1" class="test-section">
+        <div class="test-item">
+            <span class="test-method">GET</span>
+            <span class="test-name">健康检查接口</span>
+            <span class="test-url">/api/auth/health</span>
+            <span id="test1-1-status" class="test-status status-pending">待测试</span>
+            <div id="test1-1-response" class="test-response" style="display:none;"></div>
+        </div>
+        
+        <div class="test-item">
+            <span class="test-method">GET</span>
+            <span class="test-name">检查用户名</span>
+            <span class="test-url">/api/auth/check-username?username=jwttestuser</span>
+            <span id="test1-2-status" class="test-status status-pending">待测试</span>
+            <div id="test1-2-response" class="test-response" style="display:none;"></div>
+        </div>
+    </div>
+
+    <h2>❌ 测试 2: 需要 Token 的接口（无 Token 应返回 401）</h2>
+    <div id="test2" class="test-section">
+        <div class="test-item">
+            <span class="test-method">GET</span>
+            <span class="test-name">获取用户信息（无Token）</span>
+            <span class="test-url">/api/auth/user-info</span>
+            <span id="test2-1-status" class="test-status status-pending">待测试</span>
+            <p class="error">预期: code=401, message="未登录，请先登录"</p>
+            <div id="test2-1-response" class="test-response" style="display:none;"></div>
+        </div>
+        
+        <div class="test-item">
+            <span class="test-method">POST</span>
+            <span class="test-name">更新用户信息（无Token）</span>
+            <span class="test-url">/api/auth/update-info</span>
+            <span id="test2-2-status" class="test-status status-pending">待测试</span>
+            <p class="error">预期: code=401, message="未登录，请先登录"</p>
+            <div id="test2-2-response" class="test-response" style="display:none;"></div>
+        </div>
+        
+        <div class="test-item">
+            <span class="test-method">POST</span>
+            <span class="test-name">修改密码（无Token）</span>
+            <span class="test-url">/api/auth/update-password</span>
+            <span id="test2-3-status" class="test-status status-pending">待测试</span>
+            <p class="error">预期: code=401, message="未登录，请先登录"</p>
+            <div id="test2-3-response" class="test-response" style="display:none;"></div>
+        </div>
+    </div>
+
+    <h2>📝 测试 3: 注册新用户</h2>
+    <div id="test3" class="test-section">
+        <div class="test-item">
+            <span class="test-method">POST</span>
+            <span class="test-name">注册用户</span>
+            <span class="test-url">/api/auth/register</span>
+            <span id="test3-1-status" class="test-status status-pending">待测试</span>
+            <p>请求体: username=jwttestuser, password=123456</p>
+            <div id="test3-1-response" class="test-response" style="display:none;"></div>
+        </div>
+    </div>
+
+    <h2>🔑 测试 4: 登录获取 Token</h2>
+    <div id="test4" class="test-section">
+        <div class="test-item">
+            <span class="test-method">POST</span>
+            <span class="test-name">用户登录</span>
+            <span class="test-url">/api/auth/login</span>
+            <span id="test4-1-status" class="test-status status-pending">待测试</span>
+            <p class="success">预期: code=200, 并返回 token</p>
+            <div id="test4-1-response" class="test-response" style="display:none;"></div>
+        </div>
+        <div class="test-item">
+            <label>获取到的 Token:</label>
+            <div id="token-display" class="token-display">等待登录...</div>
+        </div>
+    </div>
+
+    <h2>✅ 测试 5: 使用 Token 访问需要认证的接口</h2>
+    <div id="test5" class="test-section">
+        <div class="test-item">
+            <span class="test-method">GET</span>
+            <span class="test-name">获取用户信息（带Token）</span>
+            <span class="test-url">/api/auth/user-info</span>
+            <span id="test5-1-status" class="test-status status-pending">待测试</span>
+            <p class="success">预期: code=200, 返回用户信息</p>
+            <div id="test5-1-response" class="test-response" style="display:none;"></div>
+        </div>
+        
+        <div class="test-item">
+            <span class="test-method">GET</span>
+            <span class="test-name">使用无效Token</span>
+            <span class="test-url">/api/auth/user-info</span>
+            <span id="test5-2-status" class="test-status status-pending">待测试</span>
+            <p class="error">预期: code=401, message="token无效或已过期"</p>
+            <div id="test5-2-response" class="test-response" style="display:none;"></div>
+        </div>
+    </div>
+
+    <h2>✏️ 测试 6: 更新用户信息（用户名变更时刷新 Token）</h2>
+    <div id="test6" class="test-section">
+        <div class="test-item">
+            <span class="test-method">POST</span>
+            <span class="test-name">修改昵称（不变更用户名，不刷新Token）</span>
+            <span class="test-url">/api/auth/update-info</span>
+            <span id="test6-1-status" class="test-status status-pending">待测试</span>
+            <p>请求体: newUsername=jwttestuser, nickname=修改后的昵称</p>
+            <p class="success">预期: code=200, 无新 token</p>
+            <div id="test6-1-response" class="test-response" style="display:none;"></div>
+        </div>
+        
+        <div class="test-item">
+            <span class="test-method">POST</span>
+            <span class="test-name">修改用户名（变更用户名，应刷新Token）</span>
+            <span class="test-url">/api/auth/update-info</span>
+            <span id="test6-2-status" class="test-status status-pending">待测试</span>
+            <p>请求体: newUsername=jwttestuser2, nickname=新用户2</p>
+            <p class="success">预期: code=200, 并返回新 token</p>
+            <div id="test6-2-response" class="test-response" style="display:none;"></div>
+        </div>
+        <div class="test-item">
+            <label>更新用户名后的新 Token:</label>
+            <div id="new-token-display" class="token-display">等待测试...</div>
+        </div>
+    </div>
+
+    <h2>🔐 测试 7: 修改密码</h2>
+    <div id="test7" class="test-section">
+        <div class="test-item">
+            <span class="test-method">POST</span>
+            <span class="test-name">修改密码</span>
+            <span class="test-url">/api/auth/update-password</span>
+            <span id="test7-1-status" class="test-status status-pending">待测试</span>
+            <p>请求体: oldPassword=123456, newPassword=654321</p>
+            <p class="success">预期: code=200</p>
+            <div id="test7-1-response" class="test-response" style="display:none;"></div>
+        </div>
+    </div>
+
+    <h2>🔒 测试 8: 验证密码修改后旧密码失效</h2>
+    <div id="test8" class="test-section">
+        <div class="test-item">
+            <span class="test-method">POST</span>
+            <span class="test-name">使用旧密码登录（应失败）</span>
+            <span class="test-url">/api/auth/login</span>
+            <span id="test8-1-status" class="test-status status-pending">待测试</span>
+            <p>请求体: username=jwttestuser2, password=123456（旧密码）</p>
+            <p class="error">预期: code=400, message="密码错误"</p>
+            <div id="test8-1-response" class="test-response" style="display:none;"></div>
+        </div>
+        
+        <div class="test-item">
+            <span class="test-method">POST</span>
+            <span class="test-name">使用新密码登录（应成功）</span>
+            <span class="test-url">/api/auth/login</span>
+            <span id="test8-2-status" class="test-status status-pending">待测试</span>
+            <p>请求体: username=jwttestuser2, password=654321（新密码）</p>
+            <p class="success">预期: code=200, 并返回 token</p>
+            <div id="test8-2-response" class="test-response" style="display:none;"></div>
+        </div>
+    </div>
+
+    <div class="summary">
+        <h3>📊 测试结果汇总</h3>
+        <div id="summary-content">
+            <p class="test-status status-pending">等待运行测试...</p>
+        </div>
+    </div>
+
+    <script>
+        const BASE_URL = 'http://localhost:9090';
+        let authToken = null;
+        let newAuthToken = null;
+        let testResults = [];
+
+        async function apiRequest(method, url, body = null, useToken = null) {
+            const headers = {
+                'Content-Type': 'application/json'
+            };
+            
+            if (useToken) {
+                headers['Authorization'] = `Bearer ${useToken}`;
+            }
+
+            const options = {
+                method: method,
+                headers: headers,
+                mode: 'cors'
+            };
+
+            if (body) {
+                options.body = JSON.stringify(body);
+            }
+
+            try {
+                const response = await fetch(BASE_URL + url, options);
+                const data = await response.json();
+                return { success: true, data: data, status: response.status };
+            } catch (error) {
+                return { success: false, error: error.message, status: 0 };
+            }
+        }
+
+        function updateStatus(testId, passed, message = '') {
+            const statusEl = document.getElementById(testId + '-status');
+            const responseEl = document.getElementById(testId + '-response');
+            
+            if (passed) {
+                statusEl.className = 'test-status status-pass';
+                statusEl.textContent = '✓ 通过';
+            } else {
+                statusEl.className = 'test-status status-fail';
+                statusEl.textContent = '✗ 失败';
+            }
+            
+            testResults.push({ id: testId, passed: passed, message: message });
+            
+            if (responseEl) {
+                responseEl.style.display = 'block';
+                responseEl.textContent = message;
+            }
+        }
+
+        async function runAllTests() {
+            const btn = document.getElementById('run-all-btn');
+            btn.disabled = true;
+            btn.textContent = '⏳ 测试运行中...';
+            testResults = [];
+
+            console.log('========================================');
+            console.log('开始测试 JWT 接口...');
+            console.log('========================================');
+
+            // ========================================
+            // 测试 1: 无需 Token 的接口
+            // ========================================
+            console.log('\n📋 测试 1: 无需 Token 的接口');
+            
+            // 1.1 健康检查
+            console.log('\n测试 1.1: 健康检查接口 GET /api/auth/health');
+            let result = await apiRequest('GET', '/api/auth/health');
+            console.log('响应:', result);
+            const test1_1_passed = result.success && result.data.code === 200;
+            updateStatus('test1-1', test1_1_passed, JSON.stringify(result.data || result.error, null, 2));
+            
+            // 1.2 检查用户名
+            console.log('\n测试 1.2: 检查用户名 GET /api/auth/check-username');
+            result = await apiRequest('GET', '/api/auth/check-username?username=jwttestuser');
+            console.log('响应:', result);
+            const test1_2_passed = result.success && result.data.code === 200;
+            updateStatus('test1-2', test1_2_passed, JSON.stringify(result.data || result.error, null, 2));
+
+            // ========================================
+            // 测试 2: 无 Token 访问需要认证的接口
+            // ========================================
+            console.log('\n\n❌ 测试 2: 无 Token 访问需要认证的接口（应返回 401）');
+            
+            // 2.1 获取用户信息（无 Token）
+            console.log('\n测试 2.1: 获取用户信息 GET /api/auth/user-info（无 Token）');
+            result = await apiRequest('GET', '/api/auth/user-info');
+            console.log('响应:', result);
+            const test2_1_passed = result.success && result.data.code === 401;
+            updateStatus('test2-1', test2_1_passed, JSON.stringify(result.data || result.error, null, 2));
+            
+            // 2.2 更新用户信息（无 Token）
+            console.log('\n测试 2.2: 更新用户信息 POST /api/auth/update-info（无 Token）');
+            result = await apiRequest('POST', '/api/auth/update-info', {
+                newUsername: 'test',
+                nickname: 'test'
+            });
+            console.log('响应:', result);
+            const test2_2_passed = result.success && result.data.code === 401;
+            updateStatus('test2-2', test2_2_passed, JSON.stringify(result.data || result.error, null, 2));
+            
+            // 2.3 修改密码（无 Token）
+            console.log('\n测试 2.3: 修改密码 POST /api/auth/update-password（无 Token）');
+            result = await apiRequest('POST', '/api/auth/update-password', {
+                oldPassword: '123',
+                newPassword: '456',
+                confirmPassword: '456'
+            });
+            console.log('响应:', result);
+            const test2_3_passed = result.success && result.data.code === 401;
+            updateStatus('test2-3', test2_3_passed, JSON.stringify(result.data || result.error, null, 2));
+
+            // ========================================
+            // 测试 3: 注册新用户
+            // ========================================
+            console.log('\n\n📝 测试 3: 注册新用户');
+            
+            console.log('\n测试 3.1: 注册用户 POST /api/auth/register');
+            result = await apiRequest('POST', '/api/auth/register', {
+                username: 'jwttestuser',
+                password: '123456',
+                confirmPassword: '123456',
+                nickname: 'JWT测试用户'
+            });
+            console.log('响应:', result);
+            const test3_1_passed = result.success && (result.data.code === 200 || result.data.code === 400);
+            updateStatus('test3-1', test3_1_passed, JSON.stringify(result.data || result.error, null, 2));
+
+            // ========================================
+            // 测试 4: 登录获取 Token
+            // ========================================
+            console.log('\n\n🔑 测试 4: 登录获取 Token');
+            
+            console.log('\n测试 4.1: 用户登录 POST /api/auth/login');
+            result = await apiRequest('POST', '/api/auth/login', {
+                username: 'jwttestuser',
+                password: '123456'
+            });
+            console.log('响应:', result);
+            
+            const test4_1_passed = result.success && result.data.code === 200 && result.data.data && result.data.data.token;
+            updateStatus('test4-1', test4_1_passed, JSON.stringify(result.data || result.error, null, 2));
+            
+            if (test4_1_passed) {
+                authToken = result.data.data.token;
+                document.getElementById('token-display').textContent = authToken;
+                console.log('获取到 Token:', authToken);
+            } else {
+                document.getElementById('token-display').textContent = '登录失败，无法获取 Token';
+            }
+
+            // ========================================
+            // 测试 5: 使用 Token 访问需要认证的接口
+            // ========================================
+            console.log('\n\n✅ 测试 5: 使用 Token 访问需要认证的接口');
+            
+            if (authToken) {
+                // 5.1 获取用户信息（带有效 Token）
+                console.log('\n测试 5.1: 获取用户信息 GET /api/auth/user-info（带有效 Token）');
+                result = await apiRequest('GET', '/api/auth/user-info', null, authToken);
+                console.log('响应:', result);
+                const test5_1_passed = result.success && result.data.code === 200;
+                updateStatus('test5-1', test5_1_passed, JSON.stringify(result.data || result.error, null, 2));
+                
+                // 5.2 使用无效 Token
+                console.log('\n测试 5.2: 获取用户信息 GET /api/auth/user-info（带无效 Token）');
+                result = await apiRequest('GET', '/api/auth/user-info', null, 'invalid-token-1234567890');
+                console.log('响应:', result);
+                const test5_2_passed = result.success && result.data.code === 401;
+                updateStatus('test5-2', test5_2_passed, JSON.stringify(result.data || result.error, null, 2));
+            } else {
+                console.log('跳过测试 5: 无有效 Token');
+                updateStatus('test5-1', false, '跳过 - 无有效 Token');
+                updateStatus('test5-2', false, '跳过 - 无有效 Token');
+            }
+
+            // ========================================
+            // 测试 6: 更新用户信息
+            // ========================================
+            console.log('\n\n✏️ 测试 6: 更新用户信息');
+            
+            if (authToken) {
+                // 6.1 修改昵称（不变更用户名）
+                console.log('\n测试 6.1: 修改昵称 POST /api/auth/update-info（不变更用户名）');
+                result = await apiRequest('POST', '/api/auth/update-info', {
+                    newUsername: 'jwttestuser',
+                    nickname: '修改后的昵称'
+                }, authToken);
+                console.log('响应:', result);
+                const test6_1_passed = result.success && result.data.code === 200;
+                updateStatus('test6-1', test6_1_passed, JSON.stringify(result.data || result.error, null, 2));
+                
+                // 6.2 修改用户名（应刷新 Token）
+                console.log('\n测试 6.2: 修改用户名 POST /api/auth/update-info（变更用户名）');
+                result = await apiRequest('POST', '/api/auth/update-info', {
+                    newUsername: 'jwttestuser2',
+                    nickname: '新用户2'
+                }, authToken);
+                console.log('响应:', result);
+                const test6_2_passed = result.success && result.data.code === 200 && result.data.data && result.data.data.token;
+                updateStatus('test6-2', test6_2_passed, JSON.stringify(result.data || result.error, null, 2));
+                
+                if (test6_2_passed) {
+                    newAuthToken = result.data.data.token;
+                    document.getElementById('new-token-display').textContent = newAuthToken;
+                    console.log('获取到新 Token:', newAuthToken);
+                } else {
+                    document.getElementById('new-token-display').textContent = '未返回新 Token';
+                }
+            } else {
+                console.log('跳过测试 6: 无有效 Token');
+                updateStatus('test6-1', false, '跳过 - 无有效 Token');
+                updateStatus('test6-2', false, '跳过 - 无有效 Token');
+            }
+
+            // ========================================
+            // 测试 7: 修改密码
+            // ========================================
+            console.log('\n\n🔐 测试 7: 修改密码');
+            
+            const tokenForPassword = newAuthToken || authToken;
+            if (tokenForPassword) {
+                console.log('\n测试 7.1: 修改密码 POST /api/auth/update-password');
+                result = await apiRequest('POST', '/api/auth/update-password', {
+                    oldPassword: '123456',
+                    newPassword: '654321',
+                    confirmPassword: '654321'
+                }, tokenForPassword);
+                console.log('响应:', result);
+                const test7_1_passed = result.success && result.data.code === 200;
+                updateStatus('test7-1', test7_1_passed, JSON.stringify(result.data || result.error, null, 2));
+            } else {
+                console.log('跳过测试 7: 无有效 Token');
+                updateStatus('test7-1', false, '跳过 - 无有效 Token');
+            }
+
+            // ========================================
+            // 测试 8: 验证密码修改后旧密码失效
+            // ========================================
+            console.log('\n\n🔒 测试 8: 验证密码修改后旧密码失效');
+            
+            // 8.1 使用旧密码登录（应失败）
+            console.log('\n测试 8.1: 使用旧密码登录 POST /api/auth/login（应失败）');
+            result = await apiRequest('POST', '/api/auth/login', {
+                username: 'jwttestuser2',
+                password: '123456'
+            });
+            console.log('响应:', result);
+            const test8_1_passed = result.success && result.data.code !== 200;
+            updateStatus('test8-1', test8_1_passed, JSON.stringify(result.data || result.error, null, 2));
+            
+            // 8.2 使用新密码登录（应成功）
+            console.log('\n测试 8.2: 使用新密码登录 POST /api/auth/login（应成功）');
+            result = await apiRequest('POST', '/api/auth/login', {
+                username: 'jwttestuser2',
+                password: '654321'
+            });
+            console.log('响应:', result);
+            const test8_2_passed = result.success && result.data.code === 200;
+            updateStatus('test8-2', test8_2_passed, JSON.stringify(result.data || result.error, null, 2));
+
+            // ========================================
+            // 测试结果汇总
+            // ========================================
+            console.log('\n\n========================================');
+            console.log('测试完成！');
+            console.log('========================================');
+
+            const passed = testResults.filter(r => r.passed).length;
+            const total = testResults.length;
+            
+            const summaryContent = document.getElementById('summary-content');
+            summaryContent.innerHTML = `
+                <div class="summary-item">
+                    <strong>总测试数:</strong> ${total}
+                </div>
+                <div class="summary-item success">
+                    <strong>✅ 通过:</strong> ${passed}
+                </div>
+                <div class="summary-item error">
+                    <strong>❌ 失败:</strong> ${total - passed}
+                </div>
+                <div class="summary-item">
+                    <strong>通过率:</strong> ${total > 0 ? Math.round(passed / total * 100) : 0}%
+                </div>
+            `;
+
+            btn.disabled = false;
+            btn.textContent = '🚀 重新运行测试';
+            
+            console.log(`\n📊 测试结果: ${passed}/${total} 通过 (${Math.round(passed/total*100)}%)`);
+        }
+    </script>
+</body>
+</html>
