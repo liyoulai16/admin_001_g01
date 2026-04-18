@@ -79,11 +79,6 @@
             </div>
             
             <div class="info-section">
-              <div class="info-item">
-                <span class="info-label">用户ID</span>
-                <span class="info-value">{{ userInfo.id }}</span>
-              </div>
-              
               <div class="info-item editable" :class="{ editing: isEditing }">
                 <span class="info-label">用户名</span>
                 <template v-if="!isEditing">
@@ -109,6 +104,34 @@
                   v-model="editForm.nickname"
                   class="info-input"
                   placeholder="请输入昵称"
+                />
+              </div>
+              
+              <div class="info-item editable" :class="{ editing: isEditing }">
+                <span class="info-label">手机号码</span>
+                <template v-if="!isEditing">
+                  <span class="info-value">{{ editForm.phone || userInfo.phone || '未设置' }}</span>
+                </template>
+                <input 
+                  v-else 
+                  type="text" 
+                  v-model="editForm.phone"
+                  class="info-input"
+                  placeholder="请输入手机号码"
+                />
+              </div>
+              
+              <div class="info-item editable" :class="{ editing: isEditing }">
+                <span class="info-label">邮箱</span>
+                <template v-if="!isEditing">
+                  <span class="info-value">{{ editForm.email || userInfo.email || '未设置' }}</span>
+                </template>
+                <input 
+                  v-else 
+                  type="email" 
+                  v-model="editForm.email"
+                  class="info-input"
+                  placeholder="请输入邮箱地址"
                 />
               </div>
               
@@ -235,7 +258,9 @@ const passwordSuccess = ref('')
 
 const editForm = reactive({
   newUsername: '',
-  nickname: ''
+  nickname: '',
+  phone: '',
+  email: ''
 })
 
 const passwordForm = reactive({
@@ -288,6 +313,8 @@ const openProfileModal = async () => {
         userInfo.value = data.data
         editForm.newUsername = data.data.username || ''
         editForm.nickname = data.data.nickname || ''
+        editForm.phone = data.data.phone || ''
+        editForm.email = data.data.email || ''
       } else if (data.code === 401) {
         handleLogout()
         return
@@ -295,14 +322,17 @@ const openProfileModal = async () => {
     } catch (error) {
       console.error('获取用户信息失败:', error)
       userInfo.value = {
-        id: '-',
         username: localStorage.getItem('username') || '',
         nickname: localStorage.getItem('nickname') || localStorage.getItem('username') || '',
+        phone: '',
+        email: '',
         status: 1,
         createTime: new Date().toISOString()
       }
       editForm.newUsername = userInfo.value.username
       editForm.nickname = userInfo.value.nickname
+      editForm.phone = userInfo.value.phone
+      editForm.email = userInfo.value.email
     }
   }
 }
@@ -345,9 +375,23 @@ const cancelEditing = () => {
   if (userInfo.value) {
     editForm.newUsername = userInfo.value.username
     editForm.nickname = userInfo.value.nickname
+    editForm.phone = userInfo.value.phone
+    editForm.email = userInfo.value.email
   }
   editError.value = ''
   editSuccess.value = ''
+}
+
+const validatePhone = (phone) => {
+  if (!phone || phone.trim() === '') return true
+  const phoneRegex = /^1[3-9]\d{9}$/
+  return phoneRegex.test(phone)
+}
+
+const validateEmail = (email) => {
+  if (!email || email.trim() === '') return true
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return emailRegex.test(email)
 }
 
 const saveUserInfo = async () => {
@@ -364,6 +408,16 @@ const saveUserInfo = async () => {
     return
   }
   
+  if (editForm.phone && !validatePhone(editForm.phone)) {
+    editError.value = '请输入正确的手机号码'
+    return
+  }
+  
+  if (editForm.email && !validateEmail(editForm.email)) {
+    editError.value = '请输入正确的邮箱格式'
+    return
+  }
+  
   isSaving.value = true
   
   try {
@@ -371,7 +425,9 @@ const saveUserInfo = async () => {
       method: 'POST',
       body: JSON.stringify({
         newUsername: editForm.newUsername,
-        nickname: editForm.nickname
+        nickname: editForm.nickname,
+        phone: editForm.phone,
+        email: editForm.email
       })
     })
     
@@ -397,6 +453,8 @@ const saveUserInfo = async () => {
       if (userInfo.value) {
         userInfo.value.username = editForm.newUsername
         userInfo.value.nickname = editForm.nickname || editForm.newUsername
+        userInfo.value.phone = editForm.phone
+        userInfo.value.email = editForm.email
       }
     } else if (data.code === 401) {
       handleLogout()

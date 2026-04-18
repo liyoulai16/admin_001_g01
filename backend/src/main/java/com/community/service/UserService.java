@@ -108,7 +108,7 @@ public class UserService {
         );
     }
     
-    public Map<String, Object> updateUserInfo(String currentUsername, String newUsername, String nickname) {
+    public Map<String, Object> updateUserInfo(String currentUsername, String newUsername, String nickname, String phone, String email) {
         Map<String, Object> result = new HashMap<>();
         
         User user = userMapper.selectOne(
@@ -138,6 +138,8 @@ public class UserService {
         
         user.setUsername(newUsername);
         user.setNickname(StringUtils.hasText(nickname) ? nickname : newUsername);
+        user.setPhone(StringUtils.hasText(phone) ? phone : null);
+        user.setEmail(StringUtils.hasText(email) ? email : null);
         user.setUpdateTime(LocalDateTime.now());
         
         userMapper.updateById(user);
@@ -146,6 +148,8 @@ public class UserService {
         result.put("message", "修改成功");
         result.put("username", user.getUsername());
         result.put("nickname", user.getNickname());
+        result.put("phone", user.getPhone());
+        result.put("email", user.getEmail());
         return result;
     }
     
