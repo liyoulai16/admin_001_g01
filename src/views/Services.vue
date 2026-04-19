@@ -35,75 +35,123 @@
               </li>
             </ul>
           </div>
-
-          <div class="filter-section">
-            <h3 class="filter-title">价格区间</h3>
-            <ul class="price-list">
-              <li 
-                class="price-item" 
-                :class="{ active: selectedPrice === '全部' }"
-                @click="selectPrice('全部')"
-              >
-                全部价格
-              </li>
-              <li 
-                class="price-item" 
-                :class="{ active: selectedPrice === '免费' }"
-                @click="selectPrice('免费')"
-              >
-                免费服务
-              </li>
-              <li 
-                class="price-item" 
-                :class="{ active: selectedPrice === '低价' }"
-                @click="selectPrice('低价')"
-              >
-                ¥50以下
-              </li>
-              <li 
-                class="price-item" 
-                :class="{ active: selectedPrice === '中价' }"
-                @click="selectPrice('中价')"
-              >
-                ¥50-100
-              </li>
-              <li 
-                class="price-item" 
-                :class="{ active: selectedPrice === '高价' }"
-                @click="selectPrice('高价')"
-              >
-                ¥100以上
-              </li>
-            </ul>
-          </div>
         </aside>
 
         <main class="main-content">
           <div class="search-bar">
-            <input 
-              type="text" 
-              v-model="searchQuery" 
-              placeholder="搜索服务名称或描述..."
-              @input="handleSearch"
-            />
-            <div class="sort-select">
-              <select v-model="sortBy" @change="handleSort">
-                <option value="default">默认排序</option>
-                <option value="rating">评分最高</option>
-                <option value="reviews">评价最多</option>
-                <option value="price-asc">价格从低到高</option>
-                <option value="price-desc">价格从高到低</option>
-              </select>
+            <div class="search-input-wrapper">
+              <input 
+                type="text" 
+                v-model="searchQuery" 
+                placeholder="搜索服务名称或描述..."
+                @keyup.enter="handleSearch"
+              />
+              <button class="search-btn" @click="handleSearch">搜索</button>
+            </div>
+            
+            <div class="filter-controls">
+              <div class="price-filter-dropdown" :class="{ open: showPriceFilter }">
+                <button class="filter-toggle" @click="togglePriceFilter">
+                  <span class="filter-icon">💰</span>
+                  <span class="filter-text">{{ priceFilterText }}</span>
+                  <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+                
+                <div class="price-filter-panel" v-if="showPriceFilter">
+                  <div class="price-slider-section">
+                    <div class="price-range-display">
+                      <span class="price-label">价格区间:</span>
+                      <span class="price-value">
+                        ¥{{ minPrice }} - ¥{{ maxPrice }}
+                      </span>
+                    </div>
+                    
+                    <div class="dual-slider" ref="sliderRef">
+                      <div class="slider-track">
+                        <div class="slider-active-track" :style="sliderTrackStyle"></div>
+                      </div>
+                      <input 
+                        type="range" 
+                        v-model="minPrice" 
+                        :min="0" 
+                        :max="maxRange" 
+                        :step="10"
+                        class="slider-thumb min-thumb"
+                        @input="onMinThumbChange"
+                      />
+                      <input 
+                        type="range" 
+                        v-model="maxPrice" 
+                        :min="0" 
+                        :max="maxRange" 
+                        :step="10"
+                        class="slider-thumb max-thumb"
+                        @input="onMaxThumbChange"
+                      />
+                      <div class="slider-tooltip min-tooltip" :style="minTooltipStyle">¥{{ minPrice }}</div>
+                      <div class="slider-tooltip max-tooltip" :style="maxTooltipStyle">¥{{ maxPrice }}</div>
+                    </div>
+                  </div>
+                  
+                  <div class="price-quick-select">
+                    <span class="quick-label">快捷选择:</span>
+                    <div class="quick-buttons">
+                      <button 
+                        class="quick-btn" 
+                        :class="{ active: isQuickSelected('全部') }"
+                        @click="selectQuickPrice('全部')"
+                      >全部</button>
+                      <button 
+                        class="quick-btn" 
+                        :class="{ active: isQuickSelected('免费') }"
+                        @click="selectQuickPrice('免费')"
+                      >免费</button>
+                      <button 
+                        class="quick-btn" 
+                        :class="{ active: isQuickSelected('低价') }"
+                        @click="selectQuickPrice('低价')"
+                      >¥50以下</button>
+                      <button 
+                        class="quick-btn" 
+                        :class="{ active: isQuickSelected('中价') }"
+                        @click="selectQuickPrice('中价')"
+                      >¥50-100</button>
+                      <button 
+                        class="quick-btn" 
+                        :class="{ active: isQuickSelected('高价') }"
+                        @click="selectQuickPrice('高价')"
+                      >¥100以上</button>
+                    </div>
+                  </div>
+                  
+                  <div class="price-filter-actions">
+                    <button class="reset-btn" @click="resetPriceFilter">重置</button>
+                    <button class="apply-btn" @click="applyPriceFilter">确定</button>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="sort-select">
+                <select v-model="sortBy" @change="handleSort">
+                  <option value="default">默认排序</option>
+                  <option value="rating">评分最高</option>
+                  <option value="reviews">评价最多</option>
+                  <option value="price-asc">价格从低到高</option>
+                  <option value="price-desc">价格从高到低</option>
+                </select>
+              </div>
             </div>
           </div>
 
           <div class="results-info">
-            共找到 <span class="results-count">{{ filteredServices.length }}</span> 项服务
+            共找到 <span class="results-count">{{ total }}</span> 项服务
           </div>
 
-          <div class="services-grid" v-if="filteredServices.length > 0">
+          <div class="services-grid" v-if="services.length > 0">
             <div 
-              v-for="service in filteredServices" 
+              v-for="service in services" 
               :key="service.id" 
               class="service-card"
               @click="goToServiceDetail(service.id)"
@@ -136,11 +184,46 @@
             </div>
           </div>
 
-          <div class="no-results" v-else>
+          <div class="no-results" v-else-if="!loading">
             <span class="no-results-icon">🔍</span>
             <h3>未找到相关服务</h3>
             <p>请尝试调整搜索条件或筛选条件</p>
             <button class="reset-btn" @click="resetFilters">重置筛选</button>
+          </div>
+
+          <div class="pagination-section" v-if="pages > 1">
+            <div class="pagination">
+              <button 
+                class="page-btn prev-btn" 
+                :disabled="currentPage === 1"
+                @click="goToPage(currentPage - 1)"
+              >
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+              
+              <button 
+                v-for="page in visiblePages" 
+                :key="page"
+                class="page-btn" 
+                :class="{ active: currentPage === page, 'ellipsis': page === '...' }"
+                @click="page !== '...' && goToPage(page)"
+                :disabled="page === '...'"
+              >
+                {{ page }}
+              </button>
+              
+              <button 
+                class="page-btn next-btn" 
+                :disabled="currentPage === pages"
+                @click="goToPage(currentPage + 1)"
+              >
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+            </div>
           </div>
         </main>
       </div>
@@ -179,21 +262,158 @@ const selectedCategory = ref('全部')
 const selectedPrice = ref('全部')
 const sortBy = ref('default')
 const loading = ref(false)
+const total = ref(0)
+const currentPage = ref(1)
+const size = ref(6)
+const pages = ref(0)
 
-const filteredServices = computed(() => services.value)
+const showPriceFilter = ref(false)
+const maxRange = ref(500)
+const minPrice = ref(0)
+const maxPrice = ref(500)
+const tempMinPrice = ref(0)
+const tempMaxPrice = ref(500)
+const tempSelectedPrice = ref('全部')
+const sliderRef = ref(null)
+
+const priceFilterText = computed(() => {
+  if (selectedPrice === '全部' && minPrice.value === 0 && maxPrice.value === maxRange.value) {
+    return '价格区间'
+  }
+  if (selectedPrice === '免费') {
+    return '免费服务'
+  }
+  if (selectedPrice === '低价') {
+    return '¥50以下'
+  }
+  if (selectedPrice === '中价') {
+    return '¥50-100'
+  }
+  if (selectedPrice === '高价') {
+    return '¥100以上'
+  }
+  return `¥${minPrice.value}-¥${maxPrice.value}`
+})
+
+const sliderTrackStyle = computed(() => {
+  const minPercent = (minPrice.value / maxRange.value) * 100
+  const maxPercent = (maxPrice.value / maxRange.value) * 100
+  return {
+    left: `${minPercent}%`,
+    right: `${100 - maxPercent}%`
+  }
+})
+
+const minTooltipStyle = computed(() => {
+  const percent = (minPrice.value / maxRange.value) * 100
+  return {
+    left: `${percent}%`
+  }
+})
+
+const maxTooltipStyle = computed(() => {
+  const percent = (maxPrice.value / maxRange.value) * 100
+  return {
+    left: `${percent}%`
+  }
+})
+
+const visiblePages = computed(() => {
+  const current = currentPage.value
+  const totalPages = pages.value
+  const delta = 2
+  const range = []
+  const rangeWithDots = []
+  let l
+
+  for (let i = 1; i <= totalPages; i++) {
+    if (i === 1 || i === totalPages || (i >= current - delta && i <= current + delta)) {
+      range.push(i)
+    }
+  }
+
+  for (const i of range) {
+    if (l) {
+      if (i - l === 2) {
+        rangeWithDots.push(l + 1)
+      } else if (i - l !== 1) {
+        rangeWithDots.push('...')
+      }
+    }
+    rangeWithDots.push(i)
+    l = i
+  }
+
+  return rangeWithDots
+})
+
+const togglePriceFilter = () => {
+  if (!showPriceFilter.value) {
+    tempMinPrice.value = minPrice.value
+    tempMaxPrice.value = maxPrice.value
+    tempSelectedPrice.value = selectedPrice.value
+  }
+  showPriceFilter.value = !showPriceFilter.value
+}
+
+const onMinThumbChange = () => {
+  if (minPrice.value > maxPrice.value) {
+    const temp = minPrice.value
+    minPrice.value = maxPrice.value
+    maxPrice.value = temp
+  }
+}
+
+const onMaxThumbChange = () => {
+  if (maxPrice.value < minPrice.value) {
+    const temp = maxPrice.value
+    maxPrice.value = minPrice.value
+    minPrice.value = temp
+  }
+}
+
+const isQuickSelected = (price) => {
+  return selectedPrice.value === price && minPrice.value === 0 && maxPrice.value === maxRange.value
+}
+
+const selectQuickPrice = (price) => {
+  selectedPrice.value = price
+  if (price === '免费') {
+    minPrice.value = 0
+    maxPrice.value = 0
+  } else if (price === '低价') {
+    minPrice.value = 0
+    maxPrice.value = 50
+  } else if (price === '中价') {
+    minPrice.value = 50
+    maxPrice.value = 100
+  } else if (price === '高价') {
+    minPrice.value = 100
+    maxPrice.value = maxRange.value
+  } else {
+    minPrice.value = 0
+    maxPrice.value = maxRange.value
+  }
+}
+
+const resetPriceFilter = () => {
+  minPrice.value = 0
+  maxPrice.value = maxRange.value
+  selectedPrice.value = '全部'
+}
+
+const applyPriceFilter = () => {
+  showPriceFilter.value = false
+  currentPage.value = 1
+  fetchServices()
+}
 
 const fetchServices = async () => {
   loading.value = true
   try {
     let priceRange = null
-    if (selectedPrice.value === '免费') {
-      priceRange = '免费'
-    } else if (selectedPrice.value === '低价') {
-      priceRange = '低价'
-    } else if (selectedPrice.value === '中价') {
-      priceRange = '中价'
-    } else if (selectedPrice.value === '高价') {
-      priceRange = '高价'
+    if (selectedPrice.value !== '全部' && minPrice.value === 0 && maxPrice.value === maxRange.value) {
+      priceRange = selectedPrice.value
     }
 
     let sortParam = null
@@ -217,13 +437,21 @@ const fetchServices = async () => {
     if (priceRange) {
       params.append('priceRange', priceRange)
     }
+    
+    if (minPrice.value > 0 || maxPrice.value < maxRange.value) {
+      if (selectedPrice.value === '全部' || (minPrice.value !== 0 || maxPrice.value !== maxRange.value)) {
+        params.append('minPrice', minPrice.value)
+        params.append('maxPrice', maxPrice.value)
+      }
+    }
+    
     if (sortParam) {
       params.append('sortBy', sortParam)
     }
+    params.append('current', currentPage.value)
+    params.append('size', size.value)
 
-    const url = params.toString() 
-      ? `/api/services/search?${params.toString()}` 
-      : '/api/services/search'
+    const url = `/api/services/search?${params.toString()}`
 
     const response = await request(url, {
       method: 'GET'
@@ -233,6 +461,10 @@ const fetchServices = async () => {
       const data = await response.json()
       if (data.code === 200 && data.data) {
         services.value = data.data.services || []
+        total.value = data.data.total || 0
+        currentPage.value = data.data.current || 1
+        size.value = data.data.size || 6
+        pages.value = data.data.pages || 0
         if (categories.value.length === 0) {
           categories.value = data.data.categories || []
         }
@@ -246,20 +478,18 @@ const fetchServices = async () => {
 }
 
 const handleSearch = () => {
+  currentPage.value = 1
   fetchServices()
 }
 
 const handleSort = () => {
+  currentPage.value = 1
   fetchServices()
 }
 
 const selectCategory = (category) => {
   selectedCategory.value = category
-  fetchServices()
-}
-
-const selectPrice = (price) => {
-  selectedPrice.value = price
+  currentPage.value = 1
   fetchServices()
 }
 
@@ -272,10 +502,22 @@ const resetFilters = () => {
   selectedCategory.value = '全部'
   selectedPrice.value = '全部'
   sortBy.value = 'default'
+  minPrice.value = 0
+  maxPrice.value = maxRange.value
+  currentPage.value = 1
   fetchServices()
 }
 
-watch([searchQuery, selectedCategory, selectedPrice, sortBy], () => {
+const goToPage = (page) => {
+  if (page >= 1 && page <= pages.value) {
+    currentPage.value = page
+    fetchServices()
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+}
+
+watch([searchQuery, selectedCategory, selectedPrice, sortBy, minPrice, maxPrice], () => {
+  currentPage.value = 1
   fetchServices()
 }, { deep: true })
 
@@ -380,14 +622,12 @@ onMounted(() => {
   font-weight: bold;
 }
 
-.category-list,
-.price-list {
+.category-list {
   list-style: none;
   padding: 0;
 }
 
-.category-item,
-.price-item {
+.category-item {
   padding: 12px 15px;
   margin-bottom: 5px;
   border-radius: 8px;
@@ -398,13 +638,11 @@ onMounted(() => {
   align-items: center;
 }
 
-.category-item:hover,
-.price-item:hover {
+.category-item:hover {
   background-color: #f5f7fa;
 }
 
-.category-item.active,
-.price-item.active {
+.category-item.active {
   background: linear-gradient(135deg, #6B8E23, #8FBC8F);
   color: white;
 }
@@ -422,11 +660,18 @@ onMounted(() => {
 
 .search-bar {
   display: flex;
+  flex-direction: column;
   gap: 15px;
   margin-bottom: 20px;
 }
 
-.search-bar input {
+.search-input-wrapper {
+  display: flex;
+  gap: 10px;
+  flex: 1;
+}
+
+.search-input-wrapper input {
   flex: 1;
   padding: 15px 20px;
   border: 2px solid #e4e8eb;
@@ -435,13 +680,288 @@ onMounted(() => {
   transition: border-color 0.3s ease;
 }
 
-.search-bar input:focus {
+.search-input-wrapper input:focus {
   outline: none;
   border-color: #6B8E23;
 }
 
+.search-btn {
+  padding: 15px 30px;
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
+  color: white;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.search-btn:hover {
+  background: linear-gradient(135deg, #556B2F, #5D7C4A);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(107, 142, 35, 0.3);
+}
+
+.filter-controls {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.price-filter-dropdown {
+  position: relative;
+  z-index: 100;
+}
+
+.filter-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: white;
+  border: 2px solid #e4e8eb;
+  border-radius: 10px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.filter-toggle:hover {
+  border-color: #6B8E23;
+}
+
+.filter-toggle.open {
+  border-color: #6B8E23;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.filter-icon {
+  font-size: 1.2rem;
+}
+
+.filter-text {
+  font-weight: 500;
+  color: #2c3e50;
+}
+
+.dropdown-arrow {
+  width: 16px;
+  height: 16px;
+  color: #7f8c8d;
+  transition: transform 0.3s ease;
+}
+
+.filter-toggle.open .dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+.price-filter-panel {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 350px;
+  background: white;
+  border: 2px solid #6B8E23;
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+  padding: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.price-slider-section {
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e4e8eb;
+}
+
+.price-range-display {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.price-label {
+  font-weight: 500;
+  color: #2c3e50;
+}
+
+.price-value {
+  font-weight: bold;
+  color: #6B8E23;
+  font-size: 1.1rem;
+}
+
+.dual-slider {
+  position: relative;
+  height: 50px;
+  margin: 0 10px;
+}
+
+.slider-track {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: #e4e8eb;
+  border-radius: 3px;
+  transform: translateY(-50%);
+}
+
+.slider-active-track {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, #6B8E23, #8FBC8F);
+  border-radius: 3px;
+}
+
+.slider-thumb {
+  position: absolute;
+  top: 50%;
+  width: 20px;
+  height: 20px;
+  background: white;
+  border: 3px solid #6B8E23;
+  border-radius: 50%;
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+  appearance: none;
+  -webkit-appearance: none;
+  pointer-events: auto;
+  z-index: 10;
+}
+
+.slider-thumb::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  background: white;
+  border: 3px solid #6B8E23;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.slider-thumb::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  background: white;
+  border: 3px solid #6B8E23;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.slider-thumb:hover {
+  transform: translate(-50%, -50%) scale(1.1);
+  box-shadow: 0 3px 10px rgba(107, 142, 35, 0.3);
+}
+
+.slider-tooltip {
+  position: absolute;
+  top: -5px;
+  transform: translate(-50%, -100%);
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.slider-tooltip::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #6B8E23;
+}
+
+.price-quick-select {
+  margin-bottom: 15px;
+}
+
+.quick-label {
+  display: block;
+  font-weight: 500;
+  color: #2c3e50;
+  margin-bottom: 10px;
+}
+
+.quick-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.quick-btn {
+  padding: 6px 14px;
+  background: #f5f7fa;
+  border: 1px solid #e4e8eb;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.quick-btn:hover {
+  background: #e4e8eb;
+}
+
+.quick-btn.active {
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
+  color: white;
+  border-color: transparent;
+}
+
+.price-filter-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 15px;
+  border-top: 1px solid #e4e8eb;
+}
+
+.price-filter-actions .reset-btn {
+  padding: 8px 20px;
+  background: transparent;
+  border: 2px solid #e4e8eb;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.price-filter-actions .reset-btn:hover {
+  border-color: #7f8c8d;
+}
+
+.price-filter-actions .apply-btn {
+  padding: 8px 20px;
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.price-filter-actions .apply-btn:hover {
+  background: linear-gradient(135deg, #556B2F, #5D7C4A);
+}
+
 .sort-select select {
-  padding: 15px 20px;
+  padding: 12px 20px;
   border: 2px solid #e4e8eb;
   border-radius: 10px;
   font-size: 1rem;
@@ -606,6 +1126,61 @@ onMounted(() => {
   box-shadow: 0 10px 20px rgba(107, 142, 35, 0.3);
 }
 
+.pagination-section {
+  display: flex;
+  justify-content: center;
+  margin-top: 40px;
+  padding-top: 20px;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.page-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 40px;
+  padding: 0 12px;
+  background: white;
+  border: 2px solid #e4e8eb;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.page-btn:hover:not(:disabled) {
+  border-color: #6B8E23;
+  color: #6B8E23;
+}
+
+.page-btn.active {
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
+  color: white;
+  border-color: transparent;
+}
+
+.page-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.page-btn.ellipsis {
+  border: none;
+  background: transparent;
+  cursor: default;
+}
+
+.page-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
 @media (max-width: 992px) {
   .services-content {
     flex-direction: column;
@@ -649,12 +1224,36 @@ onMounted(() => {
     flex-direction: column;
   }
 
+  .search-input-wrapper {
+    flex-direction: column;
+  }
+
+  .search-btn {
+    width: 100%;
+  }
+
+  .filter-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .price-filter-panel {
+    min-width: 100%;
+    left: 0;
+    right: 0;
+  }
+
   .sort-select select {
     width: 100%;
   }
 
   .services-grid {
     grid-template-columns: 1fr;
+  }
+
+  .pagination {
+    flex-wrap: wrap;
+    justify-content: center;
   }
 }
 </style>

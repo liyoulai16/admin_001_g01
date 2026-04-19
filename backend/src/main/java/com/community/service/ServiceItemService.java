@@ -1,6 +1,8 @@
 package com.community.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.community.common.PageResult;
 import com.community.entity.ServiceCategory;
 import com.community.entity.ServiceItem;
 import com.community.mapper.ServiceCategoryMapper;
@@ -72,7 +74,9 @@ public class ServiceItemService {
         return getServicesByCategoryId(category.getId());
     }
     
-    public List<ServiceItem> searchServices(String keyword, String categoryName, String priceRange, String sortBy) {
+    public PageResult<ServiceItem> searchServices(String keyword, String categoryName, 
+            String priceRange, BigDecimal minPrice, BigDecimal maxPrice,
+            String sortBy, long current, long size) {
         LambdaQueryWrapper<ServiceItem> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(ServiceItem::getStatus, 1)
                    .eq(ServiceItem::getDeleted, 0);
@@ -97,7 +101,13 @@ public class ServiceItemService {
             }
         }
         
-        if (StringUtils.hasText(priceRange) && !"全部".equals(priceRange)) {
+        if (minPrice != null && maxPrice != null) {
+            queryWrapper.between(ServiceItem::getPriceValue, minPrice, maxPrice);
+        } else if (minPrice != null) {
+            queryWrapper.ge(ServiceItem::getPriceValue, minPrice);
+        } else if (maxPrice != null) {
+            queryWrapper.le(ServiceItem::getPriceValue, maxPrice);
+        } else if (StringUtils.hasText(priceRange) && !"全部".equals(priceRange)) {
             switch (priceRange) {
                 case "免费":
                     queryWrapper.and(wrapper -> wrapper
@@ -141,9 +151,16 @@ public class ServiceItemService {
             queryWrapper.orderByAsc(ServiceItem::getSortOrder);
         }
         
-        List<ServiceItem> services = serviceItemMapper.selectList(queryWrapper);
-        fillCategoryName(services);
-        return services;
+        Page<ServiceItem> page = new Page<>(current, size);
+        Page<ServiceItem> resultPage = serviceItemMapper.selectPage(page, queryWrapper);
+        fillCategoryName(resultPage.getRecords());
+        
+        return PageResult.of(
+            resultPage.getRecords(),
+            resultPage.getTotal(),
+            resultPage.getCurrent(),
+            resultPage.getSize()
+        );
     }
     
     private void fillCategoryName(List<ServiceItem> services) {
