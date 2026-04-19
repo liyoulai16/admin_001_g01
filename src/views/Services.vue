@@ -59,12 +59,12 @@
                   </svg>
                 </button>
                 
-                <div class="price-filter-panel" v-if="showPriceFilter">
+                <div class="price-filter-panel" v-if="showPriceFilter" @click.stop>
                   <div class="price-slider-section">
                     <div class="price-range-display">
                       <span class="price-label">价格区间:</span>
                       <span class="price-value">
-                        ¥{{ minPrice }} - ¥{{ maxPrice }}
+                        ¥{{ tempMinPrice }} - ¥{{ tempMaxPrice }}
                       </span>
                     </div>
                     
@@ -72,26 +72,22 @@
                       <div class="slider-track">
                         <div class="slider-active-track" :style="sliderTrackStyle"></div>
                       </div>
-                      <input 
-                        type="range" 
-                        v-model="minPrice" 
-                        :min="0" 
-                        :max="maxRange" 
-                        :step="10"
-                        class="slider-thumb min-thumb"
-                        @input="onMinThumbChange"
-                      />
-                      <input 
-                        type="range" 
-                        v-model="maxPrice" 
-                        :min="0" 
-                        :max="maxRange" 
-                        :step="10"
-                        class="slider-thumb max-thumb"
-                        @input="onMaxThumbChange"
-                      />
-                      <div class="slider-tooltip min-tooltip" :style="minTooltipStyle">¥{{ minPrice }}</div>
-                      <div class="slider-tooltip max-tooltip" :style="maxTooltipStyle">¥{{ maxPrice }}</div>
+                      <div 
+                        class="slider-dot min-dot" 
+                        :style="minDotStyle"
+                        @mousedown="startDrag('min', $event)"
+                        @touchstart="startDrag('min', $event)"
+                      >
+                        <div class="dot-inner"></div>
+                      </div>
+                      <div 
+                        class="slider-dot max-dot" 
+                        :style="maxDotStyle"
+                        @mousedown="startDrag('max', $event)"
+                        @touchstart="startDrag('max', $event)"
+                      >
+                        <div class="dot-inner"></div>
+                      </div>
                     </div>
                   </div>
                   
@@ -127,7 +123,7 @@
                   </div>
                   
                   <div class="price-filter-actions">
-                    <button class="reset-btn" @click="resetPriceFilter">重置</button>
+                    <button class="cancel-btn" @click="cancelPriceFilter">取消</button>
                     <button class="apply-btn" @click="applyPriceFilter">确定</button>
                   </div>
                 </div>
@@ -198,9 +194,7 @@
                 :disabled="currentPage === 1"
                 @click="goToPage(currentPage - 1)"
               >
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+                上一页
               </button>
               
               <button 
@@ -219,9 +213,7 @@
                 :disabled="currentPage === pages"
                 @click="goToPage(currentPage + 1)"
               >
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+                下一页
               </button>
             </div>
           </div>
@@ -232,7 +224,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import request from '../utils/request'
 
@@ -273,48 +265,48 @@ const minPrice = ref(0)
 const maxPrice = ref(500)
 const tempMinPrice = ref(0)
 const tempMaxPrice = ref(500)
-const tempSelectedPrice = ref('全部')
 const sliderRef = ref(null)
+const dragging = ref(null)
 
 const priceFilterText = computed(() => {
-  if (selectedPrice === '全部' && minPrice.value === 0 && maxPrice.value === maxRange.value) {
+  if (selectedPrice.value === '全部' && minPrice.value === 0 && maxPrice.value === maxRange.value) {
     return '价格区间'
   }
-  if (selectedPrice === '免费') {
+  if (selectedPrice.value === '免费') {
     return '免费服务'
   }
-  if (selectedPrice === '低价') {
+  if (selectedPrice.value === '低价') {
     return '¥50以下'
   }
-  if (selectedPrice === '中价') {
+  if (selectedPrice.value === '中价') {
     return '¥50-100'
   }
-  if (selectedPrice === '高价') {
+  if (selectedPrice.value === '高价') {
     return '¥100以上'
   }
   return `¥${minPrice.value}-¥${maxPrice.value}`
 })
 
 const sliderTrackStyle = computed(() => {
-  const minPercent = (minPrice.value / maxRange.value) * 100
-  const maxPercent = (maxPrice.value / maxRange.value) * 100
+  const minPercent = (tempMinPrice.value / maxRange.value) * 100
+  const maxPercent = (tempMaxPrice.value / maxRange.value) * 100
   return {
     left: `${minPercent}%`,
     right: `${100 - maxPercent}%`
   }
 })
 
-const minTooltipStyle = computed(() => {
-  const percent = (minPrice.value / maxRange.value) * 100
+const minDotStyle = computed(() => {
+  const percent = (tempMinPrice.value / maxRange.value) * 100
   return {
-    left: `${percent}%`
+    left: `calc(${percent}% - 10px)`
   }
 })
 
-const maxTooltipStyle = computed(() => {
-  const percent = (maxPrice.value / maxRange.value) * 100
+const maxDotStyle = computed(() => {
+  const percent = (tempMaxPrice.value / maxRange.value) * 100
   return {
-    left: `${percent}%`
+    left: `calc(${percent}% - 10px)`
   }
 })
 
@@ -351,58 +343,102 @@ const togglePriceFilter = () => {
   if (!showPriceFilter.value) {
     tempMinPrice.value = minPrice.value
     tempMaxPrice.value = maxPrice.value
-    tempSelectedPrice.value = selectedPrice.value
   }
   showPriceFilter.value = !showPriceFilter.value
 }
 
-const onMinThumbChange = () => {
-  if (minPrice.value > maxPrice.value) {
-    const temp = minPrice.value
-    minPrice.value = maxPrice.value
-    maxPrice.value = temp
+const startDrag = (type, e) => {
+  e.preventDefault()
+  dragging.value = type
+  
+  const moveHandler = (event) => {
+    if (!sliderRef.value) return
+    const rect = sliderRef.value.getBoundingClientRect()
+    const clientX = event.touches ? event.touches[0].clientX : event.clientX
+    const x = clientX - rect.left
+    let percent = x / rect.width
+    percent = Math.max(0, Math.min(1, percent))
+    const value = Math.round(percent * maxRange.value / 10) * 10
+    
+    if (dragging.value === 'min') {
+      if (value <= tempMaxPrice.value) {
+        tempMinPrice.value = value
+      } else {
+        tempMinPrice.value = tempMaxPrice.value
+      }
+    } else {
+      if (value >= tempMinPrice.value) {
+        tempMaxPrice.value = value
+      } else {
+        tempMaxPrice.value = tempMinPrice.value
+      }
+    }
   }
-}
-
-const onMaxThumbChange = () => {
-  if (maxPrice.value < minPrice.value) {
-    const temp = maxPrice.value
-    maxPrice.value = minPrice.value
-    minPrice.value = temp
+  
+  const upHandler = () => {
+    dragging.value = null
+    document.removeEventListener('mousemove', moveHandler)
+    document.removeEventListener('mouseup', upHandler)
+    document.removeEventListener('touchmove', moveHandler)
+    document.removeEventListener('touchend', upHandler)
   }
+  
+  document.addEventListener('mousemove', moveHandler)
+  document.addEventListener('mouseup', upHandler)
+  document.addEventListener('touchmove', moveHandler)
+  document.addEventListener('touchend', upHandler)
 }
 
 const isQuickSelected = (price) => {
-  return selectedPrice.value === price && minPrice.value === 0 && maxPrice.value === maxRange.value
+  if (price === '全部') {
+    return selectedPrice.value === '全部' && minPrice.value === 0 && maxPrice.value === maxRange.value
+  }
+  return selectedPrice.value === price
 }
 
 const selectQuickPrice = (price) => {
-  selectedPrice.value = price
   if (price === '免费') {
-    minPrice.value = 0
-    maxPrice.value = 0
+    tempMinPrice.value = 0
+    tempMaxPrice.value = 0
   } else if (price === '低价') {
-    minPrice.value = 0
-    maxPrice.value = 50
+    tempMinPrice.value = 0
+    tempMaxPrice.value = 50
   } else if (price === '中价') {
-    minPrice.value = 50
-    maxPrice.value = 100
+    tempMinPrice.value = 50
+    tempMaxPrice.value = 100
   } else if (price === '高价') {
-    minPrice.value = 100
-    maxPrice.value = maxRange.value
+    tempMinPrice.value = 100
+    tempMaxPrice.value = maxRange.value
   } else {
-    minPrice.value = 0
-    maxPrice.value = maxRange.value
+    tempMinPrice.value = 0
+    tempMaxPrice.value = maxRange.value
   }
 }
 
-const resetPriceFilter = () => {
-  minPrice.value = 0
-  maxPrice.value = maxRange.value
-  selectedPrice.value = '全部'
+const cancelPriceFilter = () => {
+  tempMinPrice.value = minPrice.value
+  tempMaxPrice.value = maxPrice.value
+  showPriceFilter.value = false
 }
 
 const applyPriceFilter = () => {
+  minPrice.value = tempMinPrice.value
+  maxPrice.value = tempMaxPrice.value
+  
+  if (minPrice.value === 0 && maxPrice.value === maxRange.value) {
+    selectedPrice.value = '全部'
+  } else if (minPrice.value === 0 && maxPrice.value === 0) {
+    selectedPrice.value = '免费'
+  } else if (minPrice.value === 0 && maxPrice.value === 50) {
+    selectedPrice.value = '低价'
+  } else if (minPrice.value === 50 && maxPrice.value === 100) {
+    selectedPrice.value = '中价'
+  } else if (minPrice.value === 100 && maxPrice.value === maxRange.value) {
+    selectedPrice.value = '高价'
+  } else {
+    selectedPrice.value = '自定义'
+  }
+  
   showPriceFilter.value = false
   currentPage.value = 1
   fetchServices()
@@ -412,7 +448,7 @@ const fetchServices = async () => {
   loading.value = true
   try {
     let priceRange = null
-    if (selectedPrice.value !== '全部' && minPrice.value === 0 && maxPrice.value === maxRange.value) {
+    if (selectedPrice.value !== '全部' && selectedPrice.value !== '自定义') {
       priceRange = selectedPrice.value
     }
 
@@ -438,11 +474,9 @@ const fetchServices = async () => {
       params.append('priceRange', priceRange)
     }
     
-    if (minPrice.value > 0 || maxPrice.value < maxRange.value) {
-      if (selectedPrice.value === '全部' || (minPrice.value !== 0 || maxPrice.value !== maxRange.value)) {
-        params.append('minPrice', minPrice.value)
-        params.append('maxPrice', maxPrice.value)
-      }
+    if (selectedPrice.value === '自定义' || (minPrice.value > 0 || maxPrice.value < maxRange.value)) {
+      params.append('minPrice', minPrice.value)
+      params.append('maxPrice', maxPrice.value)
     }
     
     if (sortParam) {
@@ -504,6 +538,8 @@ const resetFilters = () => {
   sortBy.value = 'default'
   minPrice.value = 0
   maxPrice.value = maxRange.value
+  tempMinPrice.value = 0
+  tempMaxPrice.value = maxRange.value
   currentPage.value = 1
   fetchServices()
 }
@@ -516,10 +552,11 @@ const goToPage = (page) => {
   }
 }
 
-watch([searchQuery, selectedCategory, selectedPrice, sortBy, minPrice, maxPrice], () => {
-  currentPage.value = 1
-  fetchServices()
-}, { deep: true })
+const handleClickOutside = (e) => {
+  if (showPriceFilter.value && !e.target.closest('.price-filter-dropdown')) {
+    showPriceFilter.value = false
+  }
+}
 
 onMounted(() => {
   const searchParam = route.query.search
@@ -534,6 +571,11 @@ onMounted(() => {
   }
   
   fetchServices()
+  document.addEventListener('click', handleClickOutside)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
 })
 </script>
 
@@ -779,7 +821,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 
 .price-label {
@@ -795,7 +837,7 @@ onMounted(() => {
 
 .dual-slider {
   position: relative;
-  height: 50px;
+  height: 40px;
   margin: 0 10px;
 }
 
@@ -818,7 +860,7 @@ onMounted(() => {
   border-radius: 3px;
 }
 
-.slider-thumb {
+.slider-dot {
   position: absolute;
   top: 50%;
   width: 20px;
@@ -826,63 +868,29 @@ onMounted(() => {
   background: white;
   border: 3px solid #6B8E23;
   border-radius: 50%;
-  cursor: pointer;
-  transform: translate(-50%, -50%);
-  appearance: none;
-  -webkit-appearance: none;
-  pointer-events: auto;
+  cursor: grab;
+  transform: translateY(-50%);
   z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.1s ease, box-shadow 0.2s ease;
 }
 
-.slider-thumb::-webkit-slider-thumb {
-  appearance: none;
-  -webkit-appearance: none;
-  width: 20px;
-  height: 20px;
-  background: white;
-  border: 3px solid #6B8E23;
-  border-radius: 50%;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-.slider-thumb::-moz-range-thumb {
-  width: 20px;
-  height: 20px;
-  background: white;
-  border: 3px solid #6B8E23;
-  border-radius: 50%;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-.slider-thumb:hover {
-  transform: translate(-50%, -50%) scale(1.1);
+.slider-dot:hover {
+  transform: translateY(-50%) scale(1.1);
   box-shadow: 0 3px 10px rgba(107, 142, 35, 0.3);
 }
 
-.slider-tooltip {
-  position: absolute;
-  top: -5px;
-  transform: translate(-50%, -100%);
-  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
-  color: white;
-  padding: 4px 10px;
-  border-radius: 4px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  white-space: nowrap;
-  pointer-events: none;
+.slider-dot:active {
+  cursor: grabbing;
 }
 
-.slider-tooltip::after {
-  content: '';
-  position: absolute;
-  bottom: -6px;
-  left: 50%;
-  transform: translateX(-50%);
-  border: 6px solid transparent;
-  border-top-color: #6B8E23;
+.dot-inner {
+  width: 6px;
+  height: 6px;
+  background: #6B8E23;
+  border-radius: 50%;
 }
 
 .price-quick-select {
@@ -930,7 +938,7 @@ onMounted(() => {
   border-top: 1px solid #e4e8eb;
 }
 
-.price-filter-actions .reset-btn {
+.price-filter-actions .cancel-btn {
   padding: 8px 20px;
   background: transparent;
   border: 2px solid #e4e8eb;
@@ -938,10 +946,12 @@ onMounted(() => {
   font-size: 0.9rem;
   cursor: pointer;
   transition: all 0.3s ease;
+  color: #555;
 }
 
-.price-filter-actions .reset-btn:hover {
+.price-filter-actions .cancel-btn:hover {
   border-color: #7f8c8d;
+  background: #f5f7fa;
 }
 
 .price-filter-actions .apply-btn {
@@ -1137,6 +1147,8 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .page-btn {
@@ -1145,11 +1157,11 @@ onMounted(() => {
   justify-content: center;
   min-width: 40px;
   height: 40px;
-  padding: 0 12px;
+  padding: 0 16px;
   background: white;
   border: 2px solid #e4e8eb;
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: 0.95rem;
   cursor: pointer;
   transition: all 0.3s ease;
 }
@@ -1176,9 +1188,9 @@ onMounted(() => {
   cursor: default;
 }
 
-.page-btn svg {
-  width: 18px;
-  height: 18px;
+.prev-btn, .next-btn {
+  font-weight: 500;
+  padding: 0 20px;
 }
 
 @media (max-width: 992px) {
@@ -1254,6 +1266,11 @@ onMounted(() => {
   .pagination {
     flex-wrap: wrap;
     justify-content: center;
+  }
+
+  .prev-btn, .next-btn {
+    padding: 0 12px;
+    font-size: 0.85rem;
   }
 }
 </style>
