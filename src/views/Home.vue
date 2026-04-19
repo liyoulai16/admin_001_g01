@@ -18,6 +18,7 @@
         </div>
       </div>
     </Transition>
+
     <section class="hero">
       <div class="particles">
         <div v-for="i in 30" :key="i" class="particle" :style="getParticleStyle(i)"></div>
@@ -39,52 +40,100 @@
       </div>
     </section>
 
-    <section class="categories-section">
+    <section class="carousel-section">
       <div class="container">
-        <h2 class="section-title">服务分类</h2>
-        <div class="categories-grid">
+        <h2 class="section-title">精选服务</h2>
+        <div class="carousel-container">
           <div 
-            v-for="category in categories" 
-            :key="category.id" 
-            class="category-card"
-            @click="goToServices(category.name)"
+            class="carousel-slide"
+            v-for="(slide, index) in slides" 
+            :key="index"
+            :class="{ 
+              'active': currentSlide === index,
+              'prev': currentSlide === (index - 1 + slides.length) % slides.length,
+              'next': currentSlide === (index + 1) % slides.length
+            }"
           >
-            <span class="category-icon">{{ category.icon }}</span>
-            <h3 class="category-name">{{ category.name }}</h3>
-            <p class="category-count">{{ category.count }} 项服务</p>
+            <div class="slide-content">
+              <img :src="slide.image" :alt="slide.title" class="slide-image" />
+              <div class="slide-overlay">
+                <h3 class="slide-title">{{ slide.title }}</h3>
+                <p class="slide-description">{{ slide.description }}</p>
+                <button class="slide-btn" @click="goToServices(slide.category)">了解更多</button>
+              </div>
+            </div>
+          </div>
+          
+          <div class="carousel-controls">
+            <button class="carousel-btn prev-btn" @click="prevSlide">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <button class="carousel-btn next-btn" @click="nextSlide">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+          
+          <div class="carousel-indicators">
+            <span 
+              v-for="(_, index) in slides" 
+              :key="index"
+              class="indicator"
+              :class="{ active: currentSlide === index }"
+              @click="goToSlide(index)"
+            ></span>
           </div>
         </div>
       </div>
     </section>
 
-    <section class="featured-services">
+    <section class="about-section">
       <div class="container">
-        <h2 class="section-title">热门服务</h2>
-        <div class="services-grid">
-          <div 
-            v-for="service in featuredServices" 
-            :key="service.id" 
-            class="service-card"
-            @click="goToServiceDetail(service.id)"
-          >
-            <div class="service-icon">{{ service.icon }}</div>
-            <div class="service-info">
-              <h3 class="service-name">{{ service.name }}</h3>
-              <p class="service-category">{{ service.category }}</p>
-              <p class="service-description">{{ service.description }}</p>
-              <div class="service-footer">
-                <span class="service-price">{{ service.price }}</span>
-                <div class="service-rating">
-                  <span class="rating-stars">⭐</span>
-                  <span class="rating-value">{{ service.rating }}</span>
-                  <span class="rating-count">({{ service.reviews }})</span>
-                </div>
+        <div class="about-content">
+          <div class="about-text">
+            <h2 class="section-title">关于我们</h2>
+            <div class="about-description">
+              <p>
+                社区生活服务平台致力于为您提供全方位的社区生活服务解决方案。我们汇聚了社区周边各类优质服务资源，
+                从家政保洁、维修服务到教育培训、健康医疗，让您足不出户就能享受到便捷、高效、专业的服务体验。
+              </p>
+              <p>
+                我们的使命是让社区生活更便捷、更温暖。通过智能化的服务匹配系统，我们能够快速为您找到最适合的服务提供商，
+                同时提供安全保障和质量监督，确保每一次服务都让您满意。
+              </p>
+              <p>
+                加入我们，体验全新的社区生活方式。无论是日常生活中的小事，还是重要的家庭需求，
+                我们都将竭诚为您服务，让您的生活更加轻松愉快。
+              </p>
+            </div>
+            <div class="about-stats">
+              <div class="stat-item">
+                <span class="stat-number">1000+</span>
+                <span class="stat-label">服务项目</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number">500+</span>
+                <span class="stat-label">合作商家</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number">10万+</span>
+                <span class="stat-label">服务用户</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number">98%</span>
+                <span class="stat-label">好评率</span>
               </div>
             </div>
           </div>
-        </div>
-        <div class="view-all">
-          <router-link to="/services" class="view-all-btn">查看全部服务 →</router-link>
+          <div class="about-image">
+            <img 
+              src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=community%20life%20service%20platform%20showcase%20with%20diverse%20services%20like%20cleaning%2C%20repair%2C%20education%2C%20healthcare%20in%20modern%20urban%20setting&image_size=landscape_16_9" 
+              alt="社区生活服务平台" 
+            />
+          </div>
         </div>
       </div>
     </section>
@@ -116,17 +165,58 @@
         </div>
       </div>
     </section>
+
+    <section class="cta-section">
+      <div class="container">
+        <div class="cta-content">
+          <h2 class="cta-title">准备好体验便捷的社区生活服务了吗？</h2>
+          <p class="cta-subtitle">立即浏览我们的服务，让生活更轻松</p>
+          <div class="cta-buttons">
+            <router-link to="/services" class="cta-btn primary-btn">浏览服务</router-link>
+            <router-link to="/contact" class="cta-btn secondary-btn">联系我们</router-link>
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { services, categories } from '../data/services'
 
 const router = useRouter()
 const searchQuery = ref('')
 const showSuccessMessage = ref(false)
+const currentSlide = ref(0)
+let autoPlayInterval = null
+
+const slides = ref([
+  {
+    title: '家政保洁服务',
+    description: '专业保洁团队，让您的家焕然一新。日常保洁、深度清洁、开荒保洁等多种服务可选。',
+    image: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=professional%20home%20cleaning%20service%20with%20cleaners%20working%20in%20modern%20apartment&image_size=landscape_16_9',
+    category: '家政服务'
+  },
+  {
+    title: '家电维修服务',
+    description: '经验丰富的维修师傅，快速解决您的家电问题。空调、冰箱、洗衣机等各类家电维修。',
+    image: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=professional%20appliance%20repair%20technician%20fixing%20air%20conditioner%20in%20modern%20home&image_size=landscape_16_9',
+    category: '维修服务'
+  },
+  {
+    title: '教育培训服务',
+    description: '优质的教育资源，助力孩子成长。课外辅导、兴趣培养、职业技能培训等多种课程。',
+    image: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=modern%20education%20tutoring%20service%20with%20teacher%20helping%20students%20in%20bright%20classroom&image_size=landscape_16_9',
+    category: '教育培训'
+  },
+  {
+    title: '健康医疗服务',
+    description: '专业的健康管理服务，守护您和家人的健康。在线问诊、健康咨询、体检预约等服务。',
+    image: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=professional%20healthcare%20medical%20service%20with%20doctor%20consulting%20patient%20in%20modern%20clinic&image_size=landscape_16_9',
+    category: '健康医疗'
+  }
+])
 
 const getParticleStyle = (index) => {
   const size = Math.random() * 8 + 4
@@ -148,9 +238,46 @@ const displayName = computed(() => {
   return localStorage.getItem('nickname') || localStorage.getItem('username') || '用户'
 })
 
-const featuredServices = computed(() => {
-  return services.slice(0, 4)
-})
+const startAutoPlay = () => {
+  autoPlayInterval = setInterval(() => {
+    nextSlide()
+  }, 5000)
+}
+
+const stopAutoPlay = () => {
+  if (autoPlayInterval) {
+    clearInterval(autoPlayInterval)
+    autoPlayInterval = null
+  }
+}
+
+const nextSlide = () => {
+  currentSlide.value = (currentSlide.value + 1) % slides.value.length
+}
+
+const prevSlide = () => {
+  currentSlide.value = (currentSlide.value - 1 + slides.value.length) % slides.value.length
+}
+
+const goToSlide = (index) => {
+  currentSlide.value = index
+  stopAutoPlay()
+  startAutoPlay()
+}
+
+const handleSearch = () => {
+  if (searchQuery.value.trim()) {
+    router.push(`/services?search=${encodeURIComponent(searchQuery.value)}`)
+  }
+}
+
+const goToServices = (category) => {
+  if (category) {
+    router.push(`/services?category=${encodeURIComponent(category)}`)
+  } else {
+    router.push('/services')
+  }
+}
 
 onMounted(() => {
   if (localStorage.getItem('showLoginSuccess') === 'true') {
@@ -160,21 +287,12 @@ onMounted(() => {
       showSuccessMessage.value = false
     }, 4000)
   }
+  startAutoPlay()
 })
 
-const handleSearch = () => {
-  if (searchQuery.value.trim()) {
-    router.push(`/services?search=${encodeURIComponent(searchQuery.value)}`)
-  }
-}
-
-const goToServices = (category) => {
-  router.push(`/services?category=${encodeURIComponent(category)}`)
-}
-
-const goToServiceDetail = (id) => {
-  router.push(`/services/${id}`)
-}
+onUnmounted(() => {
+  stopAutoPlay()
+})
 </script>
 
 <style scoped>
@@ -289,160 +407,288 @@ const goToServiceDetail = (id) => {
   border-radius: 2px;
 }
 
-.categories-section,
-.featured-services,
-.features-section {
-  padding: 60px 0;
+.carousel-section {
+  padding: 80px 0;
+  background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
 }
 
-.categories-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
+.carousel-container {
+  position: relative;
+  max-width: 1000px;
+  margin: 0 auto;
+  height: 500px;
+  perspective: 1500px;
 }
 
-.category-card {
-  background: white;
-  border-radius: 15px;
-  padding: 30px 20px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+.carousel-slide {
+  position: absolute;
+  width: 70%;
+  height: 100%;
+  left: 15%;
+  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+  opacity: 0;
+  transform: translateX(0) scale(0.8);
 }
 
-.category-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+.carousel-slide.active {
+  opacity: 1;
+  transform: translateX(0) scale(1) translateZ(50px);
+  z-index: 10;
 }
 
-.category-icon {
-  font-size: 3rem;
-  margin-bottom: 15px;
-  display: block;
+.carousel-slide.prev {
+  opacity: 0.6;
+  transform: translateX(-80%) scale(0.7) rotateY(15deg);
+  z-index: 5;
 }
 
-.category-name {
-  font-size: 1.1rem;
-  margin-bottom: 8px;
-  color: #2c3e50;
+.carousel-slide.next {
+  opacity: 0.6;
+  transform: translateX(80%) scale(0.7) rotateY(-15deg);
+  z-index: 5;
 }
 
-.category-count {
-  font-size: 0.9rem;
-  color: #7f8c8d;
-}
-
-.services-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 25px;
-}
-
-.service-card {
-  background: white;
-  border-radius: 15px;
+.slide-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 20px;
   overflow: hidden;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
-  display: flex;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
 }
 
-.service-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+.slide-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-.service-icon {
-  font-size: 3rem;
-  padding: 30px 20px;
-  background: linear-gradient(135deg, #f5f7fa, #e4e8eb);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.slide-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+  padding: 40px;
+  color: white;
 }
 
-.service-info {
-  flex: 1;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-}
-
-.service-name {
-  font-size: 1.2rem;
-  margin-bottom: 5px;
-  color: #2c3e50;
-}
-
-.service-category {
-  font-size: 0.85rem;
-  color: #6B8E23;
+.slide-title {
+  font-size: 1.8rem;
   margin-bottom: 10px;
-}
-
-.service-description {
-  font-size: 0.9rem;
-  color: #7f8c8d;
-  margin-bottom: 15px;
-  flex: 1;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.service-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.service-price {
-  font-size: 1.1rem;
   font-weight: bold;
-  color: #C45B1A;
+  animation: slide-up 0.6s ease-out;
 }
 
-.service-rating {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 0.9rem;
+.slide-description {
+  font-size: 1rem;
+  margin-bottom: 20px;
+  opacity: 0.9;
+  line-height: 1.6;
+  animation: slide-up 0.6s ease-out 0.1s backwards;
 }
 
-.rating-stars {
-  color: #f39c12;
-}
-
-.rating-value {
-  font-weight: bold;
-  color: #2c3e50;
-}
-
-.rating-count {
-  color: #7f8c8d;
-}
-
-.view-all {
-  text-align: center;
-  margin-top: 40px;
-}
-
-.view-all-btn {
-  display: inline-block;
+.slide-btn {
   padding: 12px 30px;
   background: linear-gradient(135deg, #6B8E23, #8FBC8F);
   color: white;
-  border-radius: 50px;
+  border-radius: 25px;
   font-weight: bold;
+  transition: all 0.3s ease;
+  animation: slide-up 0.6s ease-out 0.2s backwards;
+}
+
+.slide-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(107, 142, 35, 0.5);
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.carousel-controls {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  transform: translateY(-50%);
+  display: flex;
+  justify-content: space-between;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.carousel-btn {
+  width: 50px;
+  height: 50px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.carousel-btn:hover {
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
+  color: white;
+  transform: scale(1.1);
+}
+
+.carousel-btn svg {
+  width: 24px;
+  height: 24px;
+}
+
+.prev-btn {
+  margin-left: -25px;
+}
+
+.next-btn {
+  margin-right: -25px;
+}
+
+.carousel-indicators {
+  position: absolute;
+  bottom: -50px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  z-index: 20;
+}
+
+.indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #c4c4c4;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.indicator.active {
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
+  width: 30px;
+  border-radius: 6px;
+}
+
+.indicator:hover {
+  background: #6B8E23;
+}
+
+.about-section {
+  padding: 80px 0;
+  background: white;
+}
+
+.about-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+}
+
+.about-text .section-title {
+  text-align: left;
+  margin-bottom: 30px;
+}
+
+.about-text .section-title::after {
+  left: 0;
+  transform: none;
+}
+
+.about-description {
+  margin-bottom: 40px;
+}
+
+.about-description p {
+  font-size: 1rem;
+  color: #555;
+  line-height: 1.8;
+  margin-bottom: 20px;
+}
+
+.about-description p:last-child {
+  margin-bottom: 0;
+}
+
+.about-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.stat-item {
+  text-align: center;
+  padding: 20px 10px;
+  background: linear-gradient(135deg, #f5f7fa, #e4e8eb);
+  border-radius: 15px;
   transition: all 0.3s ease;
 }
 
-.view-all-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(107, 142, 35, 0.3);
+.stat-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.stat-number {
+  display: block;
+  font-size: 2rem;
+  font-weight: bold;
+  color: #6B8E23;
+  margin-bottom: 5px;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: #7f8c8d;
+}
+
+.about-image {
+  position: relative;
+}
+
+.about-image img {
+  width: 100%;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+}
+
+.about-image img:hover {
+  transform: scale(1.02);
+}
+
+.about-image::before {
+  content: '';
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  right: -20px;
+  bottom: -20px;
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
+  border-radius: 20px;
+  z-index: -1;
+  opacity: 0.3;
+}
+
+.features-section {
+  padding: 80px 0;
+  background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
 }
 
 .features-grid {
@@ -453,25 +699,137 @@ const goToServiceDetail = (id) => {
 
 .feature-item {
   text-align: center;
-  padding: 30px 20px;
+  padding: 40px 30px;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.feature-item:hover::before {
+  transform: scaleX(1);
+}
+
+.feature-item:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
 }
 
 .feature-icon {
-  font-size: 3rem;
+  font-size: 3.5rem;
   margin-bottom: 20px;
   display: block;
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 .feature-title {
-  font-size: 1.2rem;
-  margin-bottom: 10px;
+  font-size: 1.3rem;
+  margin-bottom: 15px;
   color: #2c3e50;
+  font-weight: bold;
 }
 
 .feature-description {
   font-size: 0.95rem;
   color: #7f8c8d;
   line-height: 1.6;
+}
+
+.cta-section {
+  padding: 80px 0;
+  background: linear-gradient(135deg, #8B7355 0%, #6B8E23 100%);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.cta-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  pointer-events: none;
+}
+
+.cta-content {
+  position: relative;
+  z-index: 1;
+}
+
+.cta-title {
+  font-size: 2.5rem;
+  color: white;
+  margin-bottom: 15px;
+  font-weight: bold;
+}
+
+.cta-subtitle {
+  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 40px;
+}
+
+.cta-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.cta-btn {
+  padding: 15px 40px;
+  border-radius: 50px;
+  font-weight: bold;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+}
+
+.primary-btn {
+  background: white;
+  color: #6B8E23;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.primary-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+}
+
+.secondary-btn {
+  background: transparent;
+  color: white;
+  border: 2px solid white;
+}
+
+.secondary-btn:hover {
+  background: white;
+  color: #6B8E23;
+  transform: translateY(-3px);
 }
 
 .toast-container {
@@ -593,6 +951,48 @@ const goToServiceDetail = (id) => {
   }
 }
 
+@media (max-width: 992px) {
+  .about-content {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+  
+  .about-text .section-title {
+    text-align: center;
+  }
+  
+  .about-text .section-title::after {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  .about-image {
+    order: -1;
+  }
+  
+  .about-image::before {
+    display: none;
+  }
+  
+  .carousel-slide {
+    width: 80%;
+    left: 10%;
+  }
+  
+  .carousel-slide.prev,
+  .carousel-slide.next {
+    opacity: 0;
+  }
+  
+  .prev-btn {
+    margin-left: 10px;
+  }
+  
+  .next-btn {
+    margin-right: 10px;
+  }
+}
+
 @media (max-width: 768px) {
   .hero {
     padding: 50px 0;
@@ -624,18 +1024,59 @@ const goToServiceDetail = (id) => {
     font-size: 1.5rem;
   }
 
-  .categories-section,
-  .featured-services,
-  .features-section {
-    padding: 40px 0;
+  .carousel-section,
+  .about-section,
+  .features-section,
+  .cta-section {
+    padding: 50px 0;
   }
 
-  .service-card {
+  .carousel-container {
+    height: 400px;
+  }
+
+  .carousel-slide {
+    width: 90%;
+    left: 5%;
+  }
+
+  .slide-overlay {
+    padding: 25px 20px;
+  }
+
+  .slide-title {
+    font-size: 1.4rem;
+  }
+
+  .slide-description {
+    font-size: 0.9rem;
+  }
+
+  .about-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+  }
+
+  .stat-number {
+    font-size: 1.5rem;
+  }
+
+  .cta-title {
+    font-size: 1.8rem;
+  }
+
+  .cta-subtitle {
+    font-size: 1rem;
+  }
+
+  .cta-buttons {
     flex-direction: column;
+    align-items: center;
   }
 
-  .service-icon {
-    padding: 20px;
+  .cta-btn {
+    width: 100%;
+    max-width: 250px;
   }
 }
 </style>
