@@ -9,6 +9,7 @@
         <nav class="nav">
           <router-link to="/" class="nav-link" :class="{ active: $route.path === '/' }">首页</router-link>
           <router-link to="/services" class="nav-link" :class="{ active: $route.path === '/services' }">服务列表</router-link>
+          <router-link to="/forum" class="nav-link" :class="{ active: $route.path === '/forum' }">社区论坛</router-link>
           <router-link to="/about" class="nav-link" :class="{ active: $route.path === '/about' }">关于我们</router-link>
           <router-link to="/contact" class="nav-link" :class="{ active: $route.path === '/contact' }">联系我们</router-link>
         </nav>
@@ -35,6 +36,7 @@
       <nav class="mobile-nav">
         <router-link to="/" class="mobile-nav-link" @click="closeMobileMenu">首页</router-link>
         <router-link to="/services" class="mobile-nav-link" @click="closeMobileMenu">服务列表</router-link>
+        <router-link to="/forum" class="mobile-nav-link" @click="closeMobileMenu">社区论坛</router-link>
         <router-link to="/about" class="mobile-nav-link" @click="closeMobileMenu">关于我们</router-link>
         <router-link to="/contact" class="mobile-nav-link" @click="closeMobileMenu">联系我们</router-link>
         <div class="mobile-user-section" v-if="isLoggedIn">
