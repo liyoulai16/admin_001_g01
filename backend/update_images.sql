@@ -1,37 +1,38 @@
 -- 数据库：dev_gsb_1
 -- 更新图片URL脚本（用于修复已入库的数据）
--- 说明：此脚本将轮播图和平台简介的图片URL更新为使用Unsplash主题相关稳定图片
+-- 说明：此脚本将轮播图和平台简介的图片URL更新为使用稳定的Unsplash图片
+-- 所有图片ID均已验证可直接访问
 
 USE dev_gsb_1;
 
 -- 更新轮播图图片URL
--- 家政保洁服务（清洁、打扫、整洁的家）
+-- 家政保洁服务（清洁场景、保洁人员）
 UPDATE carousel 
-SET image_url = 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800&h=500&fit=crop&auto=format' 
+SET image_url = 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=800&h=500&fit=crop' 
 WHERE title = '家政保洁服务' 
 AND deleted = 0;
 
--- 家电维修服务（维修工人、工具、家电维修）
+-- 家电维修服务（工具、维修场景）
 UPDATE carousel 
-SET image_url = 'https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=800&h=500&fit=crop&auto=format' 
+SET image_url = 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&h=500&fit=crop' 
 WHERE title = '家电维修服务' 
 AND deleted = 0;
 
--- 教育培训服务（学习、教室、学生、老师）
+-- 教育培训服务（教室、学生、学习场景）
 UPDATE carousel 
-SET image_url = 'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=800&h=500&fit=crop&auto=format' 
+SET image_url = 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&h=500&fit=crop' 
 WHERE title = '教育培训服务' 
 AND deleted = 0;
 
--- 健康医疗服务（医院、医生、健康、医疗）
+-- 健康医疗服务（医疗场景、医生、健康）
 UPDATE carousel 
-SET image_url = 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=800&h=500&fit=crop&auto=format' 
+SET image_url = 'https://images.unsplash.com/photo-1559757175-5700dde676bc?w=800&h=500&fit=crop' 
 WHERE title = '健康医疗服务' 
 AND deleted = 0;
 
 -- 更新平台简介图片URL（社区、邻里、城市生活）
 UPDATE platform_intro 
-SET image_url = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&h=500&fit=crop&auto=format' 
+SET image_url = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&h=500&fit=crop' 
 WHERE title = '平台简介' 
 AND deleted = 0;
 
