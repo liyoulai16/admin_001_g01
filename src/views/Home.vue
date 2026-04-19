@@ -823,15 +823,17 @@ onUnmounted(() => {
 }
 
 .secondary-btn {
-  background: transparent;
-  color: white;
-  border: 2px solid white;
+  background: white;
+  color: #6B8E23;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
 }
 
 .secondary-btn:hover {
-  background: white;
-  color: #6B8E23;
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
+  color: white;
   transform: translateY(-3px);
+  box-shadow: 0 15px 40px rgba(107, 142, 35, 0.4);
 }
 
 .toast-container {
