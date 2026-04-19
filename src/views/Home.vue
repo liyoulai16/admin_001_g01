@@ -40,14 +40,14 @@
       </div>
     </section>
 
-    <section class="carousel-section">
+    <section class="carousel-section" v-if="slides.length > 0">
       <div class="container">
         <h2 class="section-title">精选服务</h2>
         <div class="carousel-container">
           <div 
             class="carousel-slide"
             v-for="(slide, index) in slides" 
-            :key="index"
+            :key="slide.id"
             :class="{ 
               'active': currentSlide === index,
               'prev': currentSlide === (index - 1 + slides.length) % slides.length,
@@ -55,7 +55,7 @@
             }"
           >
             <div class="slide-content">
-              <img :src="slide.image" :alt="slide.title" class="slide-image" />
+              <img :src="slide.imageUrl" :alt="slide.title" class="slide-image" />
               <div class="slide-overlay">
                 <h3 class="slide-title">{{ slide.title }}</h3>
                 <p class="slide-description">{{ slide.description }}</p>
@@ -90,48 +90,36 @@
       </div>
     </section>
 
-    <section class="about-section">
+    <section class="about-section" v-if="platformIntro">
       <div class="container">
         <div class="about-content">
           <div class="about-text">
-            <h2 class="section-title">关于我们</h2>
-            <div class="about-description">
-              <p>
-                社区生活服务平台致力于为您提供全方位的社区生活服务解决方案。我们汇聚了社区周边各类优质服务资源，
-                从家政保洁、维修服务到教育培训、健康医疗，让您足不出户就能享受到便捷、高效、专业的服务体验。
-              </p>
-              <p>
-                我们的使命是让社区生活更便捷、更温暖。通过智能化的服务匹配系统，我们能够快速为您找到最适合的服务提供商，
-                同时提供安全保障和质量监督，确保每一次服务都让您满意。
-              </p>
-              <p>
-                加入我们，体验全新的社区生活方式。无论是日常生活中的小事，还是重要的家庭需求，
-                我们都将竭诚为您服务，让您的生活更加轻松愉快。
-              </p>
+            <h2 class="section-title">平台简介</h2>
+            <div class="about-description" v-html="formatContent(platformIntro.content)">
             </div>
-            <div class="about-stats">
-              <div class="stat-item">
-                <span class="stat-number">1000+</span>
-                <span class="stat-label">服务项目</span>
+            <div class="about-stats" v-if="platformIntro.stat1Value">
+              <div class="stat-item" v-if="platformIntro.stat1Value">
+                <span class="stat-number">{{ platformIntro.stat1Value }}</span>
+                <span class="stat-label">{{ platformIntro.stat1Label }}</span>
               </div>
-              <div class="stat-item">
-                <span class="stat-number">500+</span>
-                <span class="stat-label">合作商家</span>
+              <div class="stat-item" v-if="platformIntro.stat2Value">
+                <span class="stat-number">{{ platformIntro.stat2Value }}</span>
+                <span class="stat-label">{{ platformIntro.stat2Label }}</span>
               </div>
-              <div class="stat-item">
-                <span class="stat-number">10万+</span>
-                <span class="stat-label">服务用户</span>
+              <div class="stat-item" v-if="platformIntro.stat3Value">
+                <span class="stat-number">{{ platformIntro.stat3Value }}</span>
+                <span class="stat-label">{{ platformIntro.stat3Label }}</span>
               </div>
-              <div class="stat-item">
-                <span class="stat-number">98%</span>
-                <span class="stat-label">好评率</span>
+              <div class="stat-item" v-if="platformIntro.stat4Value">
+                <span class="stat-number">{{ platformIntro.stat4Value }}</span>
+                <span class="stat-label">{{ platformIntro.stat4Label }}</span>
               </div>
             </div>
           </div>
-          <div class="about-image">
+          <div class="about-image" v-if="platformIntro.imageUrl">
             <img 
-              src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=community%20life%20service%20platform%20showcase%20with%20diverse%20services%20like%20cleaning%2C%20repair%2C%20education%2C%20healthcare%20in%20modern%20urban%20setting&image_size=landscape_16_9" 
-              alt="社区生活服务平台" 
+              :src="platformIntro.imageUrl" 
+              :alt="platformIntro.title" 
             />
           </div>
         </div>
@@ -184,39 +172,15 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
+import request from '../utils/request'
 
 const router = useRouter()
 const searchQuery = ref('')
 const showSuccessMessage = ref(false)
 const currentSlide = ref(0)
+const slides = ref([])
+const platformIntro = ref(null)
 let autoPlayInterval = null
-
-const slides = ref([
-  {
-    title: '家政保洁服务',
-    description: '专业保洁团队，让您的家焕然一新。日常保洁、深度清洁、开荒保洁等多种服务可选。',
-    image: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=professional%20home%20cleaning%20service%20with%20cleaners%20working%20in%20modern%20apartment&image_size=landscape_16_9',
-    category: '家政服务'
-  },
-  {
-    title: '家电维修服务',
-    description: '经验丰富的维修师傅，快速解决您的家电问题。空调、冰箱、洗衣机等各类家电维修。',
-    image: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=professional%20appliance%20repair%20technician%20fixing%20air%20conditioner%20in%20modern%20home&image_size=landscape_16_9',
-    category: '维修服务'
-  },
-  {
-    title: '教育培训服务',
-    description: '优质的教育资源，助力孩子成长。课外辅导、兴趣培养、职业技能培训等多种课程。',
-    image: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=modern%20education%20tutoring%20service%20with%20teacher%20helping%20students%20in%20bright%20classroom&image_size=landscape_16_9',
-    category: '教育培训'
-  },
-  {
-    title: '健康医疗服务',
-    description: '专业的健康管理服务，守护您和家人的健康。在线问诊、健康咨询、体检预约等服务。',
-    image: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=professional%20healthcare%20medical%20service%20with%20doctor%20consulting%20patient%20in%20modern%20clinic&image_size=landscape_16_9',
-    category: '健康医疗'
-  }
-])
 
 const getParticleStyle = (index) => {
   const size = Math.random() * 8 + 4
@@ -238,10 +202,17 @@ const displayName = computed(() => {
   return localStorage.getItem('nickname') || localStorage.getItem('username') || '用户'
 })
 
+const formatContent = (content) => {
+  if (!content) return ''
+  return content.replace(/\n/g, '</p><p>')
+}
+
 const startAutoPlay = () => {
-  autoPlayInterval = setInterval(() => {
-    nextSlide()
-  }, 5000)
+  if (slides.value.length > 1) {
+    autoPlayInterval = setInterval(() => {
+      nextSlide()
+    }, 5000)
+  }
 }
 
 const stopAutoPlay = () => {
@@ -252,11 +223,15 @@ const stopAutoPlay = () => {
 }
 
 const nextSlide = () => {
-  currentSlide.value = (currentSlide.value + 1) % slides.value.length
+  if (slides.value.length > 0) {
+    currentSlide.value = (currentSlide.value + 1) % slides.value.length
+  }
 }
 
 const prevSlide = () => {
-  currentSlide.value = (currentSlide.value - 1 + slides.value.length) % slides.value.length
+  if (slides.value.length > 0) {
+    currentSlide.value = (currentSlide.value - 1 + slides.value.length) % slides.value.length
+  }
 }
 
 const goToSlide = (index) => {
@@ -279,6 +254,28 @@ const goToServices = (category) => {
   }
 }
 
+const fetchHomeData = async () => {
+  try {
+    const response = await request('/api/home/data', {
+      method: 'GET'
+    })
+    
+    if (response.ok) {
+      const data = await response.json()
+      if (data.code === 200 && data.data) {
+        if (data.data.carousels) {
+          slides.value = data.data.carousels
+        }
+        if (data.data.intro) {
+          platformIntro.value = data.data.intro
+        }
+      }
+    }
+  } catch (error) {
+    console.error('获取首页数据失败:', error)
+  }
+}
+
 onMounted(() => {
   if (localStorage.getItem('showLoginSuccess') === 'true') {
     localStorage.removeItem('showLoginSuccess')
@@ -287,6 +284,8 @@ onMounted(() => {
       showSuccessMessage.value = false
     }, 4000)
   }
+  
+  fetchHomeData()
   startAutoPlay()
 })
 
