@@ -62,9 +62,18 @@ public class ForumPostService {
     private void sortPosts(List<ForumPost> posts, String sortBy) {
         if (posts == null || posts.isEmpty()) return;
         
-        switch (sortBy) {
-            case "hot":
-                posts.sort((a, b) -> {
+        posts.sort((a, b) -> {
+            int tagA = a.getTag() != null ? a.getTag() : 0;
+            int tagB = b.getTag() != null ? b.getTag() : 0;
+            
+            boolean isTopA = (tagA == 2 || tagA == 3);
+            boolean isTopB = (tagB == 2 || tagB == 3);
+            
+            if (isTopA && !isTopB) return -1;
+            if (!isTopA && isTopB) return 1;
+            
+            switch (sortBy) {
+                case "hot":
                     int scoreA = (a.getViews() != null ? a.getViews() : 0) + 
                                  (a.getComments() != null ? a.getComments() : 0) * 10 + 
                                  (a.getLikes() != null ? a.getLikes() : 0) * 5;
@@ -72,20 +81,22 @@ public class ForumPostService {
                                  (b.getComments() != null ? b.getComments() : 0) * 10 + 
                                  (b.getLikes() != null ? b.getLikes() : 0) * 5;
                     return Integer.compare(scoreB, scoreA);
-                });
-                break;
-            case "essence":
-                posts.removeIf(p -> p.getIsEssence() == null || p.getIsEssence() != 1);
-                break;
-            case "latest":
-            default:
-                posts.sort((a, b) -> {
+                case "essence":
+                    int essenceA = (a.getIsEssence() != null && a.getIsEssence() == 1) ? 1 : 0;
+                    int essenceB = (b.getIsEssence() != null && b.getIsEssence() == 1) ? 1 : 0;
+                    if (essenceA != essenceB) {
+                        return Integer.compare(essenceB, essenceA);
+                    }
                     if (a.getCreateTime() == null) return 1;
                     if (b.getCreateTime() == null) return -1;
                     return b.getCreateTime().compareTo(a.getCreateTime());
-                });
-                break;
-        }
+                case "latest":
+                default:
+                    if (a.getCreateTime() == null) return 1;
+                    if (b.getCreateTime() == null) return -1;
+                    return b.getCreateTime().compareTo(a.getCreateTime());
+            }
+        });
     }
     
     private void enrichPost(ForumPost post) {
@@ -116,6 +127,7 @@ public class ForumPostService {
         if (post.getLikes() == null) post.setLikes(0);
         if (post.getIsEssence() == null) post.setIsEssence(0);
         if (post.getIsHot() == null) post.setIsHot(0);
+        if (post.getTag() == null) post.setTag(0);
     }
     
     public ForumPost getPostById(Long id) {
@@ -167,6 +179,7 @@ public class ForumPostService {
         post.setLikes(0);
         post.setIsEssence(0);
         post.setIsHot(0);
+        post.setTag(0);
         post.setStatus(1);
         post.setDeleted(0);
         post.setCreateTime(LocalDateTime.now());

@@ -7,41 +7,25 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
-@TableName("forum_post")
-public class ForumPost {
+@TableName("forum_comment")
+public class ForumComment {
     
     @TableId(type = IdType.AUTO)
     private Long id;
     
-    private Long categoryId;
+    private Long postId;
     
     private Long userId;
     
-    private String title;
+    private Long parentId;
+    
+    private Long replyToId;
+    
+    private Long replyToUserId;
     
     private String content;
     
-    private String excerpt;
-    
-    private String images;
-    
-    @TableField(exist = false)
-    private List<String> imageList;
-    
-    private Integer views;
-    
-    private Integer comments;
-    
     private Integer likes;
-    
-    private Integer isEssence;
-    
-    private Integer isHot;
-    
-    private Integer tag;
-    
-    @TableField(exist = false)
-    private Boolean isLiked;
     
     private Integer status;
     
@@ -55,11 +39,17 @@ public class ForumPost {
     private LocalDateTime updateTime;
     
     @TableField(exist = false)
-    private String categoryName;
+    private String userName;
     
     @TableField(exist = false)
-    private String authorName;
+    private String userAvatar;
     
     @TableField(exist = false)
-    private String authorAvatar;
+    private String replyToUserName;
+    
+    @TableField(exist = false)
+    private List<ForumComment> replies;
+    
+    @TableField(exist = false)
+    private Boolean isLiked;
 }

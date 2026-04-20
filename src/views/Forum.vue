@@ -43,13 +43,17 @@
             <h3 class="section-title">热门话题</h3>
             <div class="hot-topics">
               <div 
+                v-if="hotTopics.length > 0"
                 v-for="(topic, index) in hotTopics" 
-                :key="index" 
+                :key="topic.id || index" 
                 class="topic-item"
                 @click="selectTopic(topic)"
               >
                 <span class="topic-rank" :class="{ top: index < 3 }">{{ index + 1 }}</span>
-                <span class="topic-text">{{ topic }}</span>
+                <span class="topic-text">{{ topic.title || topic }}</span>
+              </div>
+              <div v-else class="no-hot-topics">
+                <span>暂无热门话题</span>
               </div>
             </div>
           </div>
@@ -116,7 +120,9 @@
                 <div class="post-tags">
                   <span class="tag category-tag">{{ post.category }}</span>
                   <span v-if="post.isEssence" class="tag essence-tag">精华</span>
-                  <span v-if="post.isHot" class="tag hot-tag">热门</span>
+                  <span v-if="post.tag === 1" class="tag hot-tag">热门</span>
+                  <span v-if="post.tag === 2" class="tag top-tag">置顶</span>
+                  <span v-if="post.tag === 3" class="tag hot-top-tag">热门+置顶</span>
                 </div>
               </div>
               
@@ -143,10 +149,14 @@
                     <span class="stat-icon">💬</span>
                     <span class="stat-value">{{ post.comments }}</span>
                   </span>
-                  <span class="stat-item">
-                    <span class="stat-icon">👍</span>
+                  <button 
+                    class="stat-item like-btn" 
+                    :class="{ liked: post.isLiked }"
+                    @click.stop="likePost(post.id)"
+                  >
+                    <span class="stat-icon">{{ post.isLiked ? '❤️' : '🤍' }}</span>
                     <span class="stat-value">{{ post.likes }}</span>
-                  </span>
+                  </button>
                 </div>
                 <button class="reply-btn" @click.stop="openReplyModal(post)">
                   <span>回复</span>
@@ -262,19 +272,14 @@
               <div class="post-tags">
                 <span class="tag category-tag">{{ currentPost.category }}</span>
                 <span v-if="currentPost.isEssence" class="tag essence-tag">精华</span>
+                <span v-if="currentPost.tag === 1" class="tag hot-tag">热门</span>
+                <span v-if="currentPost.tag === 2" class="tag top-tag">置顶</span>
+                <span v-if="currentPost.tag === 3" class="tag hot-top-tag">热门+置顶</span>
               </div>
             </div>
             
             <div class="post-detail-body">
               <p>{{ currentPost.content || currentPost.excerpt }}</p>
-              <p>这是帖子的详细内容区域。在实际应用中，这里会显示完整的帖子内容，包括富文本格式、图片、视频等多媒体内容。</p>
-              <p>社区论坛为居民提供了一个交流分享的平台，您可以在这里：</p>
-              <ul>
-                <li>分享生活中的点滴趣事</li>
-                <li>向邻里求助或提供帮助</li>
-                <li>组织和参与社区活动</li>
-                <li>发布闲置物品交易信息</li>
-              </ul>
             </div>
             
             <div class="post-detail-stats">
@@ -286,46 +291,100 @@
                 <span class="stat-number">{{ currentPost.comments }}</span>
                 <span class="stat-label">评论</span>
               </div>
-              <div class="stat-card">
+              <div 
+                class="stat-card like-card" 
+                :class="{ liked: currentPost.isLiked }"
+                @click="likePost(currentPost.id)"
+                style="cursor: pointer;"
+              >
                 <span class="stat-number">{{ currentPost.likes }}</span>
-                <span class="stat-label">点赞</span>
+                <span class="stat-label">{{ currentPost.isLiked ? '已点赞' : '点赞' }}</span>
               </div>
             </div>
             
             <div class="comments-section">
-              <h4 class="comments-title">评论区 ({{ sampleComments.length }})</h4>
+              <h4 class="comments-title">评论区 ({{ comments.length }})</h4>
               <div class="comments-list">
-                <div v-for="(comment, index) in sampleComments" :key="index" class="comment-item">
+                <div v-for="comment in comments" :key="comment.id" class="comment-item">
                   <div class="comment-header">
-                    <div class="comment-avatar">{{ comment.avatar }}</div>
+                    <div class="comment-avatar">{{ comment.userAvatar }}</div>
                     <div class="comment-info">
-                      <span class="comment-author">{{ comment.author }}</span>
-                      <span class="comment-time">{{ comment.time }}</span>
+                      <span class="comment-author">{{ comment.userName }}</span>
+                      <span class="comment-time">{{ comment.createTime }}</span>
                     </div>
                   </div>
                   <p class="comment-content">{{ comment.content }}</p>
                   <div class="comment-actions">
-                    <button class="action-btn">
-                      <span>👍</span>
+                    <button 
+                      class="action-btn" 
+                      :class="{ liked: comment.isLiked }"
+                      @click="likeComment(comment.id, false, null)"
+                    >
+                      <span>{{ comment.isLiked ? '❤️' : '🤍' }}</span>
                       <span>{{ comment.likes }}</span>
                     </button>
-                    <button class="action-btn">
+                    <button class="action-btn" @click="startReply(comment)">
                       <span>💬</span>
                       <span>回复</span>
                     </button>
                   </div>
+                  
+                  <div v-if="comment.replies && comment.replies.length > 0" class="replies-list">
+                    <div v-for="reply in comment.replies" :key="reply.id" class="reply-item">
+                      <div class="comment-header">
+                        <div class="comment-avatar">{{ reply.userAvatar }}</div>
+                        <div class="comment-info">
+                          <span class="comment-author">
+                            {{ reply.userName }}
+                            <span v-if="reply.replyToUserName" class="reply-to">
+                              回复 @{{ reply.replyToUserName }}
+                            </span>
+                          </span>
+                          <span class="comment-time">{{ reply.createTime }}</span>
+                        </div>
+                      </div>
+                      <p class="comment-content">{{ reply.content }}</p>
+                      <div class="comment-actions">
+                        <button 
+                          class="action-btn" 
+                          :class="{ liked: reply.isLiked }"
+                          @click="likeComment(reply.id, true, comment)"
+                        >
+                          <span>{{ reply.isLiked ? '❤️' : '🤍' }}</span>
+                          <span>{{ reply.likes }}</span>
+                        </button>
+                        <button class="action-btn" @click="startReply(reply)">
+                          <span>💬</span>
+                          <span>回复</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div v-if="comments.length === 0" class="no-comments">
+                  <span>暂无评论，快来抢沙发吧！</span>
                 </div>
               </div>
               
               <div class="reply-box">
+                <div v-if="replyingTo" class="replying-to">
+                  <span>回复 @{{ replyingTo.userName || replyingTo.replyToUserName }}</span>
+                  <button class="cancel-reply-btn" @click="cancelReply">取消</button>
+                </div>
                 <textarea 
                   v-model="replyContent" 
                   class="reply-textarea"
-                  placeholder="写下您的评论..."
+                  :placeholder="replyingTo ? '写下您的回复...' : '写下您的评论...'"
                   rows="3"
                 ></textarea>
                 <div class="reply-actions">
-                  <button class="btn-primary" @click="submitReply">发表评论</button>
+                  <button 
+                    class="btn-primary" 
+                    @click="replyingTo ? submitReply(replyingTo) : submitComment()"
+                  >
+                    {{ replyingTo ? '发表回复' : '发表评论' }}
+                  </button>
                 </div>
               </div>
             </div>
@@ -372,6 +431,7 @@ const loading = ref(false)
 const showPostDetail = ref(false)
 const currentPost = ref(null)
 const replyContent = ref('')
+const replyingTo = ref(null)
 
 const jumpPageInput = ref('')
 const showToast = ref(false)
@@ -408,42 +468,34 @@ const visiblePages = computed(() => {
   return rangeWithDots
 })
 
-const hotTopics = [
-  '周末小区运动会报名',
-  '求助：水管漏水怎么办',
-  '闲置物品交换群',
-  '小区绿化建议征集',
-  '邻里互助倡议书'
-]
-
 const categories = ref([])
 const activeUsers = ref([])
 const posts = ref([])
 const filteredPosts = ref([])
+const hotTopics = ref([])
+const comments = ref([])
 
-const sampleComments = [
-  {
-    avatar: '👩',
-    author: '李阿姨',
-    time: '2小时前',
-    content: '写得真好！我也参加了那次活动，确实很开心。',
-    likes: 12
-  },
-  {
-    avatar: '🧑',
-    author: '小王',
-    time: '1小时前',
-    content: '期待下次活动！我报名当志愿者帮忙组织。',
-    likes: 8
-  },
-  {
-    avatar: '👴',
-    author: '陈叔叔',
-    time: '30分钟前',
-    content: '邻里关系就是要这样多交流，支持！',
-    likes: 5
+const formatTime = (timeStr) => {
+  if (!timeStr) return ''
+  const date = new Date(timeStr)
+  return date.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  }).replace(/\//g, '-')
+}
+
+const getTagInfo = (tag) => {
+  if (!tag) return { isHot: false, isTop: false, label: '' }
+  const t = Number(tag)
+  return {
+    isHot: t === 1 || t === 3,
+    isTop: t === 2 || t === 3,
+    label: t === 1 ? '热门' : t === 2 ? '置顶' : t === 3 ? '热门+置顶' : ''
   }
-]
+}
 
 const getCategoryNameById = (id) => {
   const category = categories.value.find(c => c.id === id)
@@ -547,6 +599,59 @@ const fetchPosts = async () => {
   }
 }
 
+const fetchHotPosts = async () => {
+  try {
+    const response = await request('/api/forum/hot-posts', {
+      method: 'GET'
+    })
+    
+    if (response.ok) {
+      const data = await response.json()
+      if (data.code === 200 && data.data) {
+        hotTopics.value = data.data
+      }
+    }
+  } catch (error) {
+    console.error('获取热门帖子失败:', error)
+    hotTopics.value = []
+  }
+}
+
+const fetchComments = async (postId) => {
+  try {
+    const response = await request(`/api/forum/posts/${postId}/comments`, {
+      method: 'GET'
+    })
+    
+    if (response.ok) {
+      const data = await response.json()
+      if (data.code === 200 && data.data) {
+        const commentList = data.data || []
+        commentList.forEach(comment => {
+          if (!comment.userName) comment.userName = '匿名用户'
+          if (!comment.userAvatar) comment.userAvatar = '👤'
+          if (comment.createTime) {
+            comment.createTime = formatTime(comment.createTime)
+          }
+          if (comment.replies && comment.replies.length > 0) {
+            comment.replies.forEach(reply => {
+              if (!reply.userName) reply.userName = '匿名用户'
+              if (!reply.userAvatar) reply.userAvatar = '👤'
+              if (reply.createTime) {
+                reply.createTime = formatTime(reply.createTime)
+              }
+            })
+          }
+        })
+        comments.value = commentList
+      }
+    }
+  } catch (error) {
+    console.error('获取评论失败:', error)
+    comments.value = []
+  }
+}
+
 const fetchPostDetail = async (id) => {
   try {
     const response = await request(`/api/forum/posts/${id}`, {
@@ -572,21 +677,150 @@ const fetchPostDetail = async (id) => {
           post.images = []
         }
         if (post.createTime) {
-          const date = new Date(post.createTime)
-          post.createTime = date.toLocaleString('zh-CN', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit'
-          }).replace(/\//g, '-')
+          post.createTime = formatTime(post.createTime)
         }
         currentPost.value = post
+        
+        await fetchComments(id)
       }
     }
   } catch (error) {
     console.error('获取帖子详情失败:', error)
   }
+}
+
+const submitComment = async () => {
+  if (!currentPost.value) return
+  
+  if (!replyContent.value.trim()) {
+    showToastMessage('请输入评论内容', '⚠️')
+    return
+  }
+  
+  try {
+    const formData = new URLSearchParams()
+    formData.append('content', replyContent.value)
+    
+    const response = await request(`/api/forum/posts/${currentPost.value.id}/comments?${formData.toString()}`, {
+      method: 'POST'
+    })
+    
+    if (response.ok) {
+      const data = await response.json()
+      if (data.code === 200) {
+        showToastMessage('评论发表成功', '✅')
+        replyContent.value = ''
+        replyingTo.value = null
+        await fetchComments(currentPost.value.id)
+      } else {
+        showToastMessage(data.message || '评论失败', '⚠️')
+      }
+    }
+  } catch (error) {
+    console.error('发表评论失败:', error)
+    showToastMessage('评论失败，请稍后重试', '⚠️')
+  }
+}
+
+const submitReply = async (comment) => {
+  if (!currentPost.value || !comment) return
+  
+  if (!replyContent.value.trim()) {
+    showToastMessage('请输入回复内容', '⚠️')
+    return
+  }
+  
+  try {
+    const formData = new URLSearchParams()
+    formData.append('parentId', comment.id)
+    formData.append('content', replyContent.value)
+    formData.append('replyToUserId', comment.userId || '')
+    
+    const response = await request(`/api/forum/posts/${currentPost.value.id}/comments/reply?${formData.toString()}`, {
+      method: 'POST'
+    })
+    
+    if (response.ok) {
+      const data = await response.json()
+      if (data.code === 200) {
+        showToastMessage('回复发表成功', '✅')
+        replyContent.value = ''
+        replyingTo.value = null
+        await fetchComments(currentPost.value.id)
+      } else {
+        showToastMessage(data.message || '回复失败', '⚠️')
+      }
+    }
+  } catch (error) {
+    console.error('发表回复失败:', error)
+    showToastMessage('回复失败，请稍后重试', '⚠️')
+  }
+}
+
+const likePost = async (postId) => {
+  try {
+    const response = await request(`/api/forum/posts/${postId}/like-v2`, {
+      method: 'POST'
+    })
+    
+    if (response.ok) {
+      const data = await response.json()
+      if (data.code === 200) {
+        if (currentPost.value && currentPost.value.id === postId) {
+          currentPost.value.likes = data.data.likes
+          currentPost.value.isLiked = data.data.isLiked
+        }
+        
+        const postInList = posts.value.find(p => p.id === postId)
+        if (postInList) {
+          postInList.likes = data.data.likes
+          postInList.isLiked = data.data.isLiked
+        }
+        
+        showToastMessage(data.data.message || '操作成功', '✅')
+      }
+    }
+  } catch (error) {
+    console.error('点赞失败:', error)
+    showToastMessage('操作失败，请先登录', '⚠️')
+  }
+}
+
+const likeComment = async (commentId, isReply = false, parentComment = null) => {
+  try {
+    const response = await request(`/api/forum/comments/${commentId}/like`, {
+      method: 'POST'
+    })
+    
+    if (response.ok) {
+      const data = await response.json()
+      if (data.code === 200) {
+        if (!isReply) {
+          const comment = comments.value.find(c => c.id === commentId)
+          if (comment) {
+            comment.likes = data.data.likes
+            comment.isLiked = data.data.isLiked
+          }
+        } else if (parentComment) {
+          const reply = parentComment.replies?.find(r => r.id === commentId)
+          if (reply) {
+            reply.likes = data.data.likes
+            reply.isLiked = data.data.isLiked
+          }
+        }
+        
+        showToastMessage(data.data.message || '操作成功', '✅')
+      }
+    }
+  } catch (error) {
+    console.error('评论点赞失败:', error)
+    showToastMessage('操作失败，请先登录', '⚠️')
+  }
+}
+
+const startReply = (comment) => {
+  replyingTo.value = comment
+  replyContent.value = comment.replyToUserName ? `回复 @${comment.replyToUserName || comment.userName}：` : `回复 @${comment.userName}：`
 }
 
 const selectCategory = (category, categoryId = null) => {
@@ -597,9 +831,13 @@ const selectCategory = (category, categoryId = null) => {
 }
 
 const selectTopic = (topic) => {
-  searchQuery.value = topic
-  currentPage.value = 1
-  fetchPosts()
+  if (topic && topic.id) {
+    openPostDetail(topic)
+  } else {
+    searchQuery.value = topic
+    currentPage.value = 1
+    fetchPosts()
+  }
 }
 
 const handleSearch = () => {
@@ -717,18 +955,16 @@ const closePostDetail = () => {
   showPostDetail.value = false
   currentPost.value = null
   replyContent.value = ''
+  replyingTo.value = null
+  comments.value = []
 }
 
 const openReplyModal = (post) => {
   openPostDetail(post)
 }
 
-const submitReply = () => {
-  if (!replyContent.value.trim()) {
-    alert('请输入评论内容')
-    return
-  }
-  alert('评论发表成功！（演示模式）')
+const cancelReply = () => {
+  replyingTo.value = null
   replyContent.value = ''
 }
 
@@ -736,6 +972,7 @@ onMounted(() => {
   fetchCategories()
   fetchActiveUsers()
   fetchPosts()
+  fetchHotPosts()
 })
 </script>
 
@@ -1153,6 +1390,37 @@ onMounted(() => {
 .hot-tag {
   background: linear-gradient(135deg, #f39c12, #e67e22);
   color: white;
+}
+
+.top-tag {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  color: white;
+}
+
+.hot-top-tag {
+  background: linear-gradient(135deg, #9b59b6, #8e44ad);
+  color: white;
+}
+
+.like-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.like-btn:hover {
+  transform: scale(1.1);
+}
+
+.like-btn.liked .stat-icon {
+  animation: heartbeat 0.3s ease;
+}
+
+@keyframes heartbeat {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
 }
 
 .post-title {
@@ -1831,6 +2099,93 @@ onMounted(() => {
 .reply-actions {
   display: flex;
   justify-content: flex-end;
+}
+
+.action-btn.liked {
+  color: #e74c3c;
+}
+
+.replies-list {
+  margin-left: 30px;
+  margin-top: 15px;
+  padding-left: 15px;
+  border-left: 2px solid #e4e8eb;
+}
+
+.reply-item {
+  padding: 10px;
+  background: #f5f7fa;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.reply-item:last-child {
+  margin-bottom: 0;
+}
+
+.reply-to {
+  color: #6B8E23;
+  font-size: 0.85rem;
+  margin-left: 5px;
+}
+
+.replying-to {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, rgba(107, 142, 35, 0.1), rgba(143, 188, 143, 0.1));
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.replying-to span {
+  font-size: 0.9rem;
+  color: #6B8E23;
+  font-weight: 500;
+}
+
+.cancel-reply-btn {
+  background: none;
+  border: none;
+  color: #7f8c8d;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.cancel-reply-btn:hover {
+  color: #e74c3c;
+}
+
+.no-comments {
+  text-align: center;
+  padding: 40px 20px;
+  color: #7f8c8d;
+  font-size: 1rem;
+}
+
+.no-hot-topics {
+  text-align: center;
+  padding: 20px 10px;
+  color: #7f8c8d;
+  font-size: 0.9rem;
+}
+
+.like-card {
+  transition: all 0.3s ease;
+}
+
+.like-card:hover {
+  transform: scale(1.05);
+}
+
+.like-card.liked .stat-number {
+  color: #e74c3c;
+}
+
+.like-card.liked .stat-label {
+  color: #e74c3c;
 }
 
 @media (max-width: 992px) {
