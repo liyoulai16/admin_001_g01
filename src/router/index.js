@@ -3,6 +3,7 @@ import Home from '../views/Home.vue'
 import Services from '../views/Services.vue'
 import ServiceDetail from '../views/ServiceDetail.vue'
 import Forum from '../views/Forum.vue'
+import CreatePost from '../views/CreatePost.vue'
 import About from '../views/About.vue'
 import Contact from '../views/Contact.vue'
 import Login from '../views/Login.vue'
@@ -43,6 +44,12 @@ const routes = [
     path: '/forum',
     name: 'Forum',
     component: Forum,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/forum/create',
+    name: 'CreatePost',
+    component: CreatePost,
     meta: { requiresAuth: true }
   },
   {

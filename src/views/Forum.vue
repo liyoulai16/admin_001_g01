@@ -84,7 +84,7 @@
               <button class="search-btn" @click="handleSearch">搜索</button>
             </div>
             <div class="toolbar-right">
-              <button class="new-post-btn" @click="showNewPostModal = true">
+              <button class="new-post-btn" @click="router.push('/forum/create')">
                 <span class="btn-icon">✏️</span>
                 <span>发布新帖</span>
               </button>
@@ -169,62 +169,6 @@
             <button class="page-btn next" :disabled="currentPage === totalPages" @click="changePage(currentPage + 1)">下一页</button>
           </div>
         </main>
-      </div>
-    </div>
-
-    <div class="modal-overlay" :class="{ show: showNewPostModal }" @click="closeNewPostModal">
-      <div class="modal-container" @click.stop>
-        <div class="modal-header">
-          <h3 class="modal-title">发布新帖</h3>
-          <button class="modal-close-btn" @click="closeNewPostModal">×</button>
-        </div>
-        <div class="modal-body">
-          <div class="form-group">
-            <label class="form-label">选择板块</label>
-            <select v-model="newPostForm.categoryId" class="form-select">
-              <option value="">请选择板块</option>
-              <option v-for="category in categories" :key="category.id" :value="category.id">
-                {{ category.name }}
-              </option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">帖子标题</label>
-            <input 
-              type="text" 
-              v-model="newPostForm.title" 
-              class="form-input"
-              placeholder="请输入帖子标题（10-100字）"
-              maxlength="100"
-            />
-            <span class="char-count">{{ newPostForm.title.length }}/100</span>
-          </div>
-          <div class="form-group">
-            <label class="form-label">帖子内容</label>
-            <textarea 
-              v-model="newPostForm.content" 
-              class="form-textarea"
-              placeholder="请输入帖子内容..."
-              rows="8"
-              maxlength="2000"
-            ></textarea>
-            <span class="char-count">{{ newPostForm.content.length }}/2000</span>
-          </div>
-          <div class="form-group">
-            <label class="form-label">添加图片（可选）</label>
-            <div class="upload-area">
-              <div class="upload-placeholder">
-                <span class="upload-icon">📷</span>
-                <span class="upload-text">点击或拖拽上传图片</span>
-                <span class="upload-hint">支持 JPG、PNG 格式，最多 5 张</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button class="btn-secondary" @click="closeNewPostModal">取消</button>
-          <button class="btn-primary" @click="submitNewPost">发布帖子</button>
-        </div>
       </div>
     </div>
 
@@ -323,7 +267,10 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import request from '../utils/request'
+
+const router = useRouter()
 
 const getParticleStyle = (index) => {
   const size = Math.random() * 8 + 4
@@ -351,17 +298,9 @@ const totalPages = ref(1)
 const totalPosts = ref(0)
 const loading = ref(false)
 
-const showNewPostModal = ref(false)
 const showPostDetail = ref(false)
 const currentPost = ref(null)
 const replyContent = ref('')
-
-const newPostForm = ref({
-  categoryId: null,
-  category: '',
-  title: '',
-  content: ''
-})
 
 const hotTopics = [
   '周末小区运动会报名',
@@ -586,62 +525,6 @@ const closePostDetail = () => {
 
 const openReplyModal = (post) => {
   openPostDetail(post)
-}
-
-const closeNewPostModal = () => {
-  showNewPostModal.value = false
-  newPostForm.value = { categoryId: null, category: '', title: '', content: '' }
-}
-
-const submitNewPost = async () => {
-  if (!newPostForm.value.categoryId) {
-    alert('请选择板块')
-    return
-  }
-  if (!newPostForm.value.title.trim()) {
-    alert('请输入标题')
-    return
-  }
-  if (newPostForm.value.title.length < 10) {
-    alert('标题至少10个字符')
-    return
-  }
-  if (!newPostForm.value.content.trim()) {
-    alert('请输入内容')
-    return
-  }
-  
-  try {
-    const params = new URLSearchParams()
-    params.append('userId', 1)
-    params.append('categoryId', newPostForm.value.categoryId)
-    params.append('title', newPostForm.value.title)
-    params.append('content', newPostForm.value.content)
-    
-    const response = await request('/api/forum/posts', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      body: params
-    })
-    
-    if (response.ok) {
-      const data = await response.json()
-      if (data.code === 200) {
-        alert('帖子发布成功！')
-        closeNewPostModal()
-        fetchPosts()
-      } else {
-        alert(data.message || '发布失败')
-      }
-    } else {
-      alert('发布失败，请稍后重试')
-    }
-  } catch (error) {
-    console.error('发布帖子失败:', error)
-    alert('发布失败，请稍后重试')
-  }
 }
 
 const submitReply = () => {
