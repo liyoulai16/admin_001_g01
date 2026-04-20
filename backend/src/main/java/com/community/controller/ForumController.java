@@ -2,10 +2,13 @@ package com.community.controller;
 
 import com.community.common.PageResult;
 import com.community.common.Result;
+import com.community.context.LoginUserContext;
 import com.community.entity.ForumCategory;
 import com.community.entity.ForumPost;
+import com.community.entity.User;
 import com.community.service.ForumCategoryService;
 import com.community.service.ForumPostService;
+import com.community.service.UserService;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.annotation.Resource;
@@ -23,6 +26,9 @@ public class ForumController {
     
     @Resource
     private ForumPostService postService;
+    
+    @Resource
+    private UserService userService;
     
     @GetMapping("/categories")
     public Result<List<ForumCategory>> getCategories() {
@@ -53,12 +59,21 @@ public class ForumController {
     
     @PostMapping("/posts")
     public Result<Map<String, Object>> createPost(
-            @RequestParam("userId") Long userId,
             @RequestParam("categoryId") Long categoryId,
             @RequestParam("title") String title,
             @RequestParam("content") String content) {
         
-        Map<String, Object> result = postService.createPost(userId, categoryId, title, content);
+        String currentUsername = LoginUserContext.getCurrentUser();
+        if (currentUsername == null) {
+            return Result.error(401, "请先登录");
+        }
+        
+        User user = userService.getUserByUsername(currentUsername);
+        if (user == null) {
+            return Result.error(401, "用户不存在");
+        }
+        
+        Map<String, Object> result = postService.createPost(user.getId(), categoryId, title, content);
         
         if ((Boolean) result.get("success")) {
             return Result.success((String) result.get("message"), result);
