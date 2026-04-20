@@ -70,9 +70,6 @@
         <p>还没有账户？</p>
         <router-link to="/register" class="register-link">立即注册</router-link>
       </div>
-      <div class="login-footer animate-fade-in" v-else>
-        <p class="admin-hint">管理员登录入口 | 账号：admin，密码：admin</p>
-      </div>
     </div>
   </div>
 </template>
@@ -118,7 +115,7 @@ const handleLogin = async () => {
     return
   }
   
-  if (password.value.length < 6 || password.value.length > 16) {
+  if (userType.value === 'user' && (password.value.length < 6 || password.value.length > 16)) {
     errorMessage.value = '密码长度必须为6-16位'
     return
   }
