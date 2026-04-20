@@ -23,24 +23,30 @@
             <span class="nav-text" v-if="!isSidebarCollapsed">首页管理</span>
             <span class="nav-expand-icon" v-if="!isSidebarCollapsed">{{ isHomeMenuExpanded ? '▼' : '▶' }}</span>
           </div>
-          <div class="nav-group-items" v-show="isHomeMenuExpanded && !isSidebarCollapsed">
-            <router-link 
-              to="/admin/carousel" 
-              class="nav-item nav-sub-item" 
-              :class="{ active: $route.path === '/admin/carousel' }"
+          <transition name="menu-expand">
+            <div 
+              class="nav-group-items" 
+              v-show="isHomeMenuExpanded && !isSidebarCollapsed"
+              :style="{ maxHeight: isHomeMenuExpanded ? '200px' : '0px', opacity: isHomeMenuExpanded ? '1' : '0' }"
             >
-              <span class="nav-icon">🖼️</span>
-              <span class="nav-text">轮播图管理</span>
-            </router-link>
-            <router-link 
-              to="/admin/intro" 
-              class="nav-item nav-sub-item" 
-              :class="{ active: $route.path === '/admin/intro' }"
-            >
-              <span class="nav-icon">📋</span>
-              <span class="nav-text">平台简介管理</span>
-            </router-link>
-          </div>
+              <router-link 
+                to="/admin/carousel" 
+                class="nav-item nav-sub-item" 
+                :class="{ active: $route.path === '/admin/carousel' }"
+              >
+                <span class="nav-icon">🖼️</span>
+                <span class="nav-text">轮播图管理</span>
+              </router-link>
+              <router-link 
+                to="/admin/intro" 
+                class="nav-item nav-sub-item" 
+                :class="{ active: $route.path === '/admin/intro' }"
+              >
+                <span class="nav-icon">📋</span>
+                <span class="nav-text">平台简介管理</span>
+              </router-link>
+            </div>
+          </transition>
         </div>
       </nav>
       
@@ -379,6 +385,41 @@ const submitPasswordChange = async () => {
   gap: 4px;
   margin-top: 4px;
   padding-left: 20px;
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+              opacity 0.3s ease,
+              margin-top 0.3s ease,
+              padding-top 0.3s ease;
+  max-height: 0;
+  opacity: 0;
+}
+
+.nav-group-items[style*="max-height: 200px"] {
+  max-height: 200px;
+  opacity: 1;
+  margin-top: 4px;
+  padding-top: 0;
+}
+
+.menu-expand-enter-active,
+.menu-expand-leave-active {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.menu-expand-enter-from,
+.menu-expand-leave-to {
+  opacity: 0;
+  max-height: 0;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.menu-expand-enter-to,
+.menu-expand-leave-from {
+  opacity: 1;
+  max-height: 200px;
+  margin-top: 4px;
+  padding-top: 0;
 }
 
 .nav-sub-item {
@@ -400,7 +441,16 @@ const submitPasswordChange = async () => {
 
 .nav-expand-icon {
   font-size: 0.7rem;
-  transition: transform 0.3s ease;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-block;
+}
+
+.nav-group-header.expanded .nav-expand-icon {
+  transform: rotate(180deg);
+}
+
+.nav-group-header:not(.expanded) .nav-expand-icon {
+  transform: rotate(0deg);
 }
 
 .sidebar-footer {
