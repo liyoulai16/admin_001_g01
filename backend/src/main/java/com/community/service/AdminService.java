@@ -71,4 +71,46 @@ public class AdminService {
                 .eq(Admin::getDeleted, 0)
         );
     }
+    
+    public Map<String, Object> updatePassword(String username, String oldPassword, String newPassword, String confirmPassword) {
+        Map<String, Object> result = new HashMap<>();
+        
+        if (!newPassword.equals(confirmPassword)) {
+            result.put("success", false);
+            result.put("message", "两次输入的新密码不一致");
+            return result;
+        }
+        
+        Admin admin = adminMapper.selectOne(
+            new LambdaQueryWrapper<Admin>()
+                .eq(Admin::getUsername, username)
+                .eq(Admin::getDeleted, 0)
+        );
+        
+        if (admin == null) {
+            result.put("success", false);
+            result.put("message", "管理员不存在");
+            return result;
+        }
+        
+        boolean oldPasswordValid = false;
+        if (DEV_ADMIN_PASSWORD.equals(oldPassword)) {
+            oldPasswordValid = true;
+        } else if (passwordEncoder.matches(oldPassword, admin.getPassword())) {
+            oldPasswordValid = true;
+        }
+        
+        if (!oldPasswordValid) {
+            result.put("success", false);
+            result.put("message", "原密码错误");
+            return result;
+        }
+        
+        admin.setPassword(passwordEncoder.encode(newPassword));
+        adminMapper.updateById(admin);
+        
+        result.put("success", true);
+        result.put("message", "密码修改成功");
+        return result;
+    }
 }

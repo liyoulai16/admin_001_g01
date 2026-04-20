@@ -118,12 +118,25 @@ public class AuthController {
     @PostMapping("/update-password")
     public Result<Map<String, Object>> updatePassword(@Validated @RequestBody UpdatePasswordRequest request) {
         String currentUsername = LoginUserContext.getCurrentUser();
-        Map<String, Object> result = userService.updatePassword(
-            currentUsername,
-            request.getOldPassword(),
-            request.getNewPassword(),
-            request.getConfirmPassword()
-        );
+        Map<String, Object> result;
+        
+        Admin admin = adminService.getAdminByUsername(currentUsername);
+        if (admin != null) {
+            result = adminService.updatePassword(
+                currentUsername,
+                request.getOldPassword(),
+                request.getNewPassword(),
+                request.getConfirmPassword()
+            );
+        } else {
+            result = userService.updatePassword(
+                currentUsername,
+                request.getOldPassword(),
+                request.getNewPassword(),
+                request.getConfirmPassword()
+            );
+        }
+        
         if ((Boolean) result.get("success")) {
             return Result.success((String) result.get("message"), null);
         } else {
