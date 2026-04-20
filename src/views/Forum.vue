@@ -216,6 +216,7 @@
                   type="number" 
                   v-model="jumpPageInput" 
                   min="1"
+                  :max="totalPages || 1"
                   @keyup.enter="handleJumpPage"
                   class="jump-input"
                   placeholder="页码"
@@ -670,13 +671,13 @@ const goToLastPage = () => {
 }
 
 const handleJumpPage = () => {
-  const inputValue = jumpPageInput.value.trim()
-  if (!inputValue) {
+  const inputValue = jumpPageInput.value
+  if (inputValue === '' || inputValue === null || inputValue === undefined) {
     showToastMessage('请输入页码', '⚠️')
     return
   }
-  const pageNum = parseInt(inputValue, 10)
-  if (isNaN(pageNum)) {
+  const pageNum = Number(inputValue)
+  if (isNaN(pageNum) || !Number.isInteger(pageNum)) {
     showToastMessage('请输入有效的数字', '⚠️')
     return
   }
@@ -1352,7 +1353,7 @@ onMounted(() => {
 }
 
 .jump-input {
-  width: 60px;
+  width: 80px;
   height: 36px;
   padding: 0 8px;
   border: 2px solid #e4e8eb;
