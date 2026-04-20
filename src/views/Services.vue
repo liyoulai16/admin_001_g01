@@ -232,6 +232,16 @@
                 尾页
               </button>
               
+              <div class="page-size-select">
+                <span class="size-label">每页显示</span>
+                <select v-model="size" @change="handlePageSizeChange" class="size-select">
+                  <option :value="6">6条</option>
+                  <option :value="12">12条</option>
+                  <option :value="24">24条</option>
+                  <option :value="50">50条</option>
+                </select>
+              </div>
+              
               <div class="page-jump">
                 <span class="jump-label">跳转到</span>
                 <input 
@@ -682,6 +692,11 @@ const showToastMessage = (message, icon = '⚠️') => {
   toastTimer = setTimeout(() => {
     showToast.value = false
   }, 2000)
+}
+
+const handlePageSizeChange = () => {
+  currentPage.value = 1
+  fetchServices()
 }
 
 const handleClickOutside = (e) => {
@@ -1334,6 +1349,37 @@ onUnmounted(() => {
 
 .last-btn {
   background: linear-gradient(135deg, #f8f9fa, #ffffff);
+}
+
+.page-size-select {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 8px;
+  padding: 8px 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.size-label {
+  font-size: 0.9rem;
+  color: #555;
+  white-space: nowrap;
+}
+
+.size-select {
+  padding: 6px 10px;
+  border: 2px solid #e4e8eb;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  background: white;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+}
+
+.size-select:focus {
+  outline: none;
+  border-color: #6B8E23;
 }
 
 .page-jump {
