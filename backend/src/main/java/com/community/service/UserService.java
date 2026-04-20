@@ -25,6 +25,12 @@ public class UserService {
     public Map<String, Object> login(LoginRequest request) {
         Map<String, Object> result = new HashMap<>();
         
+        if (request.getPassword() != null && (request.getPassword().length() < 6 || request.getPassword().length() > 16)) {
+            result.put("success", false);
+            result.put("message", "密码长度必须为6-16位");
+            return result;
+        }
+        
         User user = userMapper.selectOne(
             new LambdaQueryWrapper<User>()
                 .eq(User::getUsername, request.getUsername())
