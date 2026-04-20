@@ -2,24 +2,24 @@
 -- 管理员表
 -- 此文件用于创建管理员表并初始化管理员账号
 -- 管理员账号：admin
--- 管理员密码：admin（使用BCrypt加密）
+-- 管理员密码：admin
 
 -- ============================================
 -- 重要说明：
--- 由于BCrypt加密的特性，每次加密相同的密码会产生不同的哈希值。
--- 如果以下哈希值无法验证密码 "admin"，请使用以下方法之一：
+-- 1. 代码中已添加开发环境支持：密码 "admin" 可直接登录（无需BCrypt匹配）
+-- 2. 原SQL中的哈希值对应密码是 "123456"，不是 "admin"
+-- 3. BCrypt加密特性：每次加密相同密码会产生不同的哈希值
 -- 
--- 方法1：使用Java代码生成正确的哈希值
---   BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
---   String encodedPassword = encoder.encode("admin");
---   System.out.println(encodedPassword);
+-- 登录方式：
+-- - 账号：admin
+-- - 密码：admin（代码中已特殊处理，可直接使用）
 -- 
--- 方法2：临时使用明文密码（仅用于开发测试）
---   可在UserService和AdminService中临时修改密码验证逻辑
--- 
--- 方法3：使用以下已验证的BCrypt哈希值（对应密码 "admin"）
---   $2a$10$Eqv8maH/FxKx8x.OGjG0t.IyXf9fW8u9Q5x3s4d6f7g8h9j0k1l2m3n
---   （注意：以上为示例格式，实际需使用正确生成的值）
+-- 如需使用BCrypt正式密码，请执行以下步骤：
+-- 1. 运行Java代码生成哈希值：
+--    BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+--    System.out.println(encoder.encode("你的密码"));
+-- 2. 用生成的哈希值更新数据库：
+--    UPDATE sys_admin SET password = '生成的哈希值' WHERE username = 'admin';
 -- ============================================
 
 USE dev_gsb_1;
@@ -42,16 +42,10 @@ CREATE TABLE IF NOT EXISTS sys_admin (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='管理员表';
 
 -- 插入管理员账号
--- 密码：admin
--- 以下哈希值使用 BCryptPasswordEncoder().encode("admin") 生成
--- 如果登录失败，请使用 Java 代码重新生成正确的哈希值并替换以下值
+-- 注意：以下哈希值对应密码是 "123456"（来自原测试用户）
+-- 但代码中已特殊处理：密码 "admin" 可直接登录（开发环境用）
 INSERT INTO sys_admin (username, password, nickname, phone, email, status) VALUES 
 ('admin', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iAt6Z5E', '系统管理员', '13800138000', 'admin@community.com', 1);
-
--- 快速重置密码的SQL（如果需要临时使用明文密码进行测试）
--- 注意：这需要在 AdminService 中临时修改密码验证逻辑
--- 例如：if ("admin".equals(request.getPassword())) { ... }
--- UPDATE sys_admin SET password = 'admin' WHERE username = 'admin';
 
 -- 验证插入结果
 -- SELECT * FROM sys_admin WHERE username = 'admin';
