@@ -1,12 +1,24 @@
 <template>
   <div class="service-category-management">
-    <div class="action-bar">
+    <div class="load-error" v-if="loadError">
+      <div class="error-icon">⚠️</div>
+      <h3>加载失败</h3>
+      <p>{{ loadError }}</p>
+      <button class="retry-btn" @click="loadCategories">🔄 重试</button>
+    </div>
+    
+    <div class="action-bar" v-else>
       <button class="add-btn" @click="openAddModal">
         <span>➕</span> 添加服务分类
       </button>
     </div>
     
-    <div class="category-list" v-if="categories.length > 0">
+    <div class="loading-state" v-if="isLoading">
+      <div class="loading-spinner"></div>
+      <p>加载中...</p>
+    </div>
+    
+    <div class="category-list" v-else-if="categories.length > 0">
       <div v-for="category in categories" :key="category.id" class="category-card">
         <div class="category-icon">
           <span class="icon-text">{{ category.icon || '📁' }}</span>
@@ -139,6 +151,7 @@ import { ref, reactive, onMounted } from 'vue'
 import request from '../../utils/request'
 
 const categories = ref([])
+const isLoading = ref(false)
 const showModal = ref(false)
 const showDeleteModal = ref(false)
 const isEdit = ref(false)
@@ -146,6 +159,7 @@ const isSubmitting = ref(false)
 const isDeleting = ref(false)
 const errorMessage = ref('')
 const successMessage = ref('')
+const loadError = ref('')
 const deletingCategory = ref(null)
 
 const form = reactive({
@@ -167,15 +181,29 @@ const resetForm = () => {
 }
 
 const loadCategories = async () => {
+  isLoading.value = true
+  loadError.value = ''
+  
   try {
     const response = await request('/api/admin/service-categories?pageNum=1&pageSize=100')
     const data = await response.json()
     
+    console.log('服务分类响应:', data)
+    
     if (data.code === 200) {
       categories.value = data.data.records || []
+    } else if (data.code === 401) {
+      loadError.value = '登录已过期，请重新登录'
+      console.error('401错误:', data.message)
+    } else {
+      loadError.value = data.message || '加载失败'
+      console.error('加载失败:', data.message)
     }
   } catch (error) {
     console.error('加载服务分类失败:', error)
+    loadError.value = '网络错误，请检查后端服务是否启动'
+  } finally {
+    isLoading.value = false
   }
 }
 
@@ -322,6 +350,82 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 24px;
+}
+
+.load-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 16px;
+  text-align: center;
+}
+
+.error-icon {
+  font-size: 3rem;
+  margin-bottom: 12px;
+}
+
+.load-error h3 {
+  font-size: 1.2rem;
+  color: #dc2626;
+  margin: 0 0 8px 0;
+}
+
+.load-error p {
+  color: #991b1b;
+  margin: 0 0 16px 0;
+}
+
+.retry-btn {
+  padding: 10px 24px;
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.retry-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 15px rgba(107, 142, 35, 0.3);
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 16px;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e4e8eb;
+  border-top-color: #6B8E23;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-state p {
+  color: #7f8c8d;
+  margin: 0;
 }
 
 .action-bar {

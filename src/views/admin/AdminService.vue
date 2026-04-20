@@ -1,75 +1,89 @@
 <template>
   <div class="service-management">
-    <div class="search-bar">
-      <div class="search-left">
-        <select v-model="searchForm.categoryId" class="search-select" @change="loadServices">
-          <option :value="null">全部分类</option>
-          <option v-for="cat in categories" :key="cat.id" :value="cat.id">
-            {{ cat.name }}
-          </option>
-        </select>
-        <input 
-          type="text" 
-          v-model="searchForm.keyword" 
-          class="search-input"
-          placeholder="搜索服务名称..."
-          @keyup.enter="loadServices"
-        />
-        <button class="search-btn" @click="loadServices">🔍 搜索</button>
-      </div>
-      <button class="add-btn" @click="openAddModal">
-        <span>➕</span> 添加服务
-      </button>
+    <div class="load-error" v-if="loadError">
+      <div class="error-icon">⚠️</div>
+      <h3>加载失败</h3>
+      <p>{{ loadError }}</p>
+      <button class="retry-btn" @click="loadServices">🔄 重试</button>
     </div>
     
-    <div class="service-list" v-if="services.length > 0">
-      <div v-for="service in services" :key="service.id" class="service-card">
-        <div class="service-icon">
-          <span class="icon-text">{{ service.icon || '🛠️' }}</span>
+    <template v-else>
+      <div class="search-bar">
+        <div class="search-left">
+          <select v-model="searchForm.categoryId" class="search-select" @change="loadServices">
+            <option :value="null">全部分类</option>
+            <option v-for="cat in categories" :key="cat.id" :value="cat.id">
+              {{ cat.name }}
+            </option>
+          </select>
+          <input 
+            type="text" 
+            v-model="searchForm.keyword" 
+            class="search-input"
+            placeholder="搜索服务名称..."
+            @keyup.enter="loadServices"
+          />
+          <button class="search-btn" @click="loadServices">🔍 搜索</button>
         </div>
-        <div class="service-info">
-          <div class="service-header">
-            <h3 class="service-name">{{ service.name }}</h3>
-            <span class="service-category">{{ service.category || '未分类' }}</span>
+        <button class="add-btn" @click="openAddModal">
+          <span>➕</span> 添加服务
+        </button>
+      </div>
+      
+      <div class="loading-state" v-if="isLoading">
+        <div class="loading-spinner"></div>
+        <p>加载中...</p>
+      </div>
+      
+      <div class="service-list" v-else-if="services.length > 0">
+        <div v-for="service in services" :key="service.id" class="service-card">
+          <div class="service-icon">
+            <span class="icon-text">{{ service.icon || '🛠️' }}</span>
           </div>
-          <p class="service-desc" v-if="service.description">{{ service.description }}</p>
-          <div class="service-meta">
-            <span class="meta-item price">💰 {{ service.price || '免费' }}</span>
-            <span class="meta-item">⭐ {{ service.rating || 0 }}</span>
-            <span class="meta-item">📝 {{ service.reviews || 0 }} 条评价</span>
-            <span class="meta-item">🔢 排序: {{ service.sortOrder }}</span>
-            <span class="meta-item">📅 {{ formatDate(service.createTime) }}</span>
+          <div class="service-info">
+            <div class="service-header">
+              <h3 class="service-name">{{ service.name }}</h3>
+              <span class="service-category">{{ service.category || '未分类' }}</span>
+            </div>
+            <p class="service-desc" v-if="service.description">{{ service.description }}</p>
+            <div class="service-meta">
+              <span class="meta-item price">💰 {{ service.price || '免费' }}</span>
+              <span class="meta-item">⭐ {{ service.rating || 0 }}</span>
+              <span class="meta-item">📝 {{ service.reviews || 0 }} 条评价</span>
+              <span class="meta-item">🔢 排序: {{ service.sortOrder }}</span>
+              <span class="meta-item">📅 {{ formatDate(service.createTime) }}</span>
+            </div>
+            <div class="service-features" v-if="service.features && service.features.length > 0">
+              <span class="feature-tag" v-for="(feat, idx) in service.features" :key="idx">
+                ✅ {{ feat }}
+              </span>
+            </div>
           </div>
-          <div class="service-features" v-if="service.features && service.features.length > 0">
-            <span class="feature-tag" v-for="(feat, idx) in service.features" :key="idx">
-              ✅ {{ feat }}
+          <div class="service-status">
+            <span class="status-badge" :class="{ active: service.status === 1 }">
+              {{ service.status === 1 ? '启用' : '禁用' }}
             </span>
           </div>
-        </div>
-        <div class="service-status">
-          <span class="status-badge" :class="{ active: service.status === 1 }">
-            {{ service.status === 1 ? '启用' : '禁用' }}
-          </span>
-        </div>
-        <div class="service-actions">
-          <button class="action-btn edit" @click="openEditModal(service)">✏️ 编辑</button>
-          <button class="action-btn delete" @click="confirmDelete(service)">🗑️ 删除</button>
-          <button 
-            class="action-btn toggle" 
-            :class="service.status === 1 ? 'disable' : 'enable'"
-            @click="toggleStatus(service)"
-          >
-            {{ service.status === 1 ? '❌ 禁用' : '✅ 启用' }}
-          </button>
+          <div class="service-actions">
+            <button class="action-btn edit" @click="openEditModal(service)">✏️ 编辑</button>
+            <button class="action-btn delete" @click="confirmDelete(service)">🗑️ 删除</button>
+            <button 
+              class="action-btn toggle" 
+              :class="service.status === 1 ? 'disable' : 'enable'"
+              @click="toggleStatus(service)"
+            >
+              {{ service.status === 1 ? '❌ 禁用' : '✅ 启用' }}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-    
-    <div class="empty-state" v-else>
-      <div class="empty-icon">🛠️</div>
-      <h3>暂无服务</h3>
-      <p>点击上方按钮添加第一个服务</p>
-    </div>
+      
+      <div class="empty-state" v-else>
+        <div class="empty-icon">🛠️</div>
+        <h3>暂无服务</h3>
+        <p>点击上方按钮添加第一个服务</p>
+      </div>
+    </template>
     
     <div class="modal-overlay" :class="{ show: showModal }" @click="closeModal">
       <div class="modal-container large" @click.stop>
@@ -233,6 +247,7 @@ import request from '../../utils/request'
 
 const services = ref([])
 const categories = ref([])
+const isLoading = ref(false)
 const showModal = ref(false)
 const showDeleteModal = ref(false)
 const isEdit = ref(false)
@@ -240,6 +255,7 @@ const isSubmitting = ref(false)
 const isDeleting = ref(false)
 const errorMessage = ref('')
 const successMessage = ref('')
+const loadError = ref('')
 const deletingService = ref(null)
 
 const searchForm = reactive({
@@ -287,8 +303,12 @@ const loadCategories = async () => {
     const response = await request('/api/admin/service-categories/all')
     const data = await response.json()
     
+    console.log('分类响应:', data)
+    
     if (data.code === 200) {
       categories.value = data.data || []
+    } else if (data.code === 401) {
+      console.error('401错误:', data.message)
     }
   } catch (error) {
     console.error('加载分类失败:', error)
@@ -296,6 +316,9 @@ const loadCategories = async () => {
 }
 
 const loadServices = async () => {
+  isLoading.value = true
+  loadError.value = ''
+  
   try {
     let url = '/api/admin/services?pageNum=1&pageSize=100'
     if (searchForm.keyword) {
@@ -308,11 +331,22 @@ const loadServices = async () => {
     const response = await request(url)
     const data = await response.json()
     
+    console.log('服务响应:', data)
+    
     if (data.code === 200) {
       services.value = data.data.records || []
+    } else if (data.code === 401) {
+      loadError.value = '登录已过期，请重新登录'
+      console.error('401错误:', data.message)
+    } else {
+      loadError.value = data.message || '加载失败'
+      console.error('加载失败:', data.message)
     }
   } catch (error) {
     console.error('加载服务失败:', error)
+    loadError.value = '网络错误，请检查后端服务是否启动'
+  } finally {
+    isLoading.value = false
   }
 }
 
@@ -736,6 +770,82 @@ onMounted(() => {
 .action-btn.toggle.disable:hover {
   background: #dc2626;
   color: white;
+}
+
+.load-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 16px;
+  text-align: center;
+}
+
+.error-icon {
+  font-size: 4rem;
+  margin-bottom: 16px;
+}
+
+.load-error h3 {
+  font-size: 1.3rem;
+  color: #dc2626;
+  margin: 0 0 8px 0;
+}
+
+.load-error p {
+  color: #7f8c8d;
+  margin: 0 0 20px 0;
+}
+
+.retry-btn {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.retry-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(107, 142, 35, 0.3);
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 16px;
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e4e8eb;
+  border-top: 4px solid #6B8E23;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-state p {
+  color: #7f8c8d;
+  margin: 0;
+  font-size: 1rem;
 }
 
 .empty-state {
