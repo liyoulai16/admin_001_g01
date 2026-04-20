@@ -12,6 +12,7 @@ import org.springframework.util.StringUtils;
 
 import jakarta.annotation.Resource;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
@@ -172,5 +173,110 @@ public class ServiceItemService {
                 }
             }
         }
+    }
+    
+    public Page<ServiceItem> getServicePage(int pageNum, int pageSize, String keyword, Long categoryId) {
+        Page<ServiceItem> page = new Page<>(pageNum, pageSize);
+        LambdaQueryWrapper<ServiceItem> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(ServiceItem::getDeleted, 0)
+                   .orderByAsc(ServiceItem::getSortOrder);
+        
+        if (StringUtils.hasText(keyword)) {
+            queryWrapper.like(ServiceItem::getName, keyword);
+        }
+        
+        if (categoryId != null && categoryId > 0) {
+            queryWrapper.eq(ServiceItem::getCategoryId, categoryId);
+        }
+        
+        Page<ServiceItem> resultPage = serviceItemMapper.selectPage(page, queryWrapper);
+        fillCategoryName(resultPage.getRecords());
+        
+        return resultPage;
+    }
+    
+    public boolean createService(ServiceItem service) {
+        if (!StringUtils.hasText(service.getName())) {
+            return false;
+        }
+        if (service.getCategoryId() == null) {
+            return false;
+        }
+        ServiceCategory category = serviceCategoryMapper.selectById(service.getCategoryId());
+        if (category == null || category.getDeleted() == 1) {
+            return false;
+        }
+        service.setStatus(1);
+        service.setDeleted(0);
+        if (service.getSortOrder() == null) {
+            service.setSortOrder(0);
+        }
+        if (service.getRating() == null) {
+            service.setRating(BigDecimal.ZERO);
+        }
+        if (service.getReviews() == null) {
+            service.setReviews(0);
+        }
+        service.setCreateTime(LocalDateTime.now());
+        service.setUpdateTime(LocalDateTime.now());
+        return serviceItemMapper.insert(service) > 0;
+    }
+    
+    public boolean updateService(ServiceItem service) {
+        ServiceItem existing = serviceItemMapper.selectById(service.getId());
+        if (existing == null || existing.getDeleted() == 1) {
+            return false;
+        }
+        if (StringUtils.hasText(service.getName())) {
+            existing.setName(service.getName());
+        }
+        if (service.getCategoryId() != null) {
+            ServiceCategory category = serviceCategoryMapper.selectById(service.getCategoryId());
+            if (category != null && category.getDeleted() == 0) {
+                existing.setCategoryId(service.getCategoryId());
+            }
+        }
+        if (service.getIcon() != null) {
+            existing.setIcon(service.getIcon());
+        }
+        if (service.getDescription() != null) {
+            existing.setDescription(service.getDescription());
+        }
+        if (service.getPrice() != null) {
+            existing.setPrice(service.getPrice());
+        }
+        if (service.getPriceValue() != null) {
+            existing.setPriceValue(service.getPriceValue());
+        }
+        if (service.getRating() != null) {
+            existing.setRating(service.getRating());
+        }
+        if (service.getReviews() != null) {
+            existing.setReviews(service.getReviews());
+        }
+        if (service.getFeatures() != null) {
+            existing.setFeatures(service.getFeatures());
+        }
+        if (service.getDetails() != null) {
+            existing.setDetails(service.getDetails());
+        }
+        if (service.getSortOrder() != null) {
+            existing.setSortOrder(service.getSortOrder());
+        }
+        if (service.getStatus() != null) {
+            existing.setStatus(service.getStatus());
+        }
+        existing.setUpdateTime(LocalDateTime.now());
+        return serviceItemMapper.updateById(existing) > 0;
+    }
+    
+    public boolean deleteService(Long id) {
+        ServiceItem existing = serviceItemMapper.selectById(id);
+        if (existing == null || existing.getDeleted() == 1) {
+            return false;
+        }
+        existing.setDeleted(1);
+        existing.setUpdateTime(LocalDateTime.now());
+        return serviceItemMapper.updateById(existing) > 0;
     }
 }

@@ -11,6 +11,8 @@ import Register from '../views/Register.vue'
 import AdminLayout from '../views/admin/AdminLayout.vue'
 import AdminCarousel from '../views/admin/AdminCarousel.vue'
 import AdminIntro from '../views/admin/AdminIntro.vue'
+import AdminServiceCategory from '../views/admin/AdminServiceCategory.vue'
+import AdminService from '../views/admin/AdminService.vue'
 
 const routes = [
   {
@@ -90,6 +92,18 @@ const routes = [
         path: 'intro',
         name: 'AdminIntro',
         component: AdminIntro,
+        meta: { requiresAuth: true, userType: 'admin' }
+      },
+      {
+        path: 'service-category',
+        name: 'AdminServiceCategory',
+        component: AdminServiceCategory,
+        meta: { requiresAuth: true, userType: 'admin' }
+      },
+      {
+        path: 'service',
+        name: 'AdminService',
+        component: AdminService,
         meta: { requiresAuth: true, userType: 'admin' }
       }
     ]

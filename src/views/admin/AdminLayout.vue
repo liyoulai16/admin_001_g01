@@ -48,6 +48,42 @@
             </div>
           </transition>
         </div>
+        
+        <div class="nav-group">
+          <div 
+            class="nav-item nav-group-header" 
+            :class="{ active: isServiceMenuActive, expanded: isServiceMenuExpanded }"
+            @click="toggleServiceMenu"
+          >
+            <span class="nav-icon">🛠️</span>
+            <span class="nav-text" v-if="!isSidebarCollapsed">服务列表管理</span>
+            <span class="nav-expand-icon" v-if="!isSidebarCollapsed">{{ isServiceMenuExpanded ? '▼' : '▶' }}</span>
+          </div>
+          <transition name="menu-expand">
+            <div 
+              class="nav-group-items" 
+              v-show="isServiceMenuExpanded && !isSidebarCollapsed"
+              :style="{ maxHeight: isServiceMenuExpanded ? '200px' : '0px', opacity: isServiceMenuExpanded ? '1' : '0' }"
+            >
+              <router-link 
+                to="/admin/service-category" 
+                class="nav-item nav-sub-item" 
+                :class="{ active: $route.path === '/admin/service-category' }"
+              >
+                <span class="nav-icon">📁</span>
+                <span class="nav-text">服务分类管理</span>
+              </router-link>
+              <router-link 
+                to="/admin/service" 
+                class="nav-item nav-sub-item" 
+                :class="{ active: $route.path === '/admin/service' }"
+              >
+                <span class="nav-icon">🛠️</span>
+                <span class="nav-text">服务管理</span>
+              </router-link>
+            </div>
+          </transition>
+        </div>
       </nav>
       
       <div class="sidebar-footer">
@@ -148,6 +184,7 @@ const router = useRouter()
 const isSidebarCollapsed = ref(false)
 const username = ref(localStorage.getItem('username') || '管理员')
 const isHomeMenuExpanded = ref(true)
+const isServiceMenuExpanded = ref(true)
 
 const showPasswordModal = ref(false)
 const isSubmitting = ref(false)
@@ -163,10 +200,16 @@ const isHomeMenuActive = computed(() => {
   return route.path === '/admin/carousel' || route.path === '/admin/intro'
 })
 
+const isServiceMenuActive = computed(() => {
+  return route.path === '/admin/service-category' || route.path === '/admin/service'
+})
+
 const pageTitle = computed(() => {
   const path = route.path
   if (path === '/admin/carousel') return '轮播图管理'
   if (path === '/admin/intro') return '平台简介管理'
+  if (path === '/admin/service-category') return '服务分类管理'
+  if (path === '/admin/service') return '服务管理'
   if (path === '/admin/home') return '管理后台首页'
   return '管理后台'
 })
@@ -178,6 +221,12 @@ const toggleSidebar = () => {
 const toggleHomeMenu = () => {
   if (!isSidebarCollapsed.value) {
     isHomeMenuExpanded.value = !isHomeMenuExpanded.value
+  }
+}
+
+const toggleServiceMenu = () => {
+  if (!isSidebarCollapsed.value) {
+    isServiceMenuExpanded.value = !isServiceMenuExpanded.value
   }
 }
 
