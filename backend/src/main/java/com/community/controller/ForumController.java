@@ -4,9 +4,11 @@ import com.community.common.PageResult;
 import com.community.common.Result;
 import com.community.context.LoginUserContext;
 import com.community.entity.ForumCategory;
+import com.community.entity.ForumComment;
 import com.community.entity.ForumPost;
 import com.community.entity.User;
 import com.community.service.ForumCategoryService;
+import com.community.service.ForumCommentService;
 import com.community.service.ForumPostService;
 import com.community.service.UserService;
 import org.springframework.web.bind.annotation.*;
@@ -26,6 +28,9 @@ public class ForumController {
     
     @Resource
     private ForumPostService postService;
+    
+    @Resource
+    private ForumCommentService commentService;
     
     @Resource
     private UserService userService;
@@ -122,5 +127,101 @@ public class ForumController {
         result.put("pages", postPage.getPages());
         
         return Result.success(result);
+    }
+    
+    @GetMapping("/posts/{id}/comments")
+    public Result<List<ForumComment>> getComments(@PathVariable("id") Long postId) {
+        Long userId = getCurrentUserId();
+        List<ForumComment> comments = commentService.getCommentsByPostId(postId, userId);
+        return Result.success(comments);
+    }
+    
+    @PostMapping("/posts/{id}/comments")
+    public Result<Map<String, Object>> createComment(
+            @PathVariable("id") Long postId,
+            @RequestParam("content") String content) {
+        
+        Long userId = getCurrentUserId();
+        if (userId == null) {
+            return Result.error(401, "请先登录");
+        }
+        
+        Map<String, Object> result = commentService.createComment(postId, userId, content);
+        
+        if ((Boolean) result.get("success")) {
+            return Result.success((String) result.get("message"), result);
+        } else {
+            return Result.error((String) result.get("message"));
+        }
+    }
+    
+    @PostMapping("/posts/{id}/comments/reply")
+    public Result<Map<String, Object>> createReply(
+            @PathVariable("id") Long postId,
+            @RequestParam("parentId") Long parentId,
+            @RequestParam(value = "replyToId", required = false) Long replyToId,
+            @RequestParam(value = "replyToUserId", required = false) Long replyToUserId,
+            @RequestParam("content") String content) {
+        
+        Long userId = getCurrentUserId();
+        if (userId == null) {
+            return Result.error(401, "请先登录");
+        }
+        
+        Map<String, Object> result = commentService.createReply(
+                postId, userId, parentId, replyToId, replyToUserId, content);
+        
+        if ((Boolean) result.get("success")) {
+            return Result.success((String) result.get("message"), result);
+        } else {
+            return Result.error((String) result.get("message"));
+        }
+    }
+    
+    @PostMapping("/comments/{id}/like")
+    public Result<Map<String, Object>> likeComment(@PathVariable("id") Long commentId) {
+        Long userId = getCurrentUserId();
+        if (userId == null) {
+            return Result.error(401, "请先登录");
+        }
+        
+        Map<String, Object> result = commentService.likeComment(commentId, userId);
+        
+        if ((Boolean) result.get("success")) {
+            return Result.success((String) result.get("message"), result);
+        } else {
+            return Result.error((String) result.get("message"));
+        }
+    }
+    
+    @PostMapping("/posts/{id}/like-v2")
+    public Result<Map<String, Object>> likePostV2(@PathVariable("id") Long postId) {
+        Long userId = getCurrentUserId();
+        if (userId == null) {
+            return Result.error(401, "请先登录");
+        }
+        
+        Map<String, Object> result = commentService.likePost(postId, userId);
+        
+        if ((Boolean) result.get("success")) {
+            return Result.success((String) result.get("message"), result);
+        } else {
+            return Result.error((String) result.get("message"));
+        }
+    }
+    
+    @GetMapping("/hot-posts")
+    public Result<List<Map<String, Object>>> getHotPosts() {
+        List<Map<String, Object>> hotPosts = commentService.getHotPosts();
+        return Result.success(hotPosts);
+    }
+    
+    private Long getCurrentUserId() {
+        String currentUsername = LoginUserContext.getCurrentUser();
+        if (currentUsername == null) {
+            return null;
+        }
+        User user = userService.getUserByUsername(currentUsername);
+        return user != null ? user.getId() : null;
     }
 }
