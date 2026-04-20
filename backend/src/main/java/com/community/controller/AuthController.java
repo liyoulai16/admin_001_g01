@@ -6,9 +6,12 @@ import com.community.dto.LoginRequest;
 import com.community.dto.RegisterRequest;
 import com.community.dto.UpdatePasswordRequest;
 import com.community.dto.UpdateUserInfoRequest;
+import com.community.entity.Admin;
 import com.community.entity.User;
+import com.community.service.AdminService;
 import com.community.service.UserService;
 import com.community.util.JwtUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,15 +28,27 @@ public class AuthController {
     private UserService userService;
     
     @Resource
+    private AdminService adminService;
+    
+    @Resource
     private JwtUtils jwtUtils;
     
     @PostMapping("/login")
     public Result<Map<String, Object>> login(@Validated @RequestBody LoginRequest request) {
-        Map<String, Object> result = userService.login(request);
+        Map<String, Object> result;
+        String userType = StringUtils.hasText(request.getUserType()) ? request.getUserType() : "user";
+        
+        if ("admin".equals(userType)) {
+            result = adminService.login(request);
+        } else {
+            result = userService.login(request);
+        }
+        
         if ((Boolean) result.get("success")) {
             String username = (String) result.get("username");
             String token = jwtUtils.generateToken(username);
             result.put("token", token);
+            result.put("userType", userType);
             return Result.success((String) result.get("message"), result);
         } else {
             return Result.error((String) result.get("message"));

@@ -8,6 +8,9 @@ import About from '../views/About.vue'
 import Contact from '../views/Contact.vue'
 import Login from '../views/Login.vue'
 import Register from '../views/Register.vue'
+import AdminLayout from '../views/admin/AdminLayout.vue'
+import AdminCarousel from '../views/admin/AdminCarousel.vue'
+import AdminIntro from '../views/admin/AdminIntro.vue'
 
 const routes = [
   {
@@ -26,43 +29,70 @@ const routes = [
     path: '/',
     name: 'Home',
     component: Home,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, userType: 'user' }
   },
   {
     path: '/services',
     name: 'Services',
     component: Services,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, userType: 'user' }
   },
   {
     path: '/services/:id',
     name: 'ServiceDetail',
     component: ServiceDetail,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, userType: 'user' }
   },
   {
     path: '/forum',
     name: 'Forum',
     component: Forum,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, userType: 'user' }
   },
   {
     path: '/forum/create',
     name: 'CreatePost',
     component: CreatePost,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, userType: 'user' }
   },
   {
     path: '/about',
     name: 'About',
     component: About,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, userType: 'user' }
   },
   {
     path: '/contact',
     name: 'Contact',
     component: Contact,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, userType: 'user' }
+  },
+  {
+    path: '/admin',
+    component: AdminLayout,
+    meta: { requiresAuth: true, userType: 'admin' },
+    children: [
+      {
+        path: '',
+        redirect: '/admin/carousel'
+      },
+      {
+        path: 'home',
+        redirect: '/admin/carousel'
+      },
+      {
+        path: 'carousel',
+        name: 'AdminCarousel',
+        component: AdminCarousel,
+        meta: { requiresAuth: true, userType: 'admin' }
+      },
+      {
+        path: 'intro',
+        name: 'AdminIntro',
+        component: AdminIntro,
+        meta: { requiresAuth: true, userType: 'admin' }
+      }
+    ]
   }
 ]
 
@@ -80,11 +110,22 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
+  const userType = localStorage.getItem('userType') || 'user'
   
   if (to.meta.requiresAuth && !isLoggedIn) {
     next('/login')
   } else if (to.path === '/login' && isLoggedIn) {
-    next('/')
+    if (userType === 'admin') {
+      next('/admin/carousel')
+    } else {
+      next('/')
+    }
+  } else if (to.meta.userType && to.meta.userType !== userType && isLoggedIn) {
+    if (userType === 'admin') {
+      next('/admin/carousel')
+    } else {
+      next('/')
+    }
   } else {
     next()
   }

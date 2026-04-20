@@ -9,6 +9,26 @@
         <h1 class="login-title animate-slide-up">社区生活服务</h1>
         <p class="login-subtitle animate-slide-up-delay">欢迎回来，请登录您的账户</p>
       </div>
+      
+      <div class="user-type-selector animate-fade-in">
+        <div 
+          class="type-option" 
+          :class="{ active: userType === 'user' }"
+          @click="userType = 'user'"
+        >
+          <span class="type-icon">👤</span>
+          <span class="type-text">普通用户</span>
+        </div>
+        <div 
+          class="type-option" 
+          :class="{ active: userType === 'admin' }"
+          @click="userType = 'admin'"
+        >
+          <span class="type-icon">⚙️</span>
+          <span class="type-text">管理员</span>
+        </div>
+      </div>
+      
       <form class="login-form animate-fade-in" @submit.prevent="handleLogin">
         <div class="form-group">
           <label class="form-label" for="username">用户名</label>
@@ -46,9 +66,12 @@
           <span v-else>登录中...</span>
         </button>
       </form>
-      <div class="login-footer animate-fade-in">
+      <div class="login-footer animate-fade-in" v-if="userType === 'user'">
         <p>还没有账户？</p>
         <router-link to="/register" class="register-link">立即注册</router-link>
+      </div>
+      <div class="login-footer animate-fade-in" v-else>
+        <p class="admin-hint">管理员登录入口 | 账号：admin，密码：admin</p>
       </div>
     </div>
   </div>
@@ -62,6 +85,7 @@ import { setToken } from '../utils/request'
 const router = useRouter()
 const username = ref('')
 const password = ref('')
+const userType = ref('user')
 const errorMessage = ref('')
 const isLoading = ref(false)
 
@@ -109,7 +133,8 @@ const handleLogin = async () => {
       },
       body: JSON.stringify({
         username: username.value,
-        password: password.value
+        password: password.value,
+        userType: userType.value
       })
     })
     
@@ -118,6 +143,7 @@ const handleLogin = async () => {
     if (data.code === 200) {
       localStorage.setItem('isLoggedIn', 'true')
       localStorage.setItem('username', data.data.username)
+      localStorage.setItem('userType', data.data.userType || 'user')
       if (data.data.nickname) {
         localStorage.setItem('nickname', data.data.nickname)
       }
@@ -125,7 +151,12 @@ const handleLogin = async () => {
         setToken(data.data.token)
       }
       localStorage.setItem('showLoginSuccess', 'true')
-      router.push('/')
+      
+      if (data.data.userType === 'admin') {
+        router.push('/admin/home')
+      } else {
+        router.push('/')
+      }
     } else {
       errorMessage.value = data.message || '登录失败，请重试'
       isLoading.value = false
@@ -317,6 +348,57 @@ const handleLogin = async () => {
   50% {
     opacity: 0.7;
   }
+}
+
+.user-type-selector {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.type-option {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 15px;
+  border: 2px solid #e4e8eb;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.type-option:hover {
+  border-color: #8FBC8F;
+  background: rgba(143, 188, 143, 0.1);
+}
+
+.type-option.active {
+  border-color: #6B8E23;
+  background: rgba(107, 142, 35, 0.1);
+  box-shadow: 0 0 0 3px rgba(107, 142, 35, 0.1);
+}
+
+.type-icon {
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+.type-text {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.type-option.active .type-text {
+  color: #6B8E23;
+}
+
+.admin-hint {
+  font-size: 0.85rem;
+  color: #7f8c8d;
+  font-style: italic;
 }
 
 .login-form {
