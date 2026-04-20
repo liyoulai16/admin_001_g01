@@ -19,47 +19,22 @@
               <li 
                 class="category-item" 
                 :class="{ active: selectedCategory === '全部' }"
-                @click="selectCategory('全部')"
+                @click="selectCategory('全部', null)"
               >
                 <span class="category-icon">📋</span>
                 <span class="category-name">全部帖子</span>
-                <span class="category-count">128</span>
+                <span class="category-count">{{ totalPosts || 0 }}</span>
               </li>
               <li 
+                v-for="category in categories" 
+                :key="category.id"
                 class="category-item" 
-                :class="{ active: selectedCategory === '生活分享' }"
-                @click="selectCategory('生活分享')"
+                :class="{ active: selectedCategory === category.name }"
+                @click="selectCategory(category.name, category.id)"
               >
-                <span class="category-icon">🏠</span>
-                <span class="category-name">生活分享</span>
-                <span class="category-count">45</span>
-              </li>
-              <li 
-                class="category-item" 
-                :class="{ active: selectedCategory === '互助问答' }"
-                @click="selectCategory('互助问答')"
-              >
-                <span class="category-icon">❓</span>
-                <span class="category-name">互助问答</span>
-                <span class="category-count">32</span>
-              </li>
-              <li 
-                class="category-item" 
-                :class="{ active: selectedCategory === '邻里活动' }"
-                @click="selectCategory('邻里活动')"
-              >
-                <span class="category-icon">🎉</span>
-                <span class="category-name">邻里活动</span>
-                <span class="category-count">28</span>
-              </li>
-              <li 
-                class="category-item" 
-                :class="{ active: selectedCategory === '二手交易' }"
-                @click="selectCategory('二手交易')"
-              >
-                <span class="category-icon">🛒</span>
-                <span class="category-name">二手交易</span>
-                <span class="category-count">23</span>
+                <span class="category-icon">{{ category.icon || '📄' }}</span>
+                <span class="category-name">{{ category.name }}</span>
+                <span class="category-count">{{ category.postCount || 0 }}</span>
               </li>
             </ul>
           </div>
@@ -87,10 +62,10 @@
                 :key="index" 
                 class="user-item"
               >
-                <div class="user-avatar">{{ user.avatar }}</div>
+                <div class="user-avatar">{{ user.avatar || '👤' }}</div>
                 <div class="user-info">
-                  <span class="user-name">{{ user.name }}</span>
-                  <span class="user-posts">{{ user.posts }}篇帖子</span>
+                  <span class="user-name">{{ user.name || user.nickname || '匿名用户' }}</span>
+                  <span class="user-posts">{{ user.posts || 0 }}篇帖子</span>
                 </div>
               </div>
             </div>
@@ -206,12 +181,11 @@
         <div class="modal-body">
           <div class="form-group">
             <label class="form-label">选择板块</label>
-            <select v-model="newPostForm.category" class="form-select">
+            <select v-model="newPostForm.categoryId" class="form-select">
               <option value="">请选择板块</option>
-              <option value="生活分享">生活分享</option>
-              <option value="互助问答">互助问答</option>
-              <option value="邻里活动">邻里活动</option>
-              <option value="二手交易">二手交易</option>
+              <option v-for="category in categories" :key="category.id" :value="category.id">
+                {{ category.name }}
+              </option>
             </select>
           </div>
           <div class="form-group">
@@ -348,7 +322,8 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, computed } from 'vue'
+import request from '../utils/request'
 
 const getParticleStyle = (index) => {
   const size = Math.random() * 8 + 4
@@ -368,9 +343,13 @@ const getParticleStyle = (index) => {
 
 const searchQuery = ref('')
 const selectedCategory = ref('全部')
+const selectedCategoryId = ref(null)
 const sortBy = ref('latest')
 const currentPage = ref(1)
-const totalPages = ref(5)
+const pageSize = ref(10)
+const totalPages = ref(1)
+const totalPosts = ref(0)
+const loading = ref(false)
 
 const showNewPostModal = ref(false)
 const showPostDetail = ref(false)
@@ -378,6 +357,7 @@ const currentPost = ref(null)
 const replyContent = ref('')
 
 const newPostForm = ref({
+  categoryId: null,
   category: '',
   title: '',
   content: ''
@@ -391,95 +371,10 @@ const hotTopics = [
   '邻里互助倡议书'
 ]
 
-const activeUsers = [
-  { avatar: '👨', name: '张大哥', posts: 89 },
-  { avatar: '👩', name: '李阿姨', posts: 76 },
-  { avatar: '🧑', name: '小王', posts: 65 },
-  { avatar: '👴', name: '陈叔叔', posts: 58 }
-]
-
-const posts = ref([
-  {
-    id: 1,
-    title: '【生活分享】周末组织了小区烧烤活动，大家都很开心！',
-    excerpt: '上周末我们单元组织了一次烧烤聚会，大家一起准备食材、生火烤肉，气氛非常热闹。小朋友们在旁边玩游戏，大人们聊天交流...',
-    content: '上周末我们单元组织了一次烧烤聚会，大家一起准备食材、生火烤肉，气氛非常热闹。小朋友们在旁边玩游戏，大人们聊天交流，增进了邻里之间的感情。希望以后能多组织这样的活动！',
-    category: '生活分享',
-    authorName: '张大哥',
-    authorAvatar: '👨',
-    createTime: '2024-01-15 14:30',
-    views: 356,
-    comments: 28,
-    likes: 45,
-    isEssence: true,
-    isHot: true,
-    images: ['🍖', '🔥', '🎉']
-  },
-  {
-    id: 2,
-    title: '【互助问答】求助：家里水管漏水了，有靠谱的维修师傅推荐吗？',
-    excerpt: '厨房的水管突然漏水了，想找个靠谱的维修师傅，请问邻里们有推荐的吗？最好是价格公道、技术好的，谢谢大家！',
-    content: '厨房的水管突然漏水了，想找个靠谱的维修师傅，请问邻里们有推荐的吗？最好是价格公道、技术好的，谢谢大家！',
-    category: '互助问答',
-    authorName: '李阿姨',
-    authorAvatar: '👩',
-    createTime: '2024-01-15 10:20',
-    views: 234,
-    comments: 15,
-    likes: 12,
-    isEssence: false,
-    isHot: false,
-    images: ['🔧']
-  },
-  {
-    id: 3,
-    title: '【邻里活动】小区春季运动会报名开始啦！',
-    excerpt: '一年一度的小区春季运动会即将举行，现面向全体业主开放报名。比赛项目包括：趣味接力、亲子游戏、拔河比赛等...',
-    content: '一年一度的小区春季运动会即将举行，现面向全体业主开放报名。比赛项目包括：趣味接力、亲子游戏、拔河比赛等，欢迎大家踊跃参与！',
-    category: '邻里活动',
-    authorName: '物业小王',
-    authorAvatar: '🧑',
-    createTime: '2024-01-14 16:45',
-    views: 567,
-    comments: 42,
-    likes: 78,
-    isEssence: true,
-    isHot: true,
-    images: ['🏃', '⚽', '🏆']
-  },
-  {
-    id: 4,
-    title: '【二手交易】九成新婴儿车转让，价格可议',
-    excerpt: '家里宝宝长大了，婴儿车用不上了，转让给有需要的邻里。品牌是好孩子的，九成新，原价1200，现在400出，可小刀...',
-    content: '家里宝宝长大了，婴儿车用不上了，转让给有需要的邻里。品牌是好孩子的，九成新，原价1200，现在400出，可小刀。有意者请在评论区留言或私信我。',
-    category: '二手交易',
-    authorName: '陈叔叔',
-    authorAvatar: '👴',
-    createTime: '2024-01-14 09:15',
-    views: 189,
-    comments: 8,
-    likes: 5,
-    isEssence: false,
-    isHot: false,
-    images: ['👶', '🚗']
-  },
-  {
-    id: 5,
-    title: '【生活分享】小区的腊梅花开了，真漂亮！',
-    excerpt: '今早路过小区花园，发现腊梅花开得正盛，香气扑鼻。拍了几张照片和大家分享，也提醒大家注意保暖，天气冷了...',
-    content: '今早路过小区花园，发现腊梅花开得正盛，香气扑鼻。拍了几张照片和大家分享，也提醒大家注意保暖，天气冷了多穿点衣服。',
-    category: '生活分享',
-    authorName: '王阿姨',
-    authorAvatar: '👵',
-    createTime: '2024-01-13 08:30',
-    views: 423,
-    comments: 35,
-    likes: 56,
-    isEssence: false,
-    isHot: false,
-    images: ['🌸', '🌺', '❄️']
-  }
-])
+const categories = ref([])
+const activeUsers = ref([])
+const posts = ref([])
+const filteredPosts = ref([])
 
 const sampleComments = [
   {
@@ -505,55 +400,181 @@ const sampleComments = [
   }
 ]
 
-const filteredPosts = ref([...posts.value])
+const getCategoryNameById = (id) => {
+  const category = categories.value.find(c => c.id === id)
+  return category ? category.name : '未知'
+}
 
-const selectCategory = (category) => {
-  selectedCategory.value = category
-  if (category === '全部') {
-    filteredPosts.value = [...posts.value]
-  } else {
-    filteredPosts.value = posts.value.filter(p => p.category === category)
+const fetchCategories = async () => {
+  try {
+    const response = await request('/api/forum/categories', {
+      method: 'GET'
+    })
+    
+    if (response.ok) {
+      const data = await response.json()
+      if (data.code === 200 && data.data) {
+        categories.value = data.data
+      }
+    }
+  } catch (error) {
+    console.error('获取分类失败:', error)
   }
+}
+
+const fetchActiveUsers = async () => {
+  try {
+    const response = await request('/api/forum/active-users?limit=5', {
+      method: 'GET'
+    })
+    
+    if (response.ok) {
+      const data = await response.json()
+      if (data.code === 200 && data.data) {
+        activeUsers.value = data.data
+      }
+    }
+  } catch (error) {
+    console.error('获取活跃用户失败:', error)
+  }
+}
+
+const fetchPosts = async () => {
+  loading.value = true
+  try {
+    const params = new URLSearchParams()
+    params.append('page', currentPage.value)
+    params.append('size', pageSize.value)
+    params.append('sortBy', sortBy.value)
+    
+    if (selectedCategoryId.value) {
+      params.append('categoryId', selectedCategoryId.value)
+    }
+    
+    if (searchQuery.value.trim()) {
+      params.append('keyword', searchQuery.value.trim())
+    }
+    
+    const response = await request(`/api/forum/posts?${params.toString()}`, {
+      method: 'GET'
+    })
+    
+    if (response.ok) {
+      const data = await response.json()
+      if (data.code === 200 && data.data) {
+        const postList = data.data.records || []
+        postList.forEach(post => {
+          if (!post.category && post.categoryId) {
+            post.category = getCategoryNameById(post.categoryId)
+          }
+          if (!post.authorName) {
+            post.authorName = '匿名用户'
+          }
+          if (!post.authorAvatar) {
+            post.authorAvatar = '👤'
+          }
+          if (post.imageList && post.imageList.length > 0) {
+            post.images = post.imageList
+          } else {
+            post.images = []
+          }
+          if (post.createTime) {
+            const date = new Date(post.createTime)
+            post.createTime = date.toLocaleString('zh-CN', {
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit'
+            }).replace(/\//g, '-')
+          }
+        })
+        posts.value = postList
+        filteredPosts.value = postList
+        totalPosts.value = data.data.total || 0
+        totalPages.value = data.data.pages || 1
+      }
+    }
+  } catch (error) {
+    console.error('获取帖子列表失败:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+const fetchPostDetail = async (id) => {
+  try {
+    const response = await request(`/api/forum/posts/${id}`, {
+      method: 'GET'
+    })
+    
+    if (response.ok) {
+      const data = await response.json()
+      if (data.code === 200 && data.data) {
+        const post = data.data
+        if (!post.category && post.categoryId) {
+          post.category = getCategoryNameById(post.categoryId)
+        }
+        if (!post.authorName) {
+          post.authorName = '匿名用户'
+        }
+        if (!post.authorAvatar) {
+          post.authorAvatar = '👤'
+        }
+        if (post.imageList && post.imageList.length > 0) {
+          post.images = post.imageList
+        } else {
+          post.images = []
+        }
+        if (post.createTime) {
+          const date = new Date(post.createTime)
+          post.createTime = date.toLocaleString('zh-CN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+          }).replace(/\//g, '-')
+        }
+        currentPost.value = post
+      }
+    }
+  } catch (error) {
+    console.error('获取帖子详情失败:', error)
+  }
+}
+
+const selectCategory = (category, categoryId = null) => {
+  selectedCategory.value = category
+  selectedCategoryId.value = categoryId
+  currentPage.value = 1
+  fetchPosts()
 }
 
 const selectTopic = (topic) => {
   searchQuery.value = topic
-  handleSearch()
+  currentPage.value = 1
+  fetchPosts()
 }
 
 const handleSearch = () => {
-  if (searchQuery.value.trim()) {
-    filteredPosts.value = posts.value.filter(p => 
-      p.title.includes(searchQuery.value) || 
-      p.excerpt.includes(searchQuery.value)
-    )
-  } else {
-    selectCategory(selectedCategory.value)
-  }
+  currentPage.value = 1
+  fetchPosts()
 }
 
 const handleSort = () => {
-  const sorted = [...filteredPosts.value]
-  switch (sortBy.value) {
-    case 'latest':
-      sorted.sort((a, b) => new Date(b.createTime) - new Date(a.createTime))
-      break
-    case 'hot':
-      sorted.sort((a, b) => b.views - a.views)
-      break
-    case 'essence':
-      filteredPosts.value = posts.value.filter(p => p.isEssence)
-      return
-  }
-  filteredPosts.value = sorted
+  currentPage.value = 1
+  fetchPosts()
 }
 
 const changePage = (page) => {
+  if (page < 1 || page > totalPages.value) return
   currentPage.value = page
+  fetchPosts()
 }
 
-const openPostDetail = (post) => {
-  currentPost.value = post
+const openPostDetail = async (post) => {
+  await fetchPostDetail(post.id)
   showPostDetail.value = true
 }
 
@@ -569,11 +590,11 @@ const openReplyModal = (post) => {
 
 const closeNewPostModal = () => {
   showNewPostModal.value = false
-  newPostForm.value = { category: '', title: '', content: '' }
+  newPostForm.value = { categoryId: null, category: '', title: '', content: '' }
 }
 
-const submitNewPost = () => {
-  if (!newPostForm.value.category) {
+const submitNewPost = async () => {
+  if (!newPostForm.value.categoryId) {
     alert('请选择板块')
     return
   }
@@ -590,8 +611,37 @@ const submitNewPost = () => {
     return
   }
   
-  alert('帖子发布成功！（演示模式）')
-  closeNewPostModal()
+  try {
+    const params = new URLSearchParams()
+    params.append('userId', 1)
+    params.append('categoryId', newPostForm.value.categoryId)
+    params.append('title', newPostForm.value.title)
+    params.append('content', newPostForm.value.content)
+    
+    const response = await request('/api/forum/posts', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: params
+    })
+    
+    if (response.ok) {
+      const data = await response.json()
+      if (data.code === 200) {
+        alert('帖子发布成功！')
+        closeNewPostModal()
+        fetchPosts()
+      } else {
+        alert(data.message || '发布失败')
+      }
+    } else {
+      alert('发布失败，请稍后重试')
+    }
+  } catch (error) {
+    console.error('发布帖子失败:', error)
+    alert('发布失败，请稍后重试')
+  }
 }
 
 const submitReply = () => {
@@ -602,6 +652,12 @@ const submitReply = () => {
   alert('评论发表成功！（演示模式）')
   replyContent.value = ''
 }
+
+onMounted(() => {
+  fetchCategories()
+  fetchActiveUsers()
+  fetchPosts()
+})
 </script>
 
 <style scoped>
