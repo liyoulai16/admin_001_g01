@@ -69,42 +69,15 @@
             </span>
           </div>
           <div class="post-actions">
-            <div class="action-row">
-              <button class="action-btn edit" @click="openEditModal(post)">✏️ 编辑</button>
-              <button class="action-btn delete" @click="confirmDelete(post)">🗑️ 删除</button>
-            </div>
-            <div class="action-row">
-              <button 
-                class="action-btn tag-btn" 
-                :class="{ active: isPostTop(post) }"
-                @click="toggleTop(post)"
-              >
-                {{ isPostTop(post) ? '📌 取消置顶' : '📌 置顶' }}
-              </button>
-              <button 
-                class="action-btn tag-btn" 
-                :class="{ active: post.isHot === 1 }"
-                @click="toggleHot(post)"
-              >
-                {{ post.isHot === 1 ? '🔥 取消热门' : '🔥 热门' }}
-              </button>
-              <button 
-                class="action-btn tag-btn" 
-                :class="{ active: post.isEssence === 1 }"
-                @click="toggleEssence(post)"
-              >
-                {{ post.isEssence === 1 ? '⭐ 取消精华' : '⭐ 精华' }}
-              </button>
-            </div>
-            <div class="action-row">
-              <button 
-                class="action-btn toggle" 
-                :class="post.status === 1 ? 'disable' : 'enable'"
-                @click="toggleStatus(post)"
-              >
-                {{ post.status === 1 ? '❌ 禁用' : '✅ 启用' }}
-              </button>
-            </div>
+            <button class="action-btn edit" @click="openEditModal(post)">✏️ 编辑</button>
+            <button class="action-btn delete" @click="confirmDelete(post)">🗑️ 删除</button>
+            <button 
+              class="action-btn toggle" 
+              :class="post.status === 1 ? 'disable' : 'enable'"
+              @click="toggleStatus(post)"
+            >
+              {{ post.status === 1 ? '❌ 禁用' : '✅ 启用' }}
+            </button>
           </div>
         </div>
       </div>
@@ -457,69 +430,6 @@ const handleDelete = async () => {
   }
 }
 
-const toggleTop = async (post) => {
-  const newIsTop = !isPostTop(post)
-  
-  try {
-    const response = await request(`/api/admin/forum-posts/${post.id}/top?isTop=${newIsTop}`, {
-      method: 'PUT'
-    })
-    
-    const data = await response.json()
-    
-    if (data.code === 200) {
-      loadPosts()
-    } else {
-      alert(data.message || '操作失败')
-    }
-  } catch (error) {
-    console.error('切换置顶失败:', error)
-    alert('网络错误，请稍后重试')
-  }
-}
-
-const toggleHot = async (post) => {
-  const newIsHot = post.isHot !== 1
-  
-  try {
-    const response = await request(`/api/admin/forum-posts/${post.id}/hot?isHot=${newIsHot}`, {
-      method: 'PUT'
-    })
-    
-    const data = await response.json()
-    
-    if (data.code === 200) {
-      loadPosts()
-    } else {
-      alert(data.message || '操作失败')
-    }
-  } catch (error) {
-    console.error('切换热门失败:', error)
-    alert('网络错误，请稍后重试')
-  }
-}
-
-const toggleEssence = async (post) => {
-  const newIsEssence = post.isEssence !== 1
-  
-  try {
-    const response = await request(`/api/admin/forum-posts/${post.id}/essence?isEssence=${newIsEssence}`, {
-      method: 'PUT'
-    })
-    
-    const data = await response.json()
-    
-    if (data.code === 200) {
-      loadPosts()
-    } else {
-      alert(data.message || '操作失败')
-    }
-  } catch (error) {
-    console.error('切换精华失败:', error)
-    alert('网络错误，请稍后重试')
-  }
-}
-
 const toggleStatus = async (post) => {
   const newStatus = post.status === 1 ? 0 : 1
   
@@ -832,16 +742,11 @@ onMounted(() => {
   flex-shrink: 0;
 }
 
-.action-row {
-  display: flex;
-  gap: 8px;
-}
-
 .action-btn {
-  padding: 6px 12px;
+  padding: 8px 14px;
   border: none;
-  border-radius: 6px;
-  font-size: 0.8rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -865,21 +770,6 @@ onMounted(() => {
 
 .action-btn.delete:hover {
   background: #dc2626;
-  color: white;
-}
-
-.action-btn.tag-btn {
-  background: #f3f4f6;
-  color: #6b7280;
-}
-
-.action-btn.tag-btn:hover {
-  background: #e5e7eb;
-  color: #374151;
-}
-
-.action-btn.tag-btn.active {
-  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
   color: white;
 }
 
