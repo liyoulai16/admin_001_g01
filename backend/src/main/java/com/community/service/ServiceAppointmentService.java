@@ -13,6 +13,7 @@ import com.community.entity.ServiceOrder;
 import com.community.mapper.ServiceAppointmentMapper;
 import com.community.mapper.ServiceItemMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
@@ -71,7 +72,7 @@ public class ServiceAppointmentService {
         return appointment;
     }
     
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public ServiceAppointment createAppointmentFromOrder(Long userId, ServiceOrder order, OrderCreateRequest request) {
         ServiceAppointment appointment = new ServiceAppointment();
         appointment.setAppointmentNo(generateAppointmentNo());
@@ -139,7 +140,7 @@ public class ServiceAppointmentService {
         return appointment;
     }
     
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void confirmAppointmentByOrderId(Long orderId) {
         LambdaUpdateWrapper<ServiceAppointment> updateWrapper = new LambdaUpdateWrapper<>();
         updateWrapper.eq(ServiceAppointment::getOrderId, orderId)
@@ -228,7 +229,7 @@ public class ServiceAppointmentService {
         return appointment;
     }
     
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void cancelAppointmentByOrderId(Long orderId, String cancelReason) {
         LambdaUpdateWrapper<ServiceAppointment> updateWrapper = new LambdaUpdateWrapper<>();
         updateWrapper.eq(ServiceAppointment::getOrderId, orderId)
