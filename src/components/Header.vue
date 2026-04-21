@@ -482,6 +482,8 @@ const openProfileModal = async () => {
         editForm.nickname = data.data.nickname || ''
         editForm.phone = data.data.phone || ''
         editForm.email = data.data.email || ''
+        
+        await fetchBalanceInfo()
       } else if (data.code === 401) {
         handleLogout()
         return
@@ -783,17 +785,63 @@ const handleRecharge = () => {
   }
 }
 
-const processBankRecharge = (amount) => {
-  rechargeSuccess.value = `充值成功！已充值 ¥${amount.toFixed(2)}`
-  
-  if (userInfo.value) {
-    const currentBalance = parseFloat(userInfo.value.balance) || 0
-    userInfo.value.balance = (currentBalance + amount).toFixed(2)
+const fetchBalanceInfo = async () => {
+  try {
+    const response = await request('/api/balance/info')
+    const data = await response.json()
+    
+    if (data.code === 200 && data.data) {
+      if (userInfo.value) {
+        userInfo.value.balance = data.data.balance
+      }
+    }
+  } catch (error) {
+    console.error('获取余额信息失败:', error)
   }
-  
-  setTimeout(() => {
-    closeRechargeModal()
-  }, 2000)
+}
+
+const processBankRecharge = async (amount) => {
+  try {
+    const payMethod = selectedPayment.value === 'wechat' ? 1 : 
+                      selectedPayment.value === 'alipay' ? 2 : 0
+    
+    const createResponse = await request('/api/recharge/create', {
+      method: 'POST',
+      body: JSON.stringify({
+        amount: amount,
+        payMethod: payMethod
+      })
+    })
+    
+    const createData = await createResponse.json()
+    
+    if (createData.code !== 200 || !createData.data) {
+      rechargeError.value = createData.message || '创建充值订单失败'
+      return
+    }
+    
+    const rechargeId = createData.data.id
+    
+    const payResponse = await request(`/api/recharge/pay/${rechargeId}`, {
+      method: 'POST'
+    })
+    
+    const payData = await payResponse.json()
+    
+    if (payData.code === 200) {
+      rechargeSuccess.value = `充值成功！已充值 ¥${amount.toFixed(2)}`
+      await fetchBalanceInfo()
+      
+      setTimeout(() => {
+        closeRechargeModal()
+      }, 2000)
+    } else {
+      rechargeError.value = payData.message || '充值失败，请重试'
+    }
+  } catch (error) {
+    console.error('充值失败:', error)
+    rechargeError.value = '网络错误，请稍后重试'
+  }
 }
 
 const isQrCellFilled = (index) => {
@@ -808,28 +856,58 @@ const closeQrModal = () => {
   pendingRechargeAmount.value = 0
 }
 
-const confirmQrPayment = () => {
+const confirmQrPayment = async () => {
   if (isQrPaying.value) return
   
   isQrPaying.value = true
   qrError.value = ''
   
-  setTimeout(() => {
+  try {
     const amount = pendingRechargeAmount.value
+    const payMethod = selectedPayment.value === 'wechat' ? 1 : 2
     
-    rechargeSuccess.value = `支付成功！已充值 ¥${amount.toFixed(2)}`
+    const createResponse = await request('/api/recharge/create', {
+      method: 'POST',
+      body: JSON.stringify({
+        amount: amount,
+        payMethod: payMethod
+      })
+    })
     
-    if (userInfo.value) {
-      const currentBalance = parseFloat(userInfo.value.balance) || 0
-      userInfo.value.balance = (currentBalance + amount).toFixed(2)
+    const createData = await createResponse.json()
+    
+    if (createData.code !== 200 || !createData.data) {
+      qrError.value = createData.message || '创建充值订单失败'
+      isQrPaying.value = false
+      return
     }
     
-    closeQrModal()
+    const rechargeId = createData.data.id
     
-    setTimeout(() => {
-      closeRechargeModal()
-    }, 1500)
-  }, 1500)
+    const payResponse = await request(`/api/recharge/pay/${rechargeId}`, {
+      method: 'POST'
+    })
+    
+    const payData = await payResponse.json()
+    
+    if (payData.code === 200) {
+      rechargeSuccess.value = `支付成功！已充值 ¥${amount.toFixed(2)}`
+      await fetchBalanceInfo()
+      
+      closeQrModal()
+      
+      setTimeout(() => {
+        closeRechargeModal()
+      }, 1500)
+    } else {
+      qrError.value = payData.message || '支付失败，请重试'
+      isQrPaying.value = false
+    }
+  } catch (error) {
+    console.error('二维码支付失败:', error)
+    qrError.value = '网络错误，请稍后重试'
+    isQrPaying.value = false
+  }
 }
 
 onMounted(() => {
