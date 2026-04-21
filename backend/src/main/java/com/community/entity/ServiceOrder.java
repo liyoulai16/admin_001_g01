@@ -79,6 +79,8 @@ public class ServiceOrder {
     
     private String remark;
     
+    private Integer recordStatus;
+    
     @TableLogic
     private Integer deleted;
     

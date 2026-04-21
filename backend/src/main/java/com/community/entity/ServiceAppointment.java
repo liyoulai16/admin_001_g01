@@ -52,6 +52,8 @@ public class ServiceAppointment {
     
     private String remark;
     
+    private Integer recordStatus;
+    
     @TableLogic
     private Integer deleted;
     

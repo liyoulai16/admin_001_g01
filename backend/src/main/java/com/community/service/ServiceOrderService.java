@@ -100,6 +100,7 @@ public class ServiceOrderService {
         order.setContactPhone(request.getContactPhone());
         order.setIsReviewed(0);
         order.setRemark(request.getRemark());
+        order.setRecordStatus(1);
         order.setDeleted(0);
         order.setCreateTime(LocalDateTime.now());
         order.setUpdateTime(LocalDateTime.now());

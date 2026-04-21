@@ -11,12 +11,12 @@ CREATE TABLE IF NOT EXISTS user_balance (
     frozen_balance DECIMAL(10, 2) DEFAULT 0.00 COMMENT '冻结余额',
     total_recharge DECIMAL(10, 2) DEFAULT 0.00 COMMENT '累计充值金额',
     total_spend DECIMAL(10, 2) DEFAULT 0.00 COMMENT '累计消费金额',
-    record_status TINYINT DEFAULT 1 COMMENT '记录状态：1-正常，0-禁用',
+    status TINYINT DEFAULT 1 COMMENT '状态：1-正常，0-禁用',
     deleted TINYINT DEFAULT 0 COMMENT '逻辑删除：0-未删除，1-已删除',
     create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     UNIQUE KEY uk_user_id (user_id),
-    KEY idx_record_status (record_status),
+    KEY idx_status (status),
     KEY idx_create_time (create_time)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户余额表';
 
@@ -33,13 +33,14 @@ CREATE TABLE IF NOT EXISTS recharge_record (
     pay_time DATETIME DEFAULT NULL COMMENT '支付时间',
     transaction_id VARCHAR(64) DEFAULT NULL COMMENT '第三方交易流水号',
     remark VARCHAR(255) DEFAULT NULL COMMENT '备注',
-    record_status TINYINT DEFAULT 1 COMMENT '记录状态：1-正常，0-禁用',
+    status TINYINT DEFAULT 1 COMMENT '状态：1-正常，0-禁用',
     deleted TINYINT DEFAULT 0 COMMENT '逻辑删除：0-未删除，1-已删除',
     create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     UNIQUE KEY uk_recharge_no (recharge_no),
     KEY idx_user_id (user_id),
     KEY idx_pay_status (pay_status),
+    KEY idx_status (status),
     KEY idx_create_time (create_time)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='充值记录表';
 
@@ -88,6 +89,7 @@ CREATE TABLE IF NOT EXISTS service_order (
     KEY idx_category_id (category_id),
     KEY idx_status (status),
     KEY idx_pay_status (pay_status),
+    KEY idx_record_status (record_status),
     KEY idx_create_time (create_time),
     KEY idx_appointment_date (appointment_date)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='订单表';
@@ -105,13 +107,14 @@ CREATE TABLE IF NOT EXISTS order_item (
     quantity INT DEFAULT 1 COMMENT '数量',
     subtotal DECIMAL(10, 2) NOT NULL COMMENT '小计金额',
     remark VARCHAR(255) DEFAULT NULL COMMENT '备注',
-    record_status TINYINT DEFAULT 1 COMMENT '记录状态：1-正常，0-禁用',
+    status TINYINT DEFAULT 1 COMMENT '状态：1-正常，0-禁用',
     deleted TINYINT DEFAULT 0 COMMENT '逻辑删除：0-未删除，1-已删除',
     create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     KEY idx_order_id (order_id),
     KEY idx_order_no (order_no),
-    KEY idx_service_id (service_id)
+    KEY idx_service_id (service_id),
+    KEY idx_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='订单详情表';
 
 -- 5. 服务预约表
@@ -146,6 +149,7 @@ CREATE TABLE IF NOT EXISTS service_appointment (
     KEY idx_service_id (service_id),
     KEY idx_appointment_date (appointment_date),
     KEY idx_status (status),
+    KEY idx_record_status (record_status),
     KEY idx_create_time (create_time)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='服务预约表';
 
@@ -163,7 +167,7 @@ CREATE TABLE IF NOT EXISTS order_review (
     is_visible TINYINT DEFAULT 1 COMMENT '是否显示：0-隐藏，1-显示',
     reply TEXT DEFAULT NULL COMMENT '商家回复',
     reply_time DATETIME DEFAULT NULL COMMENT '回复时间',
-    record_status TINYINT DEFAULT 1 COMMENT '记录状态：1-正常，0-禁用',
+    status TINYINT DEFAULT 1 COMMENT '状态：1-正常，0-禁用',
     deleted TINYINT DEFAULT 0 COMMENT '逻辑删除：0-未删除，1-已删除',
     create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
@@ -172,6 +176,7 @@ CREATE TABLE IF NOT EXISTS order_review (
     KEY idx_user_id (user_id),
     KEY idx_service_id (service_id),
     KEY idx_rating (rating),
+    KEY idx_status (status),
     KEY idx_create_time (create_time)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='订单评价表';
 
@@ -187,12 +192,13 @@ CREATE TABLE IF NOT EXISTS balance_transaction (
     related_id BIGINT DEFAULT NULL COMMENT '关联业务ID（订单ID、充值ID等）',
     related_type VARCHAR(20) DEFAULT NULL COMMENT '关联业务类型：order-订单，recharge-充值，refund-退款',
     description VARCHAR(255) DEFAULT NULL COMMENT '交易描述',
-    record_status TINYINT DEFAULT 1 COMMENT '记录状态：1-成功，0-失败',
+    status TINYINT DEFAULT 1 COMMENT '状态：1-成功，0-失败',
     deleted TINYINT DEFAULT 0 COMMENT '逻辑删除：0-未删除，1-已删除',
     create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     UNIQUE KEY uk_transaction_no (transaction_no),
     KEY idx_user_id (user_id),
     KEY idx_type (type),
+    KEY idx_status (status),
     KEY idx_create_time (create_time)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='余额变动记录表';
