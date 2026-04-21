@@ -70,15 +70,24 @@
                     <span class="meta-icon">📋</span>
                     <span class="meta-text">{{ order.categoryName }}</span>
                   </span>
-                  <span class="meta-item">
-                    <span class="meta-icon">📍</span>
-                    <span class="meta-text">{{ order.serviceAddress }}</span>
+                  <span class="meta-item" v-if="order.contactName">
+                    <span class="meta-icon">👤</span>
+                    <span class="meta-text">{{ order.contactName }}</span>
+                  </span>
+                  <span class="meta-item" v-if="order.contactPhone">
+                    <span class="meta-icon">📞</span>
+                    <span class="meta-text">{{ order.contactPhone }}</span>
                   </span>
                 </div>
                 <div class="appointment-time">
                   <span class="appointment-icon">⏰</span>
                   <span class="appointment-label">预约时间：</span>
                   <span class="appointment-value">{{ order.appointmentTime }}</span>
+                </div>
+                <div class="appointment-time" v-if="order.serviceAddress">
+                  <span class="appointment-icon">📍</span>
+                  <span class="appointment-label">服务地址：</span>
+                  <span class="appointment-value">{{ order.serviceAddress }}</span>
                 </div>
               </div>
             </div>

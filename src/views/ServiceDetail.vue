@@ -89,14 +89,23 @@
                 <label class="form-label">预约时间</label>
                 <select v-model="bookingTime" class="form-select">
                   <option value="">请选择时间</option>
-                  <option value="09:00">09:00 - 10:00</option>
-                  <option value="10:00">10:00 - 11:00</option>
-                  <option value="11:00">11:00 - 12:00</option>
-                  <option value="14:00">14:00 - 15:00</option>
-                  <option value="15:00">15:00 - 16:00</option>
-                  <option value="16:00">16:00 - 17:00</option>
-                  <option value="17:00">17:00 - 18:00</option>
+                  <option value="09:00-10:00">09:00 - 10:00</option>
+                  <option value="10:00-11:00">10:00 - 11:00</option>
+                  <option value="11:00-12:00">11:00 - 12:00</option>
+                  <option value="14:00-15:00">14:00 - 15:00</option>
+                  <option value="15:00-16:00">15:00 - 16:00</option>
+                  <option value="16:00-17:00">16:00 - 17:00</option>
+                  <option value="17:00-18:00">17:00 - 18:00</option>
                 </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">联系人姓名</label>
+                <input 
+                  type="text" 
+                  v-model="contactName" 
+                  placeholder="请输入您的姓名"
+                  class="form-input"
+                />
               </div>
               <div class="form-group">
                 <label class="form-label">联系电话</label>
@@ -189,6 +198,7 @@ const service = ref(null)
 const loading = ref(false)
 const bookingDate = ref('')
 const bookingTime = ref('')
+const contactName = ref('')
 const phone = ref('')
 const address = ref('')
 const notes = ref('')
@@ -247,6 +257,10 @@ const handleBooking = () => {
     alert('请选择预约时间')
     return
   }
+  if (!contactName.value) {
+    alert('请输入联系人姓名')
+    return
+  }
   if (!phone.value) {
     alert('请输入联系电话')
     return
@@ -256,7 +270,9 @@ const handleBooking = () => {
     return
   }
   
-  alert(`预约成功！\n\n服务：${service.value.name}\n日期：${bookingDate.value}\n时间：${bookingTime.value}\n\n我们的客服会尽快与您联系确认预约详情。`)
+  const appointmentTime = `${bookingDate.value} ${bookingTime.value}`
+  
+  alert(`预约成功！\n\n服务：${service.value.name}\n预约时间：${appointmentTime}\n联系人：${contactName.value}\n联系电话：${phone.value}\n服务地址：${address.value}\n\n我们的客服会尽快与您联系确认预约详情。`)
 }
 
 onMounted(() => {

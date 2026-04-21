@@ -344,6 +344,49 @@
         </div>
       </div>
     </div>
+    
+    <div class="modal-overlay" :class="{ show: showQrModal }" @click="closeQrModal">
+      <div class="modal-container qr-modal" @click.stop>
+        <div class="modal-header">
+          <h3 class="modal-title">{{ selectedPayment === 'alipay' ? '支付宝支付' : '微信支付' }}</h3>
+          <button class="modal-close-btn" @click="closeQrModal">×</button>
+        </div>
+        
+        <div class="modal-body">
+          <div class="qr-content">
+            <div class="qr-amount">
+              <span class="qr-label">支付金额</span>
+              <span class="qr-price">¥ {{ getTotalAmount() }}</span>
+            </div>
+            
+            <div class="qr-code-section">
+              <div class="qr-code-box">
+                <div class="qr-placeholder">
+                  <div class="qr-icon">{{ selectedPayment === 'alipay' ? '💳' : '💬' }}</div>
+                  <div class="qr-text">请使用{{ selectedPayment === 'alipay' ? '支付宝' : '微信' }}扫描二维码</div>
+                  <div class="qr-simulated">
+                    <div class="qr-grid">
+                      <div v-for="i in 25" :key="i" class="qr-cell" :class="{ filled: isQrCellFilled(i) }"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <p class="qr-tip">请在{{ selectedPayment === 'alipay' ? '支付宝' : '微信' }}中完成支付</p>
+            </div>
+            
+            <div class="qr-actions">
+              <button class="qr-cancel-btn" @click="closeQrModal">取消支付</button>
+              <button class="qr-confirm-btn" @click="confirmQrPayment">
+                <span class="loading-spinner" v-if="isQrPaying"></span>
+                <span v-else>模拟支付成功</span>
+              </button>
+            </div>
+            
+            <div v-if="qrError" class="error-message">{{ qrError }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
   </header>
 </template>
 
@@ -374,6 +417,11 @@ const customAmount = ref('')
 const selectedPayment = ref('alipay')
 const rechargeError = ref('')
 const rechargeSuccess = ref('')
+
+const showQrModal = ref(false)
+const isQrPaying = ref(false)
+const qrError = ref('')
+const pendingRechargeAmount = ref(0)
 
 const editForm = reactive({
   newUsername: '',
@@ -713,6 +761,7 @@ const isAmountValid = () => {
 const handleRecharge = () => {
   rechargeError.value = ''
   rechargeSuccess.value = ''
+  qrError.value = ''
   
   if (!isAmountValid()) {
     rechargeError.value = '请选择或输入有效的充值金额'
@@ -726,6 +775,15 @@ const handleRecharge = () => {
     return
   }
   
+  if (selectedPayment.value === 'bank') {
+    processBankRecharge(amount)
+  } else {
+    pendingRechargeAmount.value = amount
+    showQrModal.value = true
+  }
+}
+
+const processBankRecharge = (amount) => {
   rechargeSuccess.value = `充值成功！已充值 ¥${amount.toFixed(2)}`
   
   if (userInfo.value) {
@@ -736,6 +794,42 @@ const handleRecharge = () => {
   setTimeout(() => {
     closeRechargeModal()
   }, 2000)
+}
+
+const isQrCellFilled = (index) => {
+  const pattern = [1,3,5,7,9,11,13,15,17,19,21,23,25,2,4,6,8,10,12,14,16,18,20,22,24]
+  return pattern.includes(index)
+}
+
+const closeQrModal = () => {
+  showQrModal.value = false
+  isQrPaying.value = false
+  qrError.value = ''
+  pendingRechargeAmount.value = 0
+}
+
+const confirmQrPayment = () => {
+  if (isQrPaying.value) return
+  
+  isQrPaying.value = true
+  qrError.value = ''
+  
+  setTimeout(() => {
+    const amount = pendingRechargeAmount.value
+    
+    rechargeSuccess.value = `支付成功！已充值 ¥${amount.toFixed(2)}`
+    
+    if (userInfo.value) {
+      const currentBalance = parseFloat(userInfo.value.balance) || 0
+      userInfo.value.balance = (currentBalance + amount).toFixed(2)
+    }
+    
+    closeQrModal()
+    
+    setTimeout(() => {
+      closeRechargeModal()
+    }, 1500)
+  }, 1500)
 }
 
 onMounted(() => {
@@ -1570,6 +1664,164 @@ onMounted(() => {
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
+}
+
+.qr-modal {
+  max-width: 420px;
+}
+
+.qr-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.qr-amount {
+  text-align: center;
+}
+
+.qr-label {
+  display: block;
+  font-size: 0.95rem;
+  color: #7f8c8d;
+  margin-bottom: 8px;
+}
+
+.qr-price {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #6B8E23;
+}
+
+.qr-code-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.qr-code-box {
+  width: 200px;
+  height: 200px;
+  padding: 20px;
+  background: white;
+  border: 2px solid #e4e8eb;
+  border-radius: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.qr-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.qr-icon {
+  font-size: 3rem;
+}
+
+.qr-text {
+  font-size: 0.9rem;
+  color: #7f8c8d;
+  text-align: center;
+}
+
+.qr-simulated {
+  margin-top: 8px;
+}
+
+.qr-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 2px;
+  padding: 8px;
+  background: #f5f7fa;
+  border-radius: 8px;
+}
+
+.qr-cell {
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.qr-cell.filled {
+  background: #2c3e50;
+}
+
+.qr-tip {
+  font-size: 0.85rem;
+  color: #7f8c8d;
+  text-align: center;
+  margin: 0;
+}
+
+.qr-actions {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+}
+
+.qr-cancel-btn,
+.qr-confirm-btn {
+  flex: 1;
+  padding: 14px 20px;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.qr-cancel-btn {
+  background: #f5f7fa;
+  color: #555;
+  border: 1px solid #e4e8eb;
+}
+
+.qr-cancel-btn:hover {
+  background: #e8ecef;
+}
+
+.qr-confirm-btn {
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
+  color: white;
+}
+
+.qr-confirm-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(107, 142, 35, 0.3);
+}
+
+.qr-confirm-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .form-section {
