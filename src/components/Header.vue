@@ -9,6 +9,7 @@
         <nav class="nav">
           <router-link to="/" class="nav-link" :class="{ active: $route.path === '/' }">首页</router-link>
           <router-link to="/services" class="nav-link" :class="{ active: $route.path === '/services' }">服务列表</router-link>
+          <router-link to="/orders" class="nav-link" :class="{ active: $route.path === '/orders' }">我的订单</router-link>
           <router-link to="/forum" class="nav-link" :class="{ active: $route.path === '/forum' }">社区论坛</router-link>
           <router-link to="/about" class="nav-link" :class="{ active: $route.path === '/about' }">关于我们</router-link>
           <router-link to="/contact" class="nav-link" :class="{ active: $route.path === '/contact' }">联系我们</router-link>
@@ -36,6 +37,7 @@
       <nav class="mobile-nav">
         <router-link to="/" class="mobile-nav-link" @click="closeMobileMenu">首页</router-link>
         <router-link to="/services" class="mobile-nav-link" @click="closeMobileMenu">服务列表</router-link>
+        <router-link to="/orders" class="mobile-nav-link" @click="closeMobileMenu">我的订单</router-link>
         <router-link to="/forum" class="mobile-nav-link" @click="closeMobileMenu">社区论坛</router-link>
         <router-link to="/about" class="mobile-nav-link" @click="closeMobileMenu">关于我们</router-link>
         <router-link to="/contact" class="mobile-nav-link" @click="closeMobileMenu">联系我们</router-link>
@@ -148,6 +150,17 @@
                 <span class="info-label">注册时间</span>
                 <span class="info-value">{{ formatDate(userInfo.createTime) }}</span>
               </div>
+              
+              <div class="balance-section">
+                <div class="balance-info">
+                  <span class="balance-label">账户余额</span>
+                  <span class="balance-value">¥ {{ userInfo.balance || '0.00' }}</span>
+                </div>
+                <button class="recharge-btn" @click="openRechargeModal">
+                  <span class="recharge-icon">💰</span>
+                  充值
+                </button>
+              </div>
             </div>
             
             <div class="action-buttons">
@@ -235,6 +248,102 @@
         </div>
       </div>
     </div>
+    
+    <div class="modal-overlay" :class="{ show: showRechargeModal }" @click="closeRechargeModal">
+      <div class="modal-container recharge-modal" @click.stop>
+        <div class="modal-header">
+          <h3 class="modal-title">账户充值</h3>
+          <button class="modal-close-btn" @click="closeRechargeModal">×</button>
+        </div>
+        
+        <div class="modal-body">
+          <div class="recharge-content">
+            <div class="current-balance">
+              <span class="balance-label">当前余额</span>
+              <span class="balance-amount">¥ {{ userInfo?.balance || '0.00' }}</span>
+            </div>
+            
+            <div class="recharge-amount-section">
+              <h4 class="section-subtitle">选择充值金额</h4>
+              <div class="amount-options">
+                <button 
+                  v-for="amount in rechargeAmounts" 
+                  :key="amount"
+                  class="amount-btn"
+                  :class="{ selected: selectedAmount === amount }"
+                  @click="selectAmount(amount)"
+                >
+                  ¥{{ amount }}
+                </button>
+                <div class="custom-amount-input">
+                  <input 
+                    type="number" 
+                    v-model="customAmount"
+                    placeholder="自定义金额"
+                    min="1"
+                    step="1"
+                    @focus="clearSelectedAmount"
+                  />
+                  <span class="currency-symbol">¥</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="payment-method-section">
+              <h4 class="section-subtitle">选择支付方式</h4>
+              <div class="payment-methods">
+                <button 
+                  class="payment-method-btn"
+                  :class="{ selected: selectedPayment === 'alipay' }"
+                  @click="selectedPayment = 'alipay'"
+                >
+                  <span class="payment-icon">💳</span>
+                  <span class="payment-name">支付宝</span>
+                </button>
+                <button 
+                  class="payment-method-btn"
+                  :class="{ selected: selectedPayment === 'wechat' }"
+                  @click="selectedPayment = 'wechat'"
+                >
+                  <span class="payment-icon">💬</span>
+                  <span class="payment-name">微信支付</span>
+                </button>
+                <button 
+                  class="payment-method-btn"
+                  :class="{ selected: selectedPayment === 'bank' }"
+                  @click="selectedPayment = 'bank'"
+                >
+                  <span class="payment-icon">🏦</span>
+                  <span class="payment-name">银行卡</span>
+                </button>
+              </div>
+            </div>
+            
+            <div class="recharge-summary">
+              <div class="summary-item">
+                <span class="summary-label">充值金额</span>
+                <span class="summary-value">¥ {{ getTotalAmount() }}</span>
+              </div>
+              <div class="summary-item total">
+                <span class="summary-label">应付金额</span>
+                <span class="summary-value">¥ {{ getTotalAmount() }}</span>
+              </div>
+            </div>
+            
+            <button 
+              class="recharge-submit-btn"
+              @click="handleRecharge"
+              :disabled="!isAmountValid()"
+            >
+              确认充值
+            </button>
+            
+            <div v-if="rechargeError" class="error-message">{{ rechargeError }}</div>
+            <div v-if="rechargeSuccess" class="success-message">{{ rechargeSuccess }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
   </header>
 </template>
 
@@ -257,6 +366,14 @@ const editError = ref('')
 const editSuccess = ref('')
 const passwordError = ref('')
 const passwordSuccess = ref('')
+
+const showRechargeModal = ref(false)
+const rechargeAmounts = ref([50, 100, 200, 500, 1000])
+const selectedAmount = ref(null)
+const customAmount = ref('')
+const selectedPayment = ref('alipay')
+const rechargeError = ref('')
+const rechargeSuccess = ref('')
 
 const editForm = reactive({
   newUsername: '',
@@ -544,6 +661,81 @@ const formatDate = (dateStr) => {
   const minutes = String(date.getMinutes()).padStart(2, '0')
   const seconds = String(date.getSeconds()).padStart(2, '0')
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+}
+
+const openRechargeModal = () => {
+  showRechargeModal.value = true
+  selectedAmount.value = null
+  customAmount.value = ''
+  selectedPayment.value = 'alipay'
+  rechargeError.value = ''
+  rechargeSuccess.value = ''
+}
+
+const closeRechargeModal = () => {
+  showRechargeModal.value = false
+  selectedAmount.value = null
+  customAmount.value = ''
+  rechargeError.value = ''
+  rechargeSuccess.value = ''
+}
+
+const selectAmount = (amount) => {
+  selectedAmount.value = amount
+  customAmount.value = ''
+  rechargeError.value = ''
+}
+
+const clearSelectedAmount = () => {
+  selectedAmount.value = null
+  rechargeError.value = ''
+}
+
+const getTotalAmount = () => {
+  if (selectedAmount.value) {
+    return selectedAmount.value.toFixed(2)
+  } else if (customAmount.value && !isNaN(parseFloat(customAmount.value))) {
+    return parseFloat(customAmount.value).toFixed(2)
+  }
+  return '0.00'
+}
+
+const isAmountValid = () => {
+  if (selectedAmount.value) {
+    return selectedAmount.value > 0
+  } else if (customAmount.value) {
+    const amount = parseFloat(customAmount.value)
+    return !isNaN(amount) && amount > 0
+  }
+  return false
+}
+
+const handleRecharge = () => {
+  rechargeError.value = ''
+  rechargeSuccess.value = ''
+  
+  if (!isAmountValid()) {
+    rechargeError.value = '请选择或输入有效的充值金额'
+    return
+  }
+  
+  const amount = selectedAmount.value || parseFloat(customAmount.value)
+  
+  if (amount < 1) {
+    rechargeError.value = '充值金额不能小于1元'
+    return
+  }
+  
+  rechargeSuccess.value = `充值成功！已充值 ¥${amount.toFixed(2)}`
+  
+  if (userInfo.value) {
+    const currentBalance = parseFloat(userInfo.value.balance) || 0
+    userInfo.value.balance = (currentBalance + amount).toFixed(2)
+  }
+  
+  setTimeout(() => {
+    closeRechargeModal()
+  }, 2000)
 }
 
 onMounted(() => {
@@ -1123,6 +1315,263 @@ onMounted(() => {
   background: #5D7C4A;
 }
 
+.balance-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
+  border-radius: 12px;
+  margin-top: 8px;
+}
+
+.balance-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.balance-label {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 500;
+}
+
+.balance-value {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: white;
+}
+
+.recharge-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  background: white;
+  color: #6B8E23;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.recharge-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.recharge-icon {
+  font-size: 1rem;
+}
+
+.recharge-modal {
+  max-width: 500px;
+}
+
+.recharge-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.current-balance {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
+  border-radius: 12px;
+}
+
+.current-balance .balance-label {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.current-balance .balance-amount {
+  font-size: 1.6rem;
+  font-weight: bold;
+  color: white;
+}
+
+.section-subtitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 12px;
+}
+
+.amount-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.amount-btn {
+  padding: 16px 12px;
+  background: #f5f7fa;
+  border: 2px solid #e4e8eb;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.amount-btn:hover {
+  border-color: #6B8E23;
+  background: rgba(107, 142, 35, 0.05);
+}
+
+.amount-btn.selected {
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
+  border-color: #6B8E23;
+  color: white;
+  transform: scale(1.02);
+}
+
+.custom-amount-input {
+  position: relative;
+  grid-column: span 3;
+}
+
+.custom-amount-input input {
+  width: 100%;
+  padding: 14px 40px 14px 16px;
+  border: 2px solid #e4e8eb;
+  border-radius: 10px;
+  font-size: 1rem;
+  color: #2c3e50;
+  outline: none;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.custom-amount-input input:focus {
+  border-color: #6B8E23;
+  box-shadow: 0 0 0 4px rgba(107, 142, 35, 0.1);
+}
+
+.custom-amount-input .currency-symbol {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1rem;
+  font-weight: 600;
+  color: #6B8E23;
+  pointer-events: none;
+}
+
+.payment-methods {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.payment-method-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 12px;
+  background: #f5f7fa;
+  border: 2px solid #e4e8eb;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.payment-method-btn:hover {
+  border-color: #6B8E23;
+  background: rgba(107, 142, 35, 0.05);
+}
+
+.payment-method-btn.selected {
+  background: rgba(107, 142, 35, 0.1);
+  border-color: #6B8E23;
+}
+
+.payment-method-btn .payment-icon {
+  font-size: 1.5rem;
+}
+
+.payment-method-btn .payment-name {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #2c3e50;
+}
+
+.recharge-summary {
+  background: #f8f9fa;
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.summary-item.total {
+  padding-top: 12px;
+  border-top: 1px solid #e4e8eb;
+}
+
+.summary-label {
+  font-size: 0.95rem;
+  color: #7f8c8d;
+}
+
+.summary-item.total .summary-label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.summary-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.summary-item.total .summary-value {
+  font-size: 1.3rem;
+  color: #6B8E23;
+}
+
+.recharge-submit-btn {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.recharge-submit-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 20px rgba(107, 142, 35, 0.3);
+}
+
+.recharge-submit-btn:disabled {
+  background: #bdc3c7;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
 .form-section {
   display: flex;
   flex-direction: column;
@@ -1296,6 +1745,45 @@ onMounted(() => {
   .btn-primary,
   .btn-secondary {
     width: 100%;
+  }
+  
+  .balance-section {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+  
+  .balance-info {
+    align-items: center;
+  }
+  
+  .recharge-btn {
+    justify-content: center;
+  }
+  
+  .amount-options {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .custom-amount-input {
+    grid-column: span 2;
+  }
+  
+  .payment-methods {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  
+  .payment-method-btn {
+    padding: 12px 8px;
+  }
+  
+  .payment-method-btn .payment-icon {
+    font-size: 1.3rem;
+  }
+  
+  .payment-method-btn .payment-name {
+    font-size: 0.8rem;
   }
 }
 </style>

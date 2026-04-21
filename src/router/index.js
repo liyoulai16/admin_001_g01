@@ -8,6 +8,7 @@ import About from '../views/About.vue'
 import Contact from '../views/Contact.vue'
 import Login from '../views/Login.vue'
 import Register from '../views/Register.vue'
+import Orders from '../views/Orders.vue'
 import AdminLayout from '../views/admin/AdminLayout.vue'
 import AdminCarousel from '../views/admin/AdminCarousel.vue'
 import AdminIntro from '../views/admin/AdminIntro.vue'
@@ -69,6 +70,12 @@ const routes = [
     path: '/contact',
     name: 'Contact',
     component: Contact,
+    meta: { requiresAuth: true, userType: 'user' }
+  },
+  {
+    path: '/orders',
+    name: 'Orders',
+    component: Orders,
     meta: { requiresAuth: true, userType: 'user' }
   },
   {
