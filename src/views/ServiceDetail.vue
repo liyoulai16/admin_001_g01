@@ -83,19 +83,20 @@
             <div class="booking-form">
               <div class="form-group">
                 <label class="form-label">预约日期</label>
-                <input type="date" v-model="bookingDate" class="form-input" />
+                <input type="date" v-model="bookingDate" :min="todayDate" class="form-input" @change="onDateChange" />
               </div>
               <div class="form-group">
                 <label class="form-label">预约时间</label>
                 <select v-model="bookingTime" class="form-select">
                   <option value="">请选择时间</option>
-                  <option value="09:00-10:00">09:00 - 10:00</option>
-                  <option value="10:00-11:00">10:00 - 11:00</option>
-                  <option value="11:00-12:00">11:00 - 12:00</option>
-                  <option value="14:00-15:00">14:00 - 15:00</option>
-                  <option value="15:00-16:00">15:00 - 16:00</option>
-                  <option value="16:00-17:00">16:00 - 17:00</option>
-                  <option value="17:00-18:00">17:00 - 18:00</option>
+                  <option 
+                    v-for="slot in availableTimeSlots" 
+                    :key="slot.value" 
+                    :value="slot.value"
+                    :disabled="slot.disabled"
+                  >
+                    {{ slot.label }}
+                  </option>
                 </select>
               </div>
               <div class="form-group">
@@ -202,6 +203,39 @@ const contactName = ref('')
 const phone = ref('')
 const address = ref('')
 const notes = ref('')
+
+const todayDate = computed(() => {
+  const today = new Date()
+  return today.toISOString().split('T')[0]
+})
+
+const timeSlots = [
+  { value: '09:00-10:00', label: '09:00 - 10:00', startTime: '09:00' },
+  { value: '10:00-11:00', label: '10:00 - 11:00', startTime: '10:00' },
+  { value: '11:00-12:00', label: '11:00 - 12:00', startTime: '11:00' },
+  { value: '14:00-15:00', label: '14:00 - 15:00', startTime: '14:00' },
+  { value: '15:00-16:00', label: '15:00 - 16:00', startTime: '15:00' },
+  { value: '16:00-17:00', label: '16:00 - 17:00', startTime: '16:00' },
+  { value: '17:00-18:00', label: '17:00 - 18:00', startTime: '17:00' }
+]
+
+const availableTimeSlots = computed(() => {
+  const now = new Date()
+  const currentDate = now.toISOString().split('T')[0]
+  const currentTime = now.getHours().toString().padStart(2, '0') + ':' + 
+                      now.getMinutes().toString().padStart(2, '0')
+  
+  return timeSlots.map(slot => {
+    if (bookingDate.value === currentDate && slot.startTime < currentTime) {
+      return { ...slot, disabled: true }
+    }
+    return { ...slot, disabled: false }
+  })
+})
+
+const onDateChange = () => {
+  bookingTime.value = ''
+}
 
 const reviews = computed(() => [
   {

@@ -77,6 +77,14 @@ public class ServiceOrder {
     
     private LocalDateTime cancelTime;
     
+    private BigDecimal refundAmount;
+    
+    private String refundReason;
+    
+    private LocalDateTime refundTime;
+    
+    private String refundStatus;
+    
     private String remark;
     
     private Integer recordStatus;

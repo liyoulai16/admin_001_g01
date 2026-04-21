@@ -83,11 +83,43 @@ public class OrderController {
             return Result.error("用户不存在");
         }
         
-        ServiceOrder order = serviceOrderService.getOrderById(user.getId(), orderId);
+        ServiceOrder order = serviceOrderService.getOrderWithStatusUpdate(user.getId(), orderId);
         if (order == null) {
             return Result.error("订单不存在");
         }
         return Result.success(order);
+    }
+    
+    @PostMapping("/refund")
+    public Result<ServiceOrder> requestRefund(@Validated @RequestBody OrderRefundRequest request) {
+        String currentUsername = LoginUserContext.getCurrentUser();
+        User user = userService.getUserByUsername(currentUsername);
+        if (user == null) {
+            return Result.error("用户不存在");
+        }
+        
+        try {
+            ServiceOrder order = serviceOrderService.requestRefund(user.getId(), request.getOrderId(), request.getRefundReason());
+            return Result.success("退款申请已提交", order);
+        } catch (Exception e) {
+            return Result.error(e.getMessage());
+        }
+    }
+    
+    @PostMapping("/refund/cancel")
+    public Result<ServiceOrder> cancelRefund(@RequestParam("orderId") Long orderId) {
+        String currentUsername = LoginUserContext.getCurrentUser();
+        User user = userService.getUserByUsername(currentUsername);
+        if (user == null) {
+            return Result.error("用户不存在");
+        }
+        
+        try {
+            ServiceOrder order = serviceOrderService.cancelRefund(user.getId(), orderId);
+            return Result.success("退款申请已取消", order);
+        } catch (Exception e) {
+            return Result.error(e.getMessage());
+        }
     }
     
     @GetMapping("/list")
