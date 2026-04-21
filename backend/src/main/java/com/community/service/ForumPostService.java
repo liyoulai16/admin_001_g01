@@ -1,9 +1,12 @@
 package com.community.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.community.common.PageResult;
+import com.community.entity.ForumCategory;
 import com.community.entity.ForumPost;
 import com.community.entity.User;
+import com.community.mapper.ForumCategoryMapper;
 import com.community.mapper.ForumPostMapper;
 import com.community.mapper.UserMapper;
 import org.springframework.stereotype.Service;
@@ -27,6 +30,9 @@ public class ForumPostService {
     
     @Resource
     private UserMapper userMapper;
+    
+    @Resource
+    private ForumCategoryMapper categoryMapper;
     
     private static final int DEFAULT_PAGE_SIZE = 10;
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
@@ -222,5 +228,236 @@ public class ForumPostService {
         result.put("message", "点赞成功");
         result.put("likes", post.getLikes());
         return result;
+    }
+    
+    // ==================== 管理端方法 ====================
+    
+    public Page<ForumPost> getPostPageForAdmin(int pageNum, int pageSize, String keyword, Long categoryId, Integer status) {
+        Page<ForumPost> page = new Page<>(pageNum, pageSize);
+        LambdaQueryWrapper<ForumPost> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(ForumPost::getDeleted, 0)
+                   .orderByDesc(ForumPost::getCreateTime);
+        
+        if (StringUtils.hasText(keyword)) {
+            queryWrapper.and(wrapper -> wrapper
+                .like(ForumPost::getTitle, keyword)
+                .or()
+                .like(ForumPost::getContent, keyword)
+            );
+        }
+        
+        if (categoryId != null && categoryId > 0) {
+            queryWrapper.eq(ForumPost::getCategoryId, categoryId);
+        }
+        
+        if (status != null) {
+            queryWrapper.eq(ForumPost::getStatus, status);
+        }
+        
+        Page<ForumPost> resultPage = postMapper.selectPage(page, queryWrapper);
+        fillPostDetails(resultPage.getRecords());
+        
+        return resultPage;
+    }
+    
+    public ForumPost getPostByIdForAdmin(Long id) {
+        ForumPost post = postMapper.selectById(id);
+        if (post != null && post.getDeleted() != 1) {
+            fillPostDetails(java.util.Collections.singletonList(post));
+        }
+        return post;
+    }
+    
+    private void fillPostDetails(List<ForumPost> posts) {
+        for (ForumPost post : posts) {
+            if (post.getCategoryId() != null) {
+                ForumCategory category = categoryMapper.selectById(post.getCategoryId());
+                if (category != null) {
+                    post.setCategoryName(category.getName());
+                }
+            }
+            if (post.getUserId() != null) {
+                User user = userMapper.selectById(post.getUserId());
+                if (user != null) {
+                    post.setAuthorName(user.getNickname() != null ? user.getNickname() : user.getUsername());
+                }
+            }
+            enrichPost(post);
+        }
+    }
+    
+    public Map<String, Object> createPostByAdmin(ForumPost post) {
+        Map<String, Object> result = new HashMap<>();
+        
+        if (!StringUtils.hasText(post.getTitle())) {
+            result.put("success", false);
+            result.put("message", "请输入标题");
+            return result;
+        }
+        
+        if (!StringUtils.hasText(post.getContent())) {
+            result.put("success", false);
+            result.put("message", "请输入内容");
+            return result;
+        }
+        
+        if (post.getCategoryId() == null) {
+            result.put("success", false);
+            result.put("message", "请选择版块");
+            return result;
+        }
+        
+        ForumCategory category = categoryMapper.selectById(post.getCategoryId());
+        if (category == null || category.getDeleted() == 1) {
+            result.put("success", false);
+            result.put("message", "版块不存在");
+            return result;
+        }
+        
+        post.setUserId(1L);
+        post.setViews(0);
+        post.setComments(0);
+        post.setLikes(0);
+        if (post.getIsEssence() == null) post.setIsEssence(0);
+        if (post.getIsHot() == null) post.setIsHot(0);
+        if (post.getTag() == null) post.setTag(0);
+        if (post.getStatus() == null) post.setStatus(1);
+        post.setDeleted(0);
+        post.setCreateTime(LocalDateTime.now());
+        post.setUpdateTime(LocalDateTime.now());
+        
+        if (post.getExcerpt() == null && post.getContent() != null) {
+            post.setExcerpt(post.getContent().length() > 200 ? post.getContent().substring(0, 200) + "..." : post.getContent());
+        }
+        
+        postMapper.insert(post);
+        
+        result.put("success", true);
+        result.put("message", "创建成功");
+        result.put("id", post.getId());
+        return result;
+    }
+    
+    public boolean updatePostByAdmin(ForumPost post) {
+        ForumPost existing = postMapper.selectById(post.getId());
+        if (existing == null || existing.getDeleted() == 1) {
+            return false;
+        }
+        
+        if (StringUtils.hasText(post.getTitle())) {
+            existing.setTitle(post.getTitle());
+        }
+        if (post.getContent() != null) {
+            existing.setContent(post.getContent());
+            if (post.getExcerpt() == null) {
+                existing.setExcerpt(post.getContent().length() > 200 ? post.getContent().substring(0, 200) + "..." : post.getContent());
+            }
+        }
+        if (post.getExcerpt() != null) {
+            existing.setExcerpt(post.getExcerpt());
+        }
+        if (post.getCategoryId() != null) {
+            ForumCategory category = categoryMapper.selectById(post.getCategoryId());
+            if (category != null && category.getDeleted() == 0) {
+                existing.setCategoryId(post.getCategoryId());
+            }
+        }
+        if (post.getImages() != null) {
+            existing.setImages(post.getImages());
+        }
+        if (post.getIsEssence() != null) {
+            existing.setIsEssence(post.getIsEssence());
+        }
+        if (post.getIsHot() != null) {
+            existing.setIsHot(post.getIsHot());
+        }
+        if (post.getTag() != null) {
+            existing.setTag(post.getTag());
+        }
+        if (post.getStatus() != null) {
+            existing.setStatus(post.getStatus());
+        }
+        
+        existing.setUpdateTime(LocalDateTime.now());
+        return postMapper.updateById(existing) > 0;
+    }
+    
+    public boolean deletePostByAdmin(Long id) {
+        ForumPost existing = postMapper.selectById(id);
+        if (existing == null || existing.getDeleted() == 1) {
+            return false;
+        }
+        existing.setDeleted(1);
+        existing.setUpdateTime(LocalDateTime.now());
+        return postMapper.updateById(existing) > 0;
+    }
+    
+    public boolean setPostTop(Long id, Boolean isTop) {
+        ForumPost existing = postMapper.selectById(id);
+        if (existing == null || existing.getDeleted() == 1) {
+            return false;
+        }
+        int currentTag = existing.getTag() != null ? existing.getTag() : 0;
+        if (isTop) {
+            if (currentTag == 1) {
+                existing.setTag(2);
+            } else if (currentTag == 3) {
+                existing.setTag(3);
+            } else {
+                existing.setTag(2);
+            }
+        } else {
+            if (currentTag == 2) {
+                existing.setTag(0);
+            } else if (currentTag == 3) {
+                existing.setTag(1);
+            }
+        }
+        existing.setUpdateTime(LocalDateTime.now());
+        return postMapper.updateById(existing) > 0;
+    }
+    
+    public boolean setPostHot(Long id, Boolean isHot) {
+        ForumPost existing = postMapper.selectById(id);
+        if (existing == null || existing.getDeleted() == 1) {
+            return false;
+        }
+        existing.setIsHot(isHot ? 1 : 0);
+        existing.setUpdateTime(LocalDateTime.now());
+        return postMapper.updateById(existing) > 0;
+    }
+    
+    public boolean setPostEssence(Long id, Boolean isEssence) {
+        ForumPost existing = postMapper.selectById(id);
+        if (existing == null || existing.getDeleted() == 1) {
+            return false;
+        }
+        int currentTag = existing.getTag() != null ? existing.getTag() : 0;
+        if (isEssence) {
+            if (currentTag == 0) {
+                existing.setTag(1);
+            } else if (currentTag == 2) {
+                existing.setTag(3);
+            }
+        } else {
+            if (currentTag == 1) {
+                existing.setTag(0);
+            } else if (currentTag == 3) {
+                existing.setTag(2);
+            }
+        }
+        existing.setIsEssence(isEssence ? 1 : 0);
+        existing.setUpdateTime(LocalDateTime.now());
+        return postMapper.updateById(existing) > 0;
+    }
+    
+    public boolean updatePostStatus(Long id, Integer status) {
+        ForumPost existing = postMapper.selectById(id);
+        if (existing == null || existing.getDeleted() == 1) {
+            return false;
+        }
+        existing.setStatus(status);
+        existing.setUpdateTime(LocalDateTime.now());
+        return postMapper.updateById(existing) > 0;
     }
 }

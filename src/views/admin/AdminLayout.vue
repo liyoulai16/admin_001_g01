@@ -84,6 +84,42 @@
             </div>
           </transition>
         </div>
+        
+        <div class="nav-group">
+          <div 
+            class="nav-item nav-group-header" 
+            :class="{ active: isForumMenuActive, expanded: isForumMenuExpanded }"
+            @click="toggleForumMenu"
+          >
+            <span class="nav-icon">💬</span>
+            <span class="nav-text" v-if="!isSidebarCollapsed">论坛管理</span>
+            <span class="nav-expand-icon" v-if="!isSidebarCollapsed">{{ isForumMenuExpanded ? '▼' : '▶' }}</span>
+          </div>
+          <transition name="menu-expand">
+            <div 
+              class="nav-group-items" 
+              v-show="isForumMenuExpanded && !isSidebarCollapsed"
+              :style="{ maxHeight: isForumMenuExpanded ? '200px' : '0px', opacity: isForumMenuExpanded ? '1' : '0' }"
+            >
+              <router-link 
+                to="/admin/forum-category" 
+                class="nav-item nav-sub-item" 
+                :class="{ active: $route.path === '/admin/forum-category' }"
+              >
+                <span class="nav-icon">📁</span>
+                <span class="nav-text">论坛版块管理</span>
+              </router-link>
+              <router-link 
+                to="/admin/forum-post" 
+                class="nav-item nav-sub-item" 
+                :class="{ active: $route.path === '/admin/forum-post' }"
+              >
+                <span class="nav-icon">📝</span>
+                <span class="nav-text">帖子管理</span>
+              </router-link>
+            </div>
+          </transition>
+        </div>
       </nav>
       
       <div class="sidebar-footer">
@@ -185,6 +221,7 @@ const isSidebarCollapsed = ref(false)
 const username = ref(localStorage.getItem('username') || '管理员')
 const isHomeMenuExpanded = ref(true)
 const isServiceMenuExpanded = ref(true)
+const isForumMenuExpanded = ref(true)
 
 const showPasswordModal = ref(false)
 const isSubmitting = ref(false)
@@ -204,12 +241,18 @@ const isServiceMenuActive = computed(() => {
   return route.path === '/admin/service-category' || route.path === '/admin/service'
 })
 
+const isForumMenuActive = computed(() => {
+  return route.path === '/admin/forum-category' || route.path === '/admin/forum-post'
+})
+
 const pageTitle = computed(() => {
   const path = route.path
   if (path === '/admin/carousel') return '轮播图管理'
   if (path === '/admin/intro') return '平台简介管理'
   if (path === '/admin/service-category') return '服务分类管理'
   if (path === '/admin/service') return '服务管理'
+  if (path === '/admin/forum-category') return '论坛版块管理'
+  if (path === '/admin/forum-post') return '帖子管理'
   if (path === '/admin/home') return '管理后台首页'
   return '管理后台'
 })
@@ -227,6 +270,12 @@ const toggleHomeMenu = () => {
 const toggleServiceMenu = () => {
   if (!isSidebarCollapsed.value) {
     isServiceMenuExpanded.value = !isServiceMenuExpanded.value
+  }
+}
+
+const toggleForumMenu = () => {
+  if (!isSidebarCollapsed.value) {
+    isForumMenuExpanded.value = !isForumMenuExpanded.value
   }
 }
 

@@ -13,6 +13,8 @@ import AdminCarousel from '../views/admin/AdminCarousel.vue'
 import AdminIntro from '../views/admin/AdminIntro.vue'
 import AdminServiceCategory from '../views/admin/AdminServiceCategory.vue'
 import AdminService from '../views/admin/AdminService.vue'
+import AdminForumPost from '../views/admin/AdminForumPost.vue'
+import AdminForumCategory from '../views/admin/AdminForumCategory.vue'
 
 const routes = [
   {
@@ -104,6 +106,18 @@ const routes = [
         path: 'service',
         name: 'AdminService',
         component: AdminService,
+        meta: { requiresAuth: true, userType: 'admin' }
+      },
+      {
+        path: 'forum-category',
+        name: 'AdminForumCategory',
+        component: AdminForumCategory,
+        meta: { requiresAuth: true, userType: 'admin' }
+      },
+      {
+        path: 'forum-post',
+        name: 'AdminForumPost',
+        component: AdminForumPost,
         meta: { requiresAuth: true, userType: 'admin' }
       }
     ]
