@@ -138,6 +138,22 @@
               </button>
               
               <button 
+                v-if="order.status === 'confirmed' || order.status === 'inProgress'"
+                class="action-btn refund-btn"
+                @click="applyRefund(order)"
+              >
+                申请退款
+              </button>
+              
+              <button 
+                v-if="order.status === 'refunding'"
+                class="action-btn cancel-refund-btn"
+                @click="cancelRefund(order)"
+              >
+                取消退款申请
+              </button>
+              
+              <button 
                 v-if="order.status === 'inProgress'"
                 class="action-btn contact-btn"
                 @click="contactService(order)"
@@ -383,6 +399,48 @@
         </div>
       </div>
     </div>
+
+    <div class="modal-overlay" :class="{ show: showRefundModal }" @click="closeRefundModal">
+      <div class="modal-container refund-modal" @click.stop>
+        <div class="modal-header">
+          <h3 class="modal-title">申请退款</h3>
+          <button class="modal-close-btn" @click="closeRefundModal">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="refund-content">
+            <div class="refund-info" v-if="selectedOrder">
+              <div class="refund-order-info">
+                <div class="info-row">
+                  <span class="info-label">订单编号：</span>
+                  <span class="info-value">{{ selectedOrder.orderNo }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">服务名称：</span>
+                  <span class="info-value">{{ selectedOrder.serviceName }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">退款金额：</span>
+                  <span class="info-value price">¥{{ selectedOrder.payAmount || selectedOrder.totalAmount }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="refund-reason-section">
+              <label class="reason-label">请填写退款原因</label>
+              <textarea 
+                v-model="refundReason"
+                class="reason-textarea"
+                placeholder="请详细说明退款原因..."
+                rows="4"
+              ></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="modal-btn secondary-btn" @click="closeRefundModal">取消</button>
+          <button class="modal-btn danger-btn" @click="confirmRefund">提交申请</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -402,11 +460,13 @@ const pageSize = ref(5)
 const showDetailModal = ref(false)
 const showCancelModal = ref(false)
 const showReviewModal = ref(false)
+const showRefundModal = ref(false)
 
 const selectedOrder = ref(null)
 const cancelReason = ref('')
 const reviewRating = ref(5)
 const reviewContent = ref('')
+const refundReason = ref('')
 
 const ordersList = ref([])
 const loading = ref(false)
@@ -418,6 +478,7 @@ const orderTabs = ref([
   { label: '待付款', value: 'pending', count: 0 },
   { label: '待服务', value: 'confirmed', count: 0 },
   { label: '进行中', value: 'inProgress', count: 0 },
+  { label: '退款中', value: 'refunding', count: 0 },
   { label: '已完成', value: 'completed', count: 0 },
   { label: '已取消', value: 'cancelled', count: 0 }
 ])
@@ -431,6 +492,7 @@ const getStatusText = (status) => {
     'pending': '待付款',
     'confirmed': '待服务',
     'inProgress': '进行中',
+    'refunding': '退款中',
     'completed': '已完成',
     'cancelled': '已取消'
   }
@@ -442,6 +504,7 @@ const getStatusClass = (status) => {
     'pending': 'status-pending',
     'confirmed': 'status-confirmed',
     'inProgress': 'status-in-progress',
+    'refunding': 'status-refunding',
     'completed': 'status-completed',
     'cancelled': 'status-cancelled'
   }
@@ -453,6 +516,7 @@ const getStatusIcon = (status) => {
     'pending': '💳',
     'confirmed': '✅',
     'inProgress': '🚀',
+    'refunding': '🔄',
     'completed': '🎉',
     'cancelled': '❌'
   }
@@ -541,6 +605,8 @@ const fetchOrderStats = async () => {
           tab.count = data.data.confirmed || 0
         } else if (tab.value === 'inProgress') {
           tab.count = data.data.inProgress || 0
+        } else if (tab.value === 'refunding') {
+          tab.count = data.data.refunding || 0
         } else if (tab.value === 'completed') {
           tab.count = data.data.completed || 0
         } else if (tab.value === 'cancelled') {
@@ -707,6 +773,78 @@ const viewReview = async (order) => {
   } catch (error) {
     console.error('获取评价失败:', error)
     alert('该订单已评价')
+  }
+}
+
+const applyRefund = (order) => {
+  selectedOrder.value = order
+  refundReason.value = ''
+  showRefundModal.value = true
+}
+
+const closeRefundModal = () => {
+  showRefundModal.value = false
+  selectedOrder.value = null
+  refundReason.value = ''
+}
+
+const confirmRefund = async () => {
+  if (!refundReason.value.trim()) {
+    alert('请输入退款原因')
+    return
+  }
+  
+  if (!selectedOrder.value) return
+  
+  try {
+    const response = await request('/api/orders/refund', {
+      method: 'POST',
+      body: JSON.stringify({
+        orderId: selectedOrder.value.id,
+        refundReason: refundReason.value
+      })
+    })
+    
+    const data = await response.json()
+    
+    if (data.code === 200) {
+      alert('退款申请已提交，等待处理')
+      closeRefundModal()
+      fetchOrders()
+      fetchOrderStats()
+    } else {
+      alert(data.message || '退款申请失败，请重试')
+    }
+  } catch (error) {
+    console.error('提交退款申请失败:', error)
+    alert('网络错误，请稍后重试')
+  }
+}
+
+const cancelRefund = async (order) => {
+  const confirmed = confirm('确定要取消退款申请吗？')
+  if (!confirmed) return
+  
+  try {
+    const response = await request('/api/orders/refund/cancel', {
+      method: 'POST',
+      body: JSON.stringify({
+        orderId: order.id
+      })
+    })
+    
+    const data = await response.json()
+    
+    if (data.code === 200) {
+      alert('退款申请已取消')
+      fetchOrders()
+      fetchOrderStats()
+    } else {
+      alert(data.message || '取消退款申请失败，请重试')
+    }
+  } catch (error) {
+    console.error('取消退款申请失败:', error)
+    alert('网络错误，请稍后重试')
   }
 }
 
@@ -1665,6 +1803,100 @@ onMounted(() => {
   text-align: right;
   font-size: 0.85rem;
   color: #7f8c8d;
+}
+
+.status-refunding {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.refund-btn {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+}
+
+.refund-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(245, 158, 11, 0.3);
+}
+
+.cancel-refund-btn {
+  background: #e0e7ff;
+  color: #4f46e5;
+}
+
+.cancel-refund-btn:hover {
+  background: #c7d2fe;
+  transform: translateY(-1px);
+}
+
+.refund-modal {
+  max-width: 500px;
+}
+
+.refund-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.refund-order-info {
+  padding: 16px;
+  background: linear-gradient(135deg, #f8f9fa, #f0f3f5);
+  border-radius: 10px;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #e4e8eb;
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  width: 80px;
+  font-size: 0.95rem;
+  color: #7f8c8d;
+}
+
+.info-value {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #2c3e50;
+}
+
+.info-value.price {
+  color: #C45B1A;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.refund-reason-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.reason-textarea {
+  width: 100%;
+  padding: 16px;
+  border: 2px solid #e4e8eb;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  color: #2c3e50;
+  outline: none;
+  resize: vertical;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.reason-textarea:focus {
+  border-color: #C45B1A;
+  box-shadow: 0 0 0 3px rgba(196, 91, 26, 0.1);
 }
 
 @media (max-width: 768px) {

@@ -51,6 +51,8 @@ public class ServiceOrderService {
             throw new RuntimeException("服务不存在或已下架");
         }
         
+        validateAppointmentTime(request);
+        
         ServiceCategory category = serviceCategoryMapper.selectById(serviceItem.getCategoryId());
         
         ServiceOrder order = new ServiceOrder();
@@ -288,5 +290,201 @@ public class ServiceOrderService {
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
         String random = UUID.randomUUID().toString().replace("-", "").substring(0, 6).toUpperCase();
         return "ORD" + timestamp + random;
+    }
+    
+    private void validateAppointmentTime(OrderCreateRequest request) {
+        if (StringUtils.hasText(request.getAppointmentDate()) && 
+            StringUtils.hasText(request.getAppointmentStartTime())) {
+            
+            LocalDate appointmentDate = LocalDate.parse(request.getAppointmentDate(), dateFormatter);
+            LocalTime appointmentStartTime = LocalTime.parse(request.getAppointmentStartTime(), timeFormatter);
+            
+            LocalDate today = LocalDate.now();
+            LocalTime now = LocalTime.now();
+            
+            if (appointmentDate.isBefore(today)) {
+                throw new RuntimeException("预约日期不能是过去的日期");
+            }
+            
+            if (appointmentDate.isEqual(today) && appointmentStartTime.isBefore(now)) {
+                throw new RuntimeException("预约时间不能是过去的时间");
+            }
+        }
+    }
+    
+    @Transactional
+    public ServiceOrder requestRefund(Long userId, Long orderId, String refundReason) {
+        ServiceOrder order = serviceOrderMapper.selectById(orderId);
+        if (order == null || order.getDeleted() == 1) {
+            throw new RuntimeException("订单不存在");
+        }
+        
+        if (!order.getUserId().equals(userId)) {
+            throw new RuntimeException("无权操作此订单");
+        }
+        
+        if (!"confirmed".equals(order.getStatus()) && !"inProgress".equals(order.getStatus())) {
+            throw new RuntimeException("只有待服务和进行中的订单可以申请退款");
+        }
+        
+        if (order.getPayStatus() != 1) {
+            throw new RuntimeException("未支付的订单无法申请退款");
+        }
+        
+        if ("refunding".equals(order.getRefundStatus())) {
+            throw new RuntimeException("该订单已在退款中");
+        }
+        
+        order.setRefundAmount(order.getPayAmount());
+        order.setRefundReason(refundReason);
+        order.setRefundTime(LocalDateTime.now());
+        order.setRefundStatus("refunding");
+        order.setStatus("refunding");
+        order.setUpdateTime(LocalDateTime.now());
+        
+        serviceOrderMapper.updateById(order);
+        
+        return order;
+    }
+    
+    @Transactional
+    public ServiceOrder cancelRefund(Long userId, Long orderId) {
+        ServiceOrder order = serviceOrderMapper.selectById(orderId);
+        if (order == null || order.getDeleted() == 1) {
+            throw new RuntimeException("订单不存在");
+        }
+        
+        if (!order.getUserId().equals(userId)) {
+            throw new RuntimeException("无权操作此订单");
+        }
+        
+        if (!"refunding".equals(order.getStatus())) {
+            throw new RuntimeException("该订单不在退款中状态");
+        }
+        
+        if (order.getAppointmentDate() != null && order.getAppointmentStartTime() != null) {
+            LocalDate today = LocalDate.now();
+            LocalTime now = LocalTime.now();
+            LocalDate apptDate = order.getAppointmentDate();
+            LocalTime apptTime = order.getAppointmentStartTime();
+            
+            if (apptDate.isBefore(today) || (apptDate.isEqual(today) && apptTime.isBefore(now))) {
+                order.setStatus("inProgress");
+            } else {
+                order.setStatus("confirmed");
+            }
+        } else {
+            order.setStatus("confirmed");
+        }
+        
+        order.setRefundStatus(null);
+        order.setUpdateTime(LocalDateTime.now());
+        
+        serviceOrderMapper.updateById(order);
+        
+        return order;
+    }
+    
+    @Transactional
+    public ServiceOrder processRefund(Long orderId, boolean approved, String rejectReason) {
+        ServiceOrder order = serviceOrderMapper.selectById(orderId);
+        if (order == null || order.getDeleted() == 1) {
+            throw new RuntimeException("订单不存在");
+        }
+        
+        if (!"refunding".equals(order.getStatus())) {
+            throw new RuntimeException("该订单不在退款中状态");
+        }
+        
+        if (approved) {
+            if (order.getPayMethod() == 0 && order.getRefundAmount() != null && 
+                order.getRefundAmount().compareTo(BigDecimal.ZERO) > 0) {
+                userBalanceService.addBalance(order.getUserId(), order.getRefundAmount(), 
+                    orderId, "refund", "订单退款：" + order.getServiceName());
+            }
+            
+            order.setStatus("cancelled");
+            order.setRefundStatus("refunded");
+            order.setCancelReason(order.getRefundReason());
+            order.setCancelTime(LocalDateTime.now());
+            order.setUpdateTime(LocalDateTime.now());
+            
+            serviceOrderMapper.updateById(order);
+            
+            try {
+                serviceAppointmentService.cancelAppointmentByOrderId(orderId, order.getRefundReason());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            if (order.getAppointmentDate() != null && order.getAppointmentStartTime() != null) {
+                LocalDate today = LocalDate.now();
+                LocalTime now = LocalTime.now();
+                LocalDate apptDate = order.getAppointmentDate();
+                LocalTime apptTime = order.getAppointmentStartTime();
+                
+                if (apptDate.isBefore(today) || (apptDate.isEqual(today) && apptTime.isBefore(now))) {
+                    order.setStatus("inProgress");
+                } else {
+                    order.setStatus("confirmed");
+                }
+            } else {
+                order.setStatus("confirmed");
+            }
+            
+            order.setRefundStatus("rejected");
+            order.setUpdateTime(LocalDateTime.now());
+            
+            serviceOrderMapper.updateById(order);
+        }
+        
+        return order;
+    }
+    
+    public void updateOrderStatusByAppointmentTime() {
+        LambdaQueryWrapper<ServiceOrder> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(ServiceOrder::getStatus, "confirmed")
+                   .eq(ServiceOrder::getDeleted, 0)
+                   .isNotNull(ServiceOrder::getAppointmentDate)
+                   .isNotNull(ServiceOrder::getAppointmentStartTime);
+        
+        List<ServiceOrder> orders = serviceOrderMapper.selectList(queryWrapper);
+        
+        LocalDate today = LocalDate.now();
+        LocalTime now = LocalTime.now();
+        
+        for (ServiceOrder order : orders) {
+            LocalDate apptDate = order.getAppointmentDate();
+            LocalTime apptTime = order.getAppointmentStartTime();
+            
+            if (apptDate.isBefore(today) || (apptDate.isEqual(today) && apptTime.isBefore(now))) {
+                order.setStatus("inProgress");
+                order.setUpdateTime(LocalDateTime.now());
+                serviceOrderMapper.updateById(order);
+            }
+        }
+    }
+    
+    public ServiceOrder getOrderWithStatusUpdate(Long userId, Long orderId) {
+        ServiceOrder order = getOrderById(userId, orderId);
+        if (order == null) {
+            return null;
+        }
+        
+        if ("confirmed".equals(order.getStatus()) && order.getAppointmentDate() != null 
+            && order.getAppointmentStartTime() != null) {
+            LocalDate today = LocalDate.now();
+            LocalTime now = LocalTime.now();
+            LocalDate apptDate = order.getAppointmentDate();
+            LocalTime apptTime = order.getAppointmentStartTime();
+            
+            if (apptDate.isBefore(today) || (apptDate.isEqual(today) && apptTime.isBefore(now))) {
+                order.setStatus("inProgress");
+                order.setUpdateTime(LocalDateTime.now());
+                serviceOrderMapper.updateById(order);
+            }
+        }
+        
+        return order;
     }
 }
