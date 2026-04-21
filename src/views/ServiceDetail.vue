@@ -248,7 +248,7 @@ const fetchServiceDetail = async () => {
   }
 }
 
-const handleBooking = () => {
+const handleBooking = async () => {
   if (!bookingDate.value) {
     alert('请选择预约日期')
     return
@@ -270,9 +270,49 @@ const handleBooking = () => {
     return
   }
   
-  const appointmentTime = `${bookingDate.value} ${bookingTime.value}`
+  const token = localStorage.getItem('token')
+  if (!token) {
+    alert('请先登录')
+    router.push('/login')
+    return
+  }
   
-  alert(`预约成功！\n\n服务：${service.value.name}\n预约时间：${appointmentTime}\n联系人：${contactName.value}\n联系电话：${phone.value}\n服务地址：${address.value}\n\n我们的客服会尽快与您联系确认预约详情。`)
+  try {
+    const [startTime, endTime] = bookingTime.value.split('-')
+    const orderData = {
+      serviceId: service.value.id,
+      quantity: 1,
+      appointmentDate: bookingDate.value,
+      appointmentStartTime: startTime,
+      appointmentEndTime: endTime,
+      appointmentTime: `${bookingDate.value} ${bookingTime.value}`,
+      serviceAddress: address.value,
+      contactName: contactName.value,
+      contactPhone: phone.value,
+      remark: notes.value,
+      payMethod: 0
+    }
+    
+    console.log('创建订单数据:', orderData)
+    
+    const response = await request('/api/orders/create', {
+      method: 'POST',
+      body: JSON.stringify(orderData)
+    })
+    
+    const data = await response.json()
+    console.log('订单创建响应:', data)
+    
+    if (data.code === 200 && data.data) {
+      alert(`订单创建成功！\n订单编号：${data.data.orderNo}\n服务：${service.value.name}\n预约时间：${bookingDate.value} ${bookingTime.value}\n\n请前往订单页面完成支付。`)
+      router.push('/orders')
+    } else {
+      alert(data.message || '订单创建失败，请重试')
+    }
+  } catch (error) {
+    console.error('创建订单失败:', error)
+    alert('网络错误，请稍后重试')
+  }
 }
 
 onMounted(() => {

@@ -387,8 +387,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import request from '../utils/request'
 
 const router = useRouter()
 
@@ -407,234 +408,22 @@ const cancelReason = ref('')
 const reviewRating = ref(5)
 const reviewContent = ref('')
 
+const ordersList = ref([])
+const loading = ref(false)
+const total = ref(0)
+const totalPages = ref(0)
+
 const orderTabs = ref([
   { label: '全部', value: 'all', count: 0 },
-  { label: '待付款', value: 'pending', count: 2 },
-  { label: '待服务', value: 'confirmed', count: 1 },
-  { label: '进行中', value: 'inProgress', count: 1 },
-  { label: '已完成', value: 'completed', count: 3 },
-  { label: '已取消', value: 'cancelled', count: 1 }
-])
-
-const mockOrders = ref([
-  {
-    id: 1,
-    orderNo: 'ORD202401150001',
-    serviceName: '家庭日常保洁',
-    serviceDescription: '专业保洁人员上门服务，包含客厅、卧室、厨房、卫生间等区域的清洁服务。',
-    categoryName: '保洁服务',
-    serviceImage: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=professional%20home%20cleaning%20service%20with%20cleaning%20tools%20and%20supplies%20in%20a%20tidy%20living%20room&image_size=square',
-    unitPrice: 150.00,
-    quantity: 1,
-    totalAmount: 150.00,
-    extraFee: 0,
-    discount: 0,
-    status: 'pending',
-    appointmentTime: '2024-01-20 09:00-12:00',
-    serviceAddress: '北京市朝阳区某某小区1号楼101室',
-    contactName: '张先生',
-    contactPhone: '138****1234',
-    createTime: '2024-01-15 10:30:25',
-    payTime: null,
-    isReviewed: false,
-    remark: '请携带专业清洁工具'
-  },
-  {
-    id: 2,
-    orderNo: 'ORD202401140002',
-    serviceName: '空调清洗服务',
-    serviceDescription: '专业空调清洗，包括内机清洗、外机清洗、过滤网清洁等服务。',
-    categoryName: '维修服务',
-    serviceImage: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=professional%20air%20conditioner%20cleaning%20service%20technician%20cleaning%20AC%20unit%20with%20tools&image_size=square',
-    unitPrice: 120.00,
-    quantity: 2,
-    totalAmount: 240.00,
-    extraFee: 0,
-    discount: 20,
-    status: 'pending',
-    appointmentTime: '2024-01-18 14:00-17:00',
-    serviceAddress: '北京市海淀区某某小区3号楼202室',
-    contactName: '李女士',
-    contactPhone: '139****5678',
-    createTime: '2024-01-14 15:20:30',
-    payTime: null,
-    isReviewed: false,
-    remark: '两台空调，一台挂机一台柜机'
-  },
-  {
-    id: 3,
-    orderNo: 'ORD202401130003',
-    serviceName: '家电维修服务',
-    serviceDescription: '专业家电维修工程师上门服务，快速诊断和修复各类家电故障。',
-    categoryName: '维修服务',
-    serviceImage: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=professional%20home%20appliance%20repair%20service%20technician%20repairing%20refrigerator%20with%20tools&image_size=square',
-    unitPrice: 80.00,
-    quantity: 1,
-    totalAmount: 80.00,
-    extraFee: 50,
-    discount: 0,
-    status: 'confirmed',
-    appointmentTime: '2024-01-16 10:00-12:00',
-    serviceAddress: '北京市西城区某某小区5号楼301室',
-    contactName: '王先生',
-    contactPhone: '136****9012',
-    createTime: '2024-01-13 09:15:45',
-    payTime: '2024-01-13 09:20:00',
-    isReviewed: false,
-    remark: '冰箱不制冷，需要检查'
-  },
-  {
-    id: 4,
-    orderNo: 'ORD202401120004',
-    serviceName: '老人陪护服务',
-    serviceDescription: '专业陪护人员上门服务，为老人提供日常照料、陪伴聊天、协助就医等服务。',
-    categoryName: '护理服务',
-    serviceImage: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=professional%20elderly%20care%20service%20caregiver%20helping%20senior%20person%20in%20comfortable%20home%20environment&image_size=square',
-    unitPrice: 200.00,
-    quantity: 1,
-    totalAmount: 200.00,
-    extraFee: 0,
-    discount: 0,
-    status: 'inProgress',
-    appointmentTime: '2024-01-15 08:00-18:00',
-    serviceAddress: '北京市东城区某某小区2号楼401室',
-    contactName: '赵女士',
-    contactPhone: '137****3456',
-    createTime: '2024-01-12 16:30:00',
-    payTime: '2024-01-12 16:35:00',
-    isReviewed: false,
-    remark: '需要协助老人去医院复查'
-  },
-  {
-    id: 5,
-    orderNo: 'ORD202401100005',
-    serviceName: '深度保洁服务',
-    serviceDescription: '全屋深度清洁服务，包括擦玻璃、厨房深度清洁、卫生间深度清洁等。',
-    categoryName: '保洁服务',
-    serviceImage: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=professional%20deep%20house%20cleaning%20service%20spotless%20clean%20kitchen%20and%20living%20room%20with%20cleaning%20crew&image_size=square',
-    unitPrice: 300.00,
-    quantity: 1,
-    totalAmount: 300.00,
-    extraFee: 0,
-    discount: 30,
-    status: 'completed',
-    appointmentTime: '2024-01-12 09:00-17:00',
-    serviceAddress: '北京市丰台区某某小区4号楼102室',
-    contactName: '刘先生',
-    contactPhone: '135****7890',
-    createTime: '2024-01-10 11:20:15',
-    payTime: '2024-01-10 11:25:00',
-    isReviewed: true,
-    remark: '新房入住前清洁'
-  },
-  {
-    id: 6,
-    orderNo: 'ORD202401080006',
-    serviceName: '鲜花配送服务',
-    serviceDescription: '精选优质鲜花，专业配送人员准时送达，可代写贺卡。',
-    categoryName: '配送服务',
-    serviceImage: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=professional%20flower%20delivery%20service%20beautiful%20bouquet%20of%20roses%20and%20lilies%20in%20elegant%20wrapping&image_size=square',
-    unitPrice: 168.00,
-    quantity: 1,
-    totalAmount: 168.00,
-    extraFee: 20,
-    discount: 0,
-    status: 'completed',
-    appointmentTime: '2024-01-10 14:00-16:00',
-    serviceAddress: '北京市朝阳区某某写字楼A座1001室',
-    contactName: '陈女士',
-    contactPhone: '133****4567',
-    createTime: '2024-01-08 09:00:00',
-    payTime: '2024-01-08 09:05:00',
-    isReviewed: false,
-    remark: '情人节惊喜，请准时送达'
-  },
-  {
-    id: 7,
-    orderNo: 'ORD202401050007',
-    serviceName: '管道疏通服务',
-    serviceDescription: '专业管道疏通服务，解决马桶堵塞、下水道堵塞等问题。',
-    categoryName: '维修服务',
-    serviceImage: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=professional%20plumbing%20drain%20cleaning%20service%20plumber%20using%20tools%20to%20unclog%20kitchen%20sink&image_size=square',
-    unitPrice: 100.00,
-    quantity: 1,
-    totalAmount: 100.00,
-    extraFee: 0,
-    discount: 0,
-    status: 'completed',
-    appointmentTime: '2024-01-05 15:00-17:00',
-    serviceAddress: '北京市石景山区某某小区6号楼503室',
-    contactName: '孙先生',
-    contactPhone: '132****8901',
-    createTime: '2024-01-05 10:30:00',
-    payTime: '2024-01-05 17:00:00',
-    isReviewed: true,
-    remark: '厨房下水道堵塞'
-  },
-  {
-    id: 8,
-    orderNo: 'ORD202401030008',
-    serviceName: '搬家服务',
-    serviceDescription: '专业搬家团队，提供打包、搬运、拆装家具等一站式搬家服务。',
-    categoryName: '配送服务',
-    serviceImage: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=professional%20moving%20service%20movers%20carrying%20furniture%20boxes%20into%20moving%20truck%20professional%20uniforms&image_size=square',
-    unitPrice: 500.00,
-    quantity: 1,
-    totalAmount: 500.00,
-    extraFee: 100,
-    discount: 0,
-    status: 'cancelled',
-    appointmentTime: '2024-01-08 08:00-18:00',
-    serviceAddress: '北京市通州区某某小区1号楼302室',
-    contactName: '周女士',
-    contactPhone: '131****2345',
-    createTime: '2024-01-03 14:20:30',
-    payTime: null,
-    isReviewed: false,
-    remark: '需要拆装衣柜和床'
-  }
+  { label: '待付款', value: 'pending', count: 0 },
+  { label: '待服务', value: 'confirmed', count: 0 },
+  { label: '进行中', value: 'inProgress', count: 0 },
+  { label: '已完成', value: 'completed', count: 0 },
+  { label: '已取消', value: 'cancelled', count: 0 }
 ])
 
 const filteredOrders = computed(() => {
-  let orders = [...mockOrders.value]
-  
-  if (activeTab.value !== 'all') {
-    orders = orders.filter(order => order.status === activeTab.value)
-  }
-  
-  if (filterCategory.value) {
-    const categoryMap = {
-      'cleaning': '保洁服务',
-      'repair': '维修服务',
-      'delivery': '配送服务',
-      'care': '护理服务'
-    }
-    const categoryName = categoryMap[filterCategory.value]
-    if (categoryName) {
-      orders = orders.filter(order => order.categoryName === categoryName)
-    }
-  }
-  
-  orders.sort((a, b) => {
-    switch (sortBy.value) {
-      case 'createTimeDesc':
-        return new Date(b.createTime) - new Date(a.createTime)
-      case 'createTimeAsc':
-        return new Date(a.createTime) - new Date(b.createTime)
-      case 'amountDesc':
-        return b.totalAmount - a.totalAmount
-      case 'amountAsc':
-        return a.totalAmount - b.totalAmount
-      default:
-        return 0
-    }
-  })
-  
-  return orders
-})
-
-const totalPages = computed(() => {
-  return Math.ceil(filteredOrders.value.length / pageSize.value)
+  return ordersList.value
 })
 
 const getStatusText = (status) => {
@@ -678,9 +467,96 @@ const getEmptyMessage = () => {
   return `您当前没有${tabName}的订单`
 }
 
+const formatDateTime = (dateTime) => {
+  if (!dateTime) return null
+  const date = new Date(dateTime)
+  return date.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  })
+}
+
+const fetchOrders = async () => {
+  const token = localStorage.getItem('token')
+  if (!token) {
+    return
+  }
+  
+  loading.value = true
+  try {
+    let statusParam = activeTab.value === 'all' ? '' : activeTab.value
+    
+    const response = await request(
+      `/api/orders/list?status=${statusParam}&sortBy=${sortBy.value}&current=${currentPage.value}&size=${pageSize.value}`,
+      { method: 'GET' }
+    )
+    
+    const data = await response.json()
+    
+    if (data.code === 200 && data.data) {
+      ordersList.value = data.data.records || []
+      total.value = data.data.total || 0
+      totalPages.value = data.data.pages || 0
+      
+      ordersList.value.forEach(order => {
+        if (order.createTime) {
+          order.createTime = formatDateTime(order.createTime)
+        }
+        if (order.payTime) {
+          order.payTime = formatDateTime(order.payTime)
+        }
+        if (order.discountAmount) {
+          order.discount = order.discountAmount
+        }
+      })
+    }
+  } catch (error) {
+    console.error('获取订单列表失败:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+const fetchOrderStats = async () => {
+  const token = localStorage.getItem('token')
+  if (!token) {
+    return
+  }
+  
+  try {
+    const response = await request('/api/orders/stats', { method: 'GET' })
+    const data = await response.json()
+    
+    if (data.code === 200 && data.data) {
+      orderTabs.value.forEach(tab => {
+        if (tab.value === 'all') {
+          tab.count = data.data.all || 0
+        } else if (tab.value === 'pending') {
+          tab.count = data.data.pending || 0
+        } else if (tab.value === 'confirmed') {
+          tab.count = data.data.confirmed || 0
+        } else if (tab.value === 'inProgress') {
+          tab.count = data.data.inProgress || 0
+        } else if (tab.value === 'completed') {
+          tab.count = data.data.completed || 0
+        } else if (tab.value === 'cancelled') {
+          tab.count = data.data.cancelled || 0
+        }
+      })
+    }
+  } catch (error) {
+    console.error('获取订单统计失败:', error)
+  }
+}
+
 const switchTab = (tabValue) => {
   activeTab.value = tabValue
   currentPage.value = 1
+  fetchOrders()
 }
 
 const viewOrderDetail = (order) => {
@@ -693,9 +569,32 @@ const closeDetailModal = () => {
   selectedOrder.value = null
 }
 
-const payOrder = (order) => {
-  console.log('支付订单:', order)
-  alert(`即将支付订单 ${order.orderNo}，金额 ¥${order.totalAmount}`)
+const payOrder = async (order) => {
+  const confirmed = confirm(`确认支付订单 ${order.orderNo}？\n订单金额：¥${order.totalAmount}\n\n将从您的余额中扣款。`)
+  if (!confirmed) return
+  
+  try {
+    const response = await request('/api/orders/pay', {
+      method: 'POST',
+      body: JSON.stringify({
+        orderId: order.id,
+        payMethod: 0
+      })
+    })
+    
+    const data = await response.json()
+    
+    if (data.code === 200) {
+      alert('支付成功！')
+      fetchOrders()
+      fetchOrderStats()
+    } else {
+      alert(data.message || '支付失败，请重试')
+    }
+  } catch (error) {
+    console.error('支付订单失败:', error)
+    alert('网络错误，请稍后重试')
+  }
 }
 
 const cancelOrder = (order) => {
@@ -710,31 +609,41 @@ const closeCancelModal = () => {
   cancelReason.value = ''
 }
 
-const confirmCancelOrder = () => {
+const confirmCancelOrder = async () => {
   if (!cancelReason.value) {
     alert('请选择取消原因')
     return
   }
   
-  if (selectedOrder.value) {
-    const orderIndex = mockOrders.value.findIndex(o => o.id === selectedOrder.value.id)
-    if (orderIndex !== -1) {
-      mockOrders.value[orderIndex].status = 'cancelled'
-      
-      const pendingTab = orderTabs.value.find(tab => tab.value === 'pending')
-      const cancelledTab = orderTabs.value.find(tab => tab.value === 'cancelled')
-      if (pendingTab) pendingTab.count--
-      if (cancelledTab) cancelledTab.count++
-    }
-  }
+  if (!selectedOrder.value) return
   
-  closeCancelModal()
-  alert('订单已取消')
+  try {
+    const response = await request('/api/orders/cancel', {
+      method: 'POST',
+      body: JSON.stringify({
+        orderId: selectedOrder.value.id,
+        cancelReason: cancelReason.value
+      })
+    })
+    
+    const data = await response.json()
+    
+    if (data.code === 200) {
+      alert('订单已取消')
+      closeCancelModal()
+      fetchOrders()
+      fetchOrderStats()
+    } else {
+      alert(data.message || '取消订单失败，请重试')
+    }
+  } catch (error) {
+    console.error('取消订单失败:', error)
+    alert('网络错误，请稍后重试')
+  }
 }
 
 const contactService = (order) => {
-  console.log('联系服务人员:', order)
-  alert('即将联系服务人员...')
+  alert('即将联系服务人员...\n服务热线：400-123-4567')
 }
 
 const reviewOrder = (order) => {
@@ -751,52 +660,85 @@ const closeReviewModal = () => {
   reviewContent.value = ''
 }
 
-const submitReview = () => {
+const submitReview = async () => {
   if (reviewContent.value.trim().length === 0) {
     alert('请填写评价内容')
     return
   }
   
-  if (selectedOrder.value) {
-    const orderIndex = mockOrders.value.findIndex(o => o.id === selectedOrder.value.id)
-    if (orderIndex !== -1) {
-      mockOrders.value[orderIndex].isReviewed = true
-    }
-  }
+  if (!selectedOrder.value) return
   
-  closeReviewModal()
-  alert('评价提交成功！')
+  try {
+    const response = await request('/api/orders/review', {
+      method: 'POST',
+      body: JSON.stringify({
+        orderId: selectedOrder.value.id,
+        rating: reviewRating.value,
+        content: reviewContent.value,
+        isAnonymous: 0
+      })
+    })
+    
+    const data = await response.json()
+    
+    if (data.code === 200) {
+      alert('评价提交成功！')
+      closeReviewModal()
+      fetchOrders()
+    } else {
+      alert(data.message || '评价提交失败，请重试')
+    }
+  } catch (error) {
+    console.error('提交评价失败:', error)
+    alert('网络错误，请稍后重试')
+  }
 }
 
-const viewReview = (order) => {
-  console.log('查看评价:', order)
-  alert('该订单已评价，评价内容：服务非常专业，强烈推荐！')
+const viewReview = async (order) => {
+  try {
+    const response = await request(`/api/orders/review/${order.id}`, { method: 'GET' })
+    const data = await response.json()
+    
+    if (data.code === 200 && data.data) {
+      alert(`该订单已评价\n\n评分：${data.data.rating} 分\n评价内容：${data.data.content || '无'}`)
+    } else {
+      alert('该订单已评价')
+    }
+  } catch (error) {
+    console.error('获取评价失败:', error)
+    alert('该订单已评价')
+  }
 }
 
 const prevPage = () => {
   if (currentPage.value > 1) {
     currentPage.value--
+    fetchOrders()
   }
 }
 
 const nextPage = () => {
   if (currentPage.value < totalPages.value) {
     currentPage.value++
+    fetchOrders()
   }
 }
 
 const goToPage = (page) => {
   currentPage.value = page
+  fetchOrders()
 }
 
 onMounted(() => {
-  orderTabs.value.forEach(tab => {
-    if (tab.value === 'all') {
-      tab.count = mockOrders.value.length
-    } else {
-      tab.count = mockOrders.value.filter(order => order.status === tab.value).length
-    }
-  })
+  const token = localStorage.getItem('token')
+  if (!token) {
+    alert('请先登录')
+    router.push('/login')
+    return
+  }
+  
+  fetchOrders()
+  fetchOrderStats()
 })
 </script>
 
