@@ -89,20 +89,11 @@ public class AdminOrderController {
     }
     
     @PutMapping("/orders/{id}/cancel")
-    public Result<String> cancelOrder(@PathVariable Long id,
+    public Result<ServiceOrder> cancelOrder(@PathVariable Long id,
             @RequestParam(required = false) String cancelReason) {
         try {
-            ServiceOrder order = serviceOrderService.getOrderByIdForAdmin(id);
-            if (order == null) {
-                return Result.error("订单不存在");
-            }
-            
-            boolean success = serviceOrderService.updateOrderStatusByAdmin(id, "cancelled", cancelReason);
-            if (success) {
-                return Result.success("订单已取消");
-            } else {
-                return Result.error("取消失败");
-            }
+            ServiceOrder order = serviceOrderService.adminCancelOrder(id, cancelReason);
+            return Result.success("订单已取消", order);
         } catch (Exception e) {
             return Result.error(e.getMessage());
         }

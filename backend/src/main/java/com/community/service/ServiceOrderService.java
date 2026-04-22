@@ -544,8 +544,44 @@ public class ServiceOrderService {
             order.setCancelTime(LocalDateTime.now());
         }
         
+        return serviceOrderMapper.updateById(order) > 0;
+    }
+    
+    @Transactional
+    public ServiceOrder adminCancelOrder(Long orderId, String cancelReason) {
+        ServiceOrder order = serviceOrderMapper.selectById(orderId);
+        if (order == null || order.getDeleted() == 1) {
+            throw new RuntimeException("订单不存在");
+        }
+        
+        if ("cancelled".equals(order.getStatus())) {
+            throw new RuntimeException("订单已取消");
+        }
+        
+        if ("completed".equals(order.getStatus())) {
+            throw new RuntimeException("订单已完成，无法取消");
+        }
+        
+        if (order.getPayStatus() == 1 && order.getPayAmount() != null && order.getPayAmount().compareTo(BigDecimal.ZERO) > 0) {
+            if (order.getPayMethod() == 0) {
+                userBalanceService.addBalance(order.getUserId(), order.getPayAmount(), orderId, "refund", "订单取消退款：" + order.getServiceName());
+            }
+        }
+        
+        order.setStatus("cancelled");
+        order.setCancelReason(cancelReason);
+        order.setCancelTime(LocalDateTime.now());
+        order.setUpdateTime(LocalDateTime.now());
+        
         serviceOrderMapper.updateById(order);
-        return true;
+        
+        try {
+            serviceAppointmentService.cancelAppointmentByOrderId(orderId, cancelReason);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        return order;
     }
     
     @Transactional
@@ -557,8 +593,7 @@ public class ServiceOrderService {
         
         order.setDeleted(1);
         order.setUpdateTime(LocalDateTime.now());
-        serviceOrderMapper.updateById(order);
-        return true;
+        return serviceOrderMapper.updateById(order) > 0;
     }
     
     public long countByStatusForAdmin(String status) {

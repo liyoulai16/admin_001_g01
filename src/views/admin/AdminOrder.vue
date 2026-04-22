@@ -98,7 +98,7 @@
               <button class="action-btn approve" @click="approveRefund(order)">✅ 同意退款</button>
               <button class="action-btn reject" @click="openRejectModal(order)">❌ 拒绝退款</button>
             </template>
-            <template v-else-if="order.status === 'confirmed' || order.status === 'inProgress'">
+            <template v-else-if="order.status === 'pending' || order.status === 'confirmed' || order.status === 'inProgress'">
               <button class="action-btn complete" @click="openCompleteModal(order)">✅ 标记完成</button>
               <button class="action-btn cancel" @click="openCancelModal(order)">📛 取消订单</button>
             </template>
