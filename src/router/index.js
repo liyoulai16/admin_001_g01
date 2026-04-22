@@ -18,6 +18,10 @@ import AdminForumPost from '../views/admin/AdminForumPost.vue'
 import AdminForumCategory from '../views/admin/AdminForumCategory.vue'
 import AdminOrder from '../views/admin/AdminOrder.vue'
 import AdminContactMessage from '../views/admin/AdminContactMessage.vue'
+import AdminContactCard from '../views/admin/AdminContactCard.vue'
+import AdminWorkingHour from '../views/admin/AdminWorkingHour.vue'
+import AdminFAQ from '../views/admin/AdminFAQ.vue'
+import AdminFeature from '../views/admin/AdminFeature.vue'
 
 const routes = [
   {
@@ -139,6 +143,30 @@ const routes = [
         path: 'message',
         name: 'AdminContactMessage',
         component: AdminContactMessage,
+        meta: { requiresAuth: true, userType: 'admin' }
+      },
+      {
+        path: 'contact-card',
+        name: 'AdminContactCard',
+        component: AdminContactCard,
+        meta: { requiresAuth: true, userType: 'admin' }
+      },
+      {
+        path: 'working-hour',
+        name: 'AdminWorkingHour',
+        component: AdminWorkingHour,
+        meta: { requiresAuth: true, userType: 'admin' }
+      },
+      {
+        path: 'faq',
+        name: 'AdminFAQ',
+        component: AdminFAQ,
+        meta: { requiresAuth: true, userType: 'admin' }
+      },
+      {
+        path: 'feature',
+        name: 'AdminFeature',
+        component: AdminFeature,
         meta: { requiresAuth: true, userType: 'admin' }
       }
     ]
