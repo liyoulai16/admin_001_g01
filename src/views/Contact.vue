@@ -223,6 +223,7 @@
 
 <script setup>
 import { ref, reactive } from 'vue'
+import request from '../utils/request'
 
 const getParticleStyle = (index) => {
   const size = Math.random() * 8 + 4
@@ -311,23 +312,45 @@ const toggleFaq = (index) => {
   openFaq.value = openFaq.value === index ? null : index
 }
 
-const handleSubmit = () => {
+const handleSubmit = async () => {
   if (!formData.name || !formData.phone || !formData.message) {
     alert('请填写必填项')
     return
   }
   
-  showSuccess.value = true
-  
-  formData.name = ''
-  formData.phone = ''
-  formData.email = ''
-  formData.type = ''
-  formData.message = ''
-  
-  setTimeout(() => {
-    showSuccess.value = false
-  }, 5000)
+  try {
+    const response = await request('/api/contact/submit', {
+      method: 'POST',
+      body: JSON.stringify({
+        name: formData.name,
+        phone: formData.phone,
+        email: formData.email,
+        type: formData.type,
+        message: formData.message
+      })
+    })
+    
+    const data = await response.json()
+    
+    if (data.code === 200) {
+      showSuccess.value = true
+      
+      formData.name = ''
+      formData.phone = ''
+      formData.email = ''
+      formData.type = ''
+      formData.message = ''
+      
+      setTimeout(() => {
+        showSuccess.value = false
+      }, 5000)
+    } else {
+      alert(data.message || '提交失败，请稍后重试')
+    }
+  } catch (error) {
+    console.error('提交失败:', error)
+    alert('网络错误，请稍后重试')
+  }
 }
 </script>
 
