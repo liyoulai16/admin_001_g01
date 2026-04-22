@@ -586,14 +586,7 @@ public class ServiceOrderService {
     
     @Transactional
     public boolean deleteOrderByAdmin(Long orderId) {
-        ServiceOrder order = serviceOrderMapper.selectById(orderId);
-        if (order == null) {
-            return false;
-        }
-        
-        order.setDeleted(1);
-        order.setUpdateTime(LocalDateTime.now());
-        return serviceOrderMapper.updateById(order) > 0;
+        return serviceOrderMapper.deleteById(orderId) > 0;
     }
     
     public long countByStatusForAdmin(String status) {
