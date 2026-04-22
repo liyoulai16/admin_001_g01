@@ -120,6 +120,34 @@
             </div>
           </transition>
         </div>
+        
+        <div class="nav-group">
+          <div 
+            class="nav-item nav-group-header" 
+            :class="{ active: isOrderMenuActive, expanded: isOrderMenuExpanded }"
+            @click="toggleOrderMenu"
+          >
+            <span class="nav-icon">📋</span>
+            <span class="nav-text" v-if="!isSidebarCollapsed">订单管理</span>
+            <span class="nav-expand-icon" v-if="!isSidebarCollapsed">{{ isOrderMenuExpanded ? '▼' : '▶' }}</span>
+          </div>
+          <transition name="menu-expand">
+            <div 
+              class="nav-group-items" 
+              v-show="isOrderMenuExpanded && !isSidebarCollapsed"
+              :style="{ maxHeight: isOrderMenuExpanded ? '200px' : '0px', opacity: isOrderMenuExpanded ? '1' : '0' }"
+            >
+              <router-link 
+                to="/admin/order" 
+                class="nav-item nav-sub-item" 
+                :class="{ active: $route.path === '/admin/order' }"
+              >
+                <span class="nav-icon">📋</span>
+                <span class="nav-text">订单管理</span>
+              </router-link>
+            </div>
+          </transition>
+        </div>
       </nav>
       
       <div class="sidebar-footer">
@@ -222,6 +250,7 @@ const username = ref(localStorage.getItem('username') || '管理员')
 const isHomeMenuExpanded = ref(true)
 const isServiceMenuExpanded = ref(true)
 const isForumMenuExpanded = ref(true)
+const isOrderMenuExpanded = ref(true)
 
 const showPasswordModal = ref(false)
 const isSubmitting = ref(false)
@@ -245,6 +274,10 @@ const isForumMenuActive = computed(() => {
   return route.path === '/admin/forum-category' || route.path === '/admin/forum-post'
 })
 
+const isOrderMenuActive = computed(() => {
+  return route.path === '/admin/order'
+})
+
 const pageTitle = computed(() => {
   const path = route.path
   if (path === '/admin/carousel') return '轮播图管理'
@@ -253,6 +286,7 @@ const pageTitle = computed(() => {
   if (path === '/admin/service') return '服务管理'
   if (path === '/admin/forum-category') return '论坛版块管理'
   if (path === '/admin/forum-post') return '帖子管理'
+  if (path === '/admin/order') return '订单管理'
   if (path === '/admin/home') return '管理后台首页'
   return '管理后台'
 })
@@ -276,6 +310,12 @@ const toggleServiceMenu = () => {
 const toggleForumMenu = () => {
   if (!isSidebarCollapsed.value) {
     isForumMenuExpanded.value = !isForumMenuExpanded.value
+  }
+}
+
+const toggleOrderMenu = () => {
+  if (!isSidebarCollapsed.value) {
+    isOrderMenuExpanded.value = !isOrderMenuExpanded.value
   }
 }
 

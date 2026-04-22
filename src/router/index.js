@@ -16,6 +16,7 @@ import AdminServiceCategory from '../views/admin/AdminServiceCategory.vue'
 import AdminService from '../views/admin/AdminService.vue'
 import AdminForumPost from '../views/admin/AdminForumPost.vue'
 import AdminForumCategory from '../views/admin/AdminForumCategory.vue'
+import AdminOrder from '../views/admin/AdminOrder.vue'
 
 const routes = [
   {
@@ -125,6 +126,12 @@ const routes = [
         path: 'forum-post',
         name: 'AdminForumPost',
         component: AdminForumPost,
+        meta: { requiresAuth: true, userType: 'admin' }
+      },
+      {
+        path: 'order',
+        name: 'AdminOrder',
+        component: AdminOrder,
         meta: { requiresAuth: true, userType: 'admin' }
       }
     ]
