@@ -17,7 +17,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -486,5 +488,101 @@ public class ServiceOrderService {
         }
         
         return order;
+    }
+    
+    public Page<ServiceOrder> getOrderPageForAdmin(int pageNum, int pageSize, String keyword, Long categoryId, String status) {
+        Page<ServiceOrder> page = new Page<>(pageNum, pageSize);
+        LambdaQueryWrapper<ServiceOrder> queryWrapper = new LambdaQueryWrapper<>();
+        
+        queryWrapper.eq(ServiceOrder::getDeleted, 0);
+        
+        if (StringUtils.hasText(keyword)) {
+            queryWrapper.and(wrapper -> wrapper
+                .like(ServiceOrder::getServiceName, keyword)
+                .or()
+                .like(ServiceOrder::getOrderNo, keyword)
+                .or()
+                .like(ServiceOrder::getContactName, keyword)
+                .or()
+                .like(ServiceOrder::getContactPhone, keyword)
+            );
+        }
+        
+        if (categoryId != null) {
+            queryWrapper.eq(ServiceOrder::getCategoryId, categoryId);
+        }
+        
+        if (StringUtils.hasText(status) && !"all".equals(status)) {
+            queryWrapper.eq(ServiceOrder::getStatus, status);
+        }
+        
+        queryWrapper.orderByDesc(ServiceOrder::getCreateTime);
+        
+        return serviceOrderMapper.selectPage(page, queryWrapper);
+    }
+    
+    public ServiceOrder getOrderByIdForAdmin(Long orderId) {
+        ServiceOrder order = serviceOrderMapper.selectById(orderId);
+        if (order == null || order.getDeleted() == 1) {
+            return null;
+        }
+        return order;
+    }
+    
+    @Transactional
+    public boolean updateOrderStatusByAdmin(Long orderId, String status, String reason) {
+        ServiceOrder order = serviceOrderMapper.selectById(orderId);
+        if (order == null || order.getDeleted() == 1) {
+            return false;
+        }
+        
+        order.setStatus(status);
+        order.setUpdateTime(LocalDateTime.now());
+        
+        if ("cancelled".equals(status) && StringUtils.hasText(reason)) {
+            order.setCancelReason(reason);
+            order.setCancelTime(LocalDateTime.now());
+        }
+        
+        serviceOrderMapper.updateById(order);
+        return true;
+    }
+    
+    @Transactional
+    public boolean deleteOrderByAdmin(Long orderId) {
+        ServiceOrder order = serviceOrderMapper.selectById(orderId);
+        if (order == null) {
+            return false;
+        }
+        
+        order.setDeleted(1);
+        order.setUpdateTime(LocalDateTime.now());
+        serviceOrderMapper.updateById(order);
+        return true;
+    }
+    
+    public long countByStatusForAdmin(String status) {
+        LambdaQueryWrapper<ServiceOrder> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(ServiceOrder::getDeleted, 0);
+        
+        if (StringUtils.hasText(status) && !"all".equals(status)) {
+            queryWrapper.eq(ServiceOrder::getStatus, status);
+        }
+        
+        return serviceOrderMapper.selectCount(queryWrapper);
+    }
+    
+    public Map<String, Long> getOrderStatsForAdmin() {
+        Map<String, Long> stats = new HashMap<>();
+        stats.put("all", countByStatusForAdmin("all"));
+        stats.put("pending", countByStatusForAdmin("pending"));
+        stats.put("confirmed", countByStatusForAdmin("confirmed"));
+        stats.put("inProgress", countByStatusForAdmin("inProgress"));
+        stats.put("completed", countByStatusForAdmin("completed"));
+        stats.put("cancelled", countByStatusForAdmin("cancelled"));
+        stats.put("refunding", countByStatusForAdmin("refunding"));
+        stats.put("refunded", countByStatusForAdmin("refunded"));
+        stats.put("rejected", countByStatusForAdmin("rejected"));
+        return stats;
     }
 }

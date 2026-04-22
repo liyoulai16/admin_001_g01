@@ -192,32 +192,89 @@
         </router-link>
       </div>
 
-      <div class="pagination" v-if="filteredOrders.length > 0">
-        <button 
-          class="pagination-btn prev-btn"
-          :disabled="currentPage === 1"
-          @click="prevPage"
-        >
-          上一页
-        </button>
-        <div class="pagination-numbers">
+      <div class="pagination-section" v-if="filteredOrders.length > 0">
+        <div class="pagination">
           <button 
-            v-for="page in totalPages" 
+            class="page-btn first-btn" 
+            :disabled="currentPage === 1"
+            @click="goToFirstPage"
+          >
+            首页
+          </button>
+          
+          <button 
+            class="page-btn prev-btn" 
+            :disabled="currentPage === 1"
+            @click="prevPage"
+          >
+            上一页
+          </button>
+          
+          <button 
+            v-for="page in visiblePages" 
             :key="page"
-            class="pagination-number"
-            :class="{ active: currentPage === page }"
-            @click="goToPage(page)"
+            class="page-btn" 
+            :class="{ active: currentPage === page, 'ellipsis': page === '...' }"
+            @click="page !== '...' && goToPage(page)"
+            :disabled="page === '...'"
           >
             {{ page }}
           </button>
+          
+          <button 
+            class="page-btn next-btn" 
+            :disabled="currentPage === totalPages || totalPages === 0"
+            @click="nextPage"
+          >
+            下一页
+          </button>
+          
+          <button 
+            class="page-btn last-btn" 
+            :disabled="currentPage === totalPages || totalPages === 0"
+            @click="goToLastPage"
+          >
+            尾页
+          </button>
+          
+          <div class="page-size-select">
+            <span class="size-label">每页显示</span>
+            <select v-model="pageSize" @change="handlePageSizeChange" class="size-select">
+              <option :value="5">5条</option>
+              <option :value="10">10条</option>
+              <option :value="20">20条</option>
+              <option :value="50">50条</option>
+            </select>
+          </div>
+          
+          <div class="page-jump">
+            <span class="jump-label">跳转到</span>
+            <input 
+              type="number" 
+              v-model="jumpPageInput" 
+              min="1"
+              :max="totalPages || 1"
+              @keyup.enter="handleJumpPage"
+              class="jump-input"
+              placeholder="页码"
+            />
+            <span class="jump-label">页</span>
+            <button class="jump-btn" @click="handleJumpPage">
+              确定
+            </button>
+          </div>
+          
+          <div class="page-info">
+            共 <span class="info-highlight">{{ totalPages || 1 }}</span> 页，
+            当前第 <span class="info-highlight">{{ currentPage }}</span> 页，
+            共 <span class="info-highlight">{{ total }}</span> 条记录
+          </div>
         </div>
-        <button 
-          class="pagination-btn next-btn"
-          :disabled="currentPage === totalPages"
-          @click="nextPage"
-        >
-          下一页
-        </button>
+        
+        <div class="pagination-toast" :class="{ show: showToast }">
+          <span class="toast-icon">{{ toastIcon }}</span>
+          <span class="toast-message">{{ toastMessage }}</span>
+        </div>
       </div>
     </div>
 
@@ -473,6 +530,12 @@ const loading = ref(false)
 const total = ref(0)
 const totalPages = ref(0)
 
+const jumpPageInput = ref('')
+const showToast = ref(false)
+const toastMessage = ref('')
+const toastIcon = ref('⚠️')
+let toastTimer = null
+
 const orderTabs = ref([
   { label: '全部', value: 'all', count: 0 },
   { label: '待付款', value: 'pending', count: 0 },
@@ -485,6 +548,35 @@ const orderTabs = ref([
 
 const filteredOrders = computed(() => {
   return ordersList.value
+})
+
+const visiblePages = computed(() => {
+  const current = currentPage.value
+  const totalPagesVal = totalPages.value
+  const delta = 2
+  const range = []
+  const rangeWithDots = []
+  let l
+
+  for (let i = 1; i <= totalPagesVal; i++) {
+    if (i === 1 || i === totalPagesVal || (i >= current - delta && i <= current + delta)) {
+      range.push(i)
+    }
+  }
+
+  for (const i of range) {
+    if (l) {
+      if (i - l === 2) {
+        rangeWithDots.push(l + 1)
+      } else if (i - l !== 1) {
+        rangeWithDots.push('...')
+      }
+    }
+    rangeWithDots.push(i)
+    l = i
+  }
+
+  return rangeWithDots
 })
 
 const getStatusText = (status) => {
@@ -862,9 +954,83 @@ const nextPage = () => {
   }
 }
 
+const showToastMessage = (message, icon = '⚠️') => {
+  toastMessage.value = message
+  toastIcon.value = icon
+  showToast.value = true
+  
+  if (toastTimer) {
+    clearTimeout(toastTimer)
+  }
+  
+  toastTimer = setTimeout(() => {
+    showToast.value = false
+  }, 2000)
+}
+
 const goToPage = (page) => {
+  const totalPagesVal = totalPages.value || 1
+  if (page < 1) {
+    showToastMessage('已经是第一页了', '⚠️')
+    return
+  }
+  if (page > totalPagesVal) {
+    showToastMessage(`只有 ${totalPagesVal} 页`, '⚠️')
+    return
+  }
+  if (page === currentPage.value) {
+    showToastMessage('已经在当前页', 'ℹ️')
+    return
+  }
   currentPage.value = page
   fetchOrders()
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+const goToFirstPage = () => {
+  if (currentPage.value === 1) {
+    showToastMessage('已经是第一页了', '⚠️')
+    return
+  }
+  goToPage(1)
+}
+
+const goToLastPage = () => {
+  const totalPagesVal = totalPages.value || 1
+  if (currentPage.value === totalPagesVal) {
+    showToastMessage('已经是最后一页了', '⚠️')
+    return
+  }
+  goToPage(totalPagesVal)
+}
+
+const handlePageSizeChange = () => {
+  currentPage.value = 1
+  fetchOrders()
+}
+
+const handleJumpPage = () => {
+  const inputValue = jumpPageInput.value
+  if (inputValue === '' || inputValue === null || inputValue === undefined) {
+    showToastMessage('请输入页码', '⚠️')
+    return
+  }
+  const pageNum = Number(inputValue)
+  if (isNaN(pageNum) || !Number.isInteger(pageNum)) {
+    showToastMessage('请输入有效的数字', '⚠️')
+    return
+  }
+  if (pageNum < 1) {
+    showToastMessage('页码不能小于1', '⚠️')
+    return
+  }
+  const totalPagesVal = totalPages.value || 1
+  if (pageNum > totalPagesVal) {
+    showToastMessage(`页码不能大于 ${totalPagesVal}`, '⚠️')
+    return
+  }
+  jumpPageInput.value = ''
+  goToPage(pageNum)
 }
 
 onMounted(() => {
@@ -1343,66 +1509,208 @@ onMounted(() => {
   box-shadow: 0 5px 20px rgba(107, 142, 35, 0.4);
 }
 
-.pagination {
+.pagination-section {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
   margin-top: 40px;
+  padding-top: 20px;
+  position: relative;
 }
 
-.pagination-btn {
-  padding: 10px 20px;
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  row-gap: 12px;
+}
+
+.page-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 40px;
+  padding: 0 16px;
   background: white;
   border: 2px solid #e4e8eb;
   border-radius: 8px;
   font-size: 0.95rem;
-  font-weight: 500;
-  color: #555;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
-.pagination-btn:hover:not(:disabled) {
+.page-btn:hover:not(:disabled) {
   border-color: #6B8E23;
   color: #6B8E23;
 }
 
-.pagination-btn:disabled {
+.page-btn.active {
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
+  color: white;
+  border-color: transparent;
+}
+
+.page-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.pagination-numbers {
-  display: flex;
-  gap: 8px;
+.page-btn.ellipsis {
+  border: none;
+  background: transparent;
+  cursor: default;
 }
 
-.pagination-number {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: white;
-  border: 2px solid #e4e8eb;
-  border-radius: 8px;
-  font-size: 0.95rem;
+.first-btn, .last-btn, .prev-btn, .next-btn {
   font-weight: 500;
+  padding: 0 18px;
+}
+
+.first-btn {
+  background: linear-gradient(135deg, #f8f9fa, #ffffff);
+}
+
+.last-btn {
+  background: linear-gradient(135deg, #f8f9fa, #ffffff);
+}
+
+.page-size-select {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 8px;
+  padding: 8px 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.size-label {
+  font-size: 0.9rem;
   color: #555;
+  white-space: nowrap;
+}
+
+.size-select {
+  padding: 6px 10px;
+  border: 2px solid #e4e8eb;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  background: white;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+}
+
+.size-select:focus {
+  outline: none;
+  border-color: #6B8E23;
+}
+
+.page-jump {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 8px;
+  padding: 8px 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.jump-label {
+  font-size: 0.9rem;
+  color: #555;
+  white-space: nowrap;
+}
+
+.jump-input {
+  width: 80px;
+  height: 36px;
+  padding: 0 8px;
+  border: 2px solid #e4e8eb;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  text-align: center;
+  transition: border-color 0.3s ease;
+}
+
+.jump-input:focus {
+  outline: none;
+  border-color: #6B8E23;
+}
+
+.jump-input::placeholder {
+  color: #aaa;
+}
+
+.jump-btn {
+  height: 36px;
+  padding: 0 14px;
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
-.pagination-number:hover {
-  border-color: #6B8E23;
+.jump-btn:hover {
+  background: linear-gradient(135deg, #556B2F, #5D7C4A);
+}
+
+.page-info {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 16px;
+  background: white;
+  border: 1px solid #e4e8eb;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.info-highlight {
+  font-weight: bold;
   color: #6B8E23;
 }
 
-.pagination-number.active {
-  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
-  border-color: #6B8E23;
-  color: white;
+.pagination-toast {
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-10px);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-left: 4px solid #f39c12;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  z-index: 100;
+}
+
+.pagination-toast.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+.toast-icon {
+  font-size: 1.1rem;
+}
+
+.toast-message {
+  font-size: 0.9rem;
+  color: #333;
+  font-weight: 500;
 }
 
 .modal-overlay {
