@@ -34,17 +34,9 @@
           <div class="working-hours">
             <h3 class="subsection-title">工作时间</h3>
             <div class="hours-list">
-              <div class="hours-item">
-                <span class="hours-day">周一至周五</span>
-                <span class="hours-time">09:00 - 18:00</span>
-              </div>
-              <div class="hours-item">
-                <span class="hours-day">周六</span>
-                <span class="hours-time">09:00 - 17:00</span>
-              </div>
-              <div class="hours-item">
-                <span class="hours-day">周日</span>
-                <span class="hours-time">10:00 - 16:00</span>
+              <div v-for="(hour, index) in workingHours" :key="index" class="hours-item">
+                <span class="hours-day">{{ hour.day }}</span>
+                <span class="hours-time">{{ hour.time }}</span>
               </div>
             </div>
           </div>
@@ -177,42 +169,21 @@
           <div class="extra-info-section">
             <h3 class="section-title">为什么选择我们？</h3>
             <div class="extra-features">
-              <div class="extra-feature">
-                <span class="extra-icon">⚡</span>
+              <div v-for="(feature, index) in features" :key="index" class="extra-feature">
+                <span class="extra-icon">{{ feature.icon || '⭐' }}</span>
                 <div class="extra-content">
-                  <h4>快速响应</h4>
-                  <p>平均15分钟内回复您的咨询</p>
-                </div>
-              </div>
-              <div class="extra-feature">
-                <span class="extra-icon">🛡️</span>
-                <div class="extra-content">
-                  <h4>安全保障</h4>
-                  <p>您的个人信息严格保密</p>
-                </div>
-              </div>
-              <div class="extra-feature">
-                <span class="extra-icon">💯</span>
-                <div class="extra-content">
-                  <h4>专业团队</h4>
-                  <p>10年+社区服务经验</p>
-                </div>
-              </div>
-              <div class="extra-feature">
-                <span class="extra-icon">🌟</span>
-                <div class="extra-content">
-                  <h4>用户好评</h4>
-                  <p>98%的用户满意度</p>
+                  <h4>{{ feature.title }}</h4>
+                  <p>{{ feature.description }}</p>
                 </div>
               </div>
             </div>
 
-            <div class="contact-cta">
+            <div class="contact-cta" v-if="contactCards.length > 0">
               <p class="cta-text">
                 <span class="cta-icon">📞</span>
                 紧急问题？直接拨打客服热线
               </p>
-              <p class="cta-phone">400-123-4567</p>
+              <p class="cta-phone">{{ contactCards[0]?.detail || '400-123-4567' }}</p>
             </div>
           </div>
         </div>
@@ -222,7 +193,7 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import request from '../utils/request'
 
 const getParticleStyle = (index) => {
@@ -244,32 +215,10 @@ const getParticleStyle = (index) => {
 const openFaq = ref(null)
 const activeCard = ref(null)
 
-const contactCards = ref([
-  {
-    icon: '📞',
-    title: '客服热线',
-    detail: '400-123-4567',
-    hint: '工作时间：09:00 - 18:00'
-  },
-  {
-    icon: '📧',
-    title: '电子邮箱',
-    detail: 'service@community.com',
-    hint: '24小时内回复'
-  },
-  {
-    icon: '📍',
-    title: '公司地址',
-    detail: '幸福社区服务中心',
-    hint: '欢迎前来咨询'
-  },
-  {
-    icon: '💬',
-    title: '在线客服',
-    detail: '微信公众号',
-    hint: '扫码关注咨询'
-  }
-])
+const contactCards = ref([])
+const workingHours = ref([])
+const faqs = ref([])
+const features = ref([])
 
 const toggleCard = (index) => {
   activeCard.value = activeCard.value === index ? null : index
@@ -285,31 +234,52 @@ const formData = reactive({
 
 const showSuccess = ref(false)
 
-const faqs = ref([
-  {
-    question: '如何预约服务？',
-    answer: '您可以通过我们的平台在线预约服务。选择您需要的服务项目，填写预约信息（日期、时间、联系方式等），提交后我们的客服会尽快与您确认预约详情。'
-  },
-  {
-    question: '服务价格如何确定？',
-    answer: '我们的服务价格明码标价，在服务详情页面可以看到具体的价格信息。部分服务可能根据实际情况有所调整，我们会在预约前与您确认最终价格。'
-  },
-  {
-    question: '如何取消或修改预约？',
-    answer: '如需取消或修改预约，请提前24小时联系我们的客服。您可以通过客服热线400-123-4567或在线客服进行操作。紧急情况下请直接拨打客服电话。'
-  },
-  {
-    question: '服务质量有问题怎么办？',
-    answer: '如果您对服务质量不满意，请及时联系我们的客服。我们会认真处理您的反馈，并根据情况提供退款、重新服务或其他解决方案。您的满意是我们最大的追求。'
-  },
-  {
-    question: '如何成为服务提供者？',
-    answer: '如果您想成为我们平台的服务提供者，请通过商务合作渠道联系我们。我们会对您的资质进行审核，审核通过后即可入驻平台提供服务。'
-  }
-])
-
 const toggleFaq = (index) => {
   openFaq.value = openFaq.value === index ? null : index
+}
+
+const loadContactData = async () => {
+  try {
+    const response = await request('/api/contact/data')
+    const data = await response.json()
+    
+    if (data.code === 200) {
+      contactCards.value = data.data.contactCards || []
+      workingHours.value = data.data.workingHours || []
+      faqs.value = data.data.faqs || []
+      features.value = data.data.features || []
+    }
+  } catch (error) {
+    console.error('加载联系页面数据失败:', error)
+    contactCards.value = [
+      {
+        icon: '📞',
+        title: '客服热线',
+        detail: '400-123-4567',
+        hint: '工作时间：09:00 - 18:00'
+      },
+      {
+        icon: '📧',
+        title: '电子邮箱',
+        detail: 'service@community.com',
+        hint: '24小时内回复'
+      }
+    ]
+    workingHours.value = [
+      { day: '周一至周五', time: '09:00 - 18:00' },
+      { day: '周六', time: '09:00 - 17:00' },
+      { day: '周日', time: '10:00 - 16:00' }
+    ]
+    faqs.value = [
+      {
+        question: '如何预约服务？',
+        answer: '您可以通过我们的平台在线预约服务。'
+      }
+    ]
+    features.value = [
+      { icon: '⚡', title: '快速响应', description: '平均15分钟内回复您的咨询' }
+    ]
+  }
 }
 
 const handleSubmit = async () => {
@@ -352,6 +322,10 @@ const handleSubmit = async () => {
     alert('网络错误，请稍后重试')
   }
 }
+
+onMounted(() => {
+  loadContactData()
+})
 </script>
 
 <style scoped>

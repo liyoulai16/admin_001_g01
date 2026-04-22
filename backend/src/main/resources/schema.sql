@@ -103,3 +103,90 @@ CREATE TABLE IF NOT EXISTS contact_message (
     KEY idx_phone (phone),
     KEY idx_create_time (create_time)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='联系我们留言表';
+
+-- 联系方式表
+CREATE TABLE IF NOT EXISTS contact_card (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
+    icon VARCHAR(50) DEFAULT NULL COMMENT '图标',
+    title VARCHAR(50) NOT NULL COMMENT '标题',
+    detail VARCHAR(200) DEFAULT NULL COMMENT '详情',
+    hint VARCHAR(200) DEFAULT NULL COMMENT '提示信息',
+    sort_order INT DEFAULT 0 COMMENT '排序顺序',
+    status TINYINT DEFAULT 1 COMMENT '状态：1-正常，0-禁用',
+    deleted TINYINT DEFAULT 0 COMMENT '逻辑删除：0-未删除，1-已删除',
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    KEY idx_status (status),
+    KEY idx_sort_order (sort_order)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='联系方式表';
+
+-- 插入默认联系方式数据
+INSERT INTO contact_card (icon, title, detail, hint, sort_order, status) VALUES 
+('📞', '客服热线', '400-123-4567', '工作时间：09:00 - 18:00', 1, 1),
+('📧', '电子邮箱', 'service@community.com', '24小时内回复', 2, 1),
+('📍', '公司地址', '幸福社区服务中心', '欢迎前来咨询', 3, 1),
+('💬', '在线客服', '微信公众号', '扫码关注咨询', 4, 1);
+
+-- 工作时间表
+CREATE TABLE IF NOT EXISTS working_hour (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
+    day VARCHAR(50) NOT NULL COMMENT '星期',
+    time VARCHAR(50) NOT NULL COMMENT '时间',
+    sort_order INT DEFAULT 0 COMMENT '排序顺序',
+    status TINYINT DEFAULT 1 COMMENT '状态：1-正常，0-禁用',
+    deleted TINYINT DEFAULT 0 COMMENT '逻辑删除：0-未删除，1-已删除',
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    KEY idx_status (status),
+    KEY idx_sort_order (sort_order)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='工作时间表';
+
+-- 插入默认工作时间数据
+INSERT INTO working_hour (day, time, sort_order, status) VALUES 
+('周一至周五', '09:00 - 18:00', 1, 1),
+('周六', '09:00 - 17:00', 2, 1),
+('周日', '10:00 - 16:00', 3, 1);
+
+-- 常见问题表
+CREATE TABLE IF NOT EXISTS faq (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
+    question VARCHAR(500) NOT NULL COMMENT '问题',
+    answer TEXT NOT NULL COMMENT '答案',
+    sort_order INT DEFAULT 0 COMMENT '排序顺序',
+    status TINYINT DEFAULT 1 COMMENT '状态：1-正常，0-禁用',
+    deleted TINYINT DEFAULT 0 COMMENT '逻辑删除：0-未删除，1-已删除',
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    KEY idx_status (status),
+    KEY idx_sort_order (sort_order)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='常见问题表';
+
+-- 插入默认常见问题数据
+INSERT INTO faq (question, answer, sort_order, status) VALUES 
+('如何预约服务？', '您可以通过我们的平台在线预约服务。选择您需要的服务项目，填写预约信息（日期、时间、联系方式等），提交后我们的客服会尽快与您确认预约详情。', 1, 1),
+('服务价格如何确定？', '我们的服务价格明码标价，在服务详情页面可以看到具体的价格信息。部分服务可能根据实际情况有所调整，我们会在预约前与您确认最终价格。', 2, 1),
+('如何取消或修改预约？', '如需取消或修改预约，请提前24小时联系我们的客服。您可以通过客服热线400-123-4567或在线客服进行操作。紧急情况下请直接拨打客服电话。', 3, 1),
+('服务质量有问题怎么办？', '如果您对服务质量不满意，请及时联系我们的客服。我们会认真处理您的反馈，并根据情况提供退款、重新服务或其他解决方案。您的满意是我们最大的追求。', 4, 1),
+('如何成为服务提供者？', '如果您想成为我们平台的服务提供者，请通过商务合作渠道联系我们。我们会对您的资质进行审核，审核通过后即可入驻平台提供服务。', 5, 1);
+
+-- 特色优势表
+CREATE TABLE IF NOT EXISTS feature (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
+    icon VARCHAR(50) DEFAULT NULL COMMENT '图标',
+    title VARCHAR(100) NOT NULL COMMENT '标题',
+    description VARCHAR(500) NOT NULL COMMENT '描述',
+    sort_order INT DEFAULT 0 COMMENT '排序顺序',
+    status TINYINT DEFAULT 1 COMMENT '状态：1-正常，0-禁用',
+    deleted TINYINT DEFAULT 0 COMMENT '逻辑删除：0-未删除，1-已删除',
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    KEY idx_status (status),
+    KEY idx_sort_order (sort_order)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='特色优势表';
+
+-- 插入默认特色优势数据
+INSERT INTO feature (icon, title, description, sort_order, status) VALUES 
+('⚡', '快速响应', '平均15分钟内回复您的咨询', 1, 1),
+('🛡️', '安全保障', '您的个人信息严格保密', 2, 1),
+('💯', '专业团队', '10年+社区服务经验', 3, 1),
+('🌟', '用户好评', '98%的用户满意度', 4, 1);

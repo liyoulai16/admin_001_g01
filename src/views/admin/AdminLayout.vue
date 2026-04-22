@@ -163,7 +163,7 @@
             <div 
               class="nav-group-items" 
               v-show="isContactMenuExpanded && !isSidebarCollapsed"
-              :style="{ maxHeight: isContactMenuExpanded ? '200px' : '0px', opacity: isContactMenuExpanded ? '1' : '0' }"
+              :style="{ maxHeight: isContactMenuExpanded ? '400px' : '0px', opacity: isContactMenuExpanded ? '1' : '0' }"
             >
               <router-link 
                 to="/admin/message" 
@@ -172,6 +172,38 @@
               >
                 <span class="nav-icon">📭</span>
                 <span class="nav-text">留言管理</span>
+              </router-link>
+              <router-link 
+                to="/admin/contact-card" 
+                class="nav-item nav-sub-item" 
+                :class="{ active: $route.path === '/admin/contact-card' }"
+              >
+                <span class="nav-icon">📞</span>
+                <span class="nav-text">联系方式管理</span>
+              </router-link>
+              <router-link 
+                to="/admin/working-hour" 
+                class="nav-item nav-sub-item" 
+                :class="{ active: $route.path === '/admin/working-hour' }"
+              >
+                <span class="nav-icon">⏰</span>
+                <span class="nav-text">工作时间管理</span>
+              </router-link>
+              <router-link 
+                to="/admin/faq" 
+                class="nav-item nav-sub-item" 
+                :class="{ active: $route.path === '/admin/faq' }"
+              >
+                <span class="nav-icon">❓</span>
+                <span class="nav-text">常见问题管理</span>
+              </router-link>
+              <router-link 
+                to="/admin/feature" 
+                class="nav-item nav-sub-item" 
+                :class="{ active: $route.path === '/admin/feature' }"
+              >
+                <span class="nav-icon">⭐</span>
+                <span class="nav-text">特色优势管理</span>
               </router-link>
             </div>
           </transition>
@@ -308,7 +340,11 @@ const isOrderMenuActive = computed(() => {
 })
 
 const isContactMenuActive = computed(() => {
-  return route.path === '/admin/message'
+  return route.path === '/admin/message' ||
+    route.path === '/admin/contact-card' ||
+    route.path === '/admin/working-hour' ||
+    route.path === '/admin/faq' ||
+    route.path === '/admin/feature'
 })
 
 const pageTitle = computed(() => {
@@ -321,6 +357,10 @@ const pageTitle = computed(() => {
   if (path === '/admin/forum-post') return '帖子管理'
   if (path === '/admin/order') return '订单管理'
   if (path === '/admin/message') return '留言管理'
+  if (path === '/admin/contact-card') return '联系方式管理'
+  if (path === '/admin/working-hour') return '工作时间管理'
+  if (path === '/admin/faq') return '常见问题管理'
+  if (path === '/admin/feature') return '特色优势管理'
   if (path === '/admin/home') return '管理后台首页'
   return '管理后台'
 })
