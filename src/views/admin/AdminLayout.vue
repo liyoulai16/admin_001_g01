@@ -148,6 +148,34 @@
             </div>
           </transition>
         </div>
+        
+        <div class="nav-group">
+          <div 
+            class="nav-item nav-group-header" 
+            :class="{ active: isContactMenuActive, expanded: isContactMenuExpanded }"
+            @click="toggleContactMenu"
+          >
+            <span class="nav-icon">💬</span>
+            <span class="nav-text" v-if="!isSidebarCollapsed">联系管理</span>
+            <span class="nav-expand-icon" v-if="!isSidebarCollapsed">{{ isContactMenuExpanded ? '▼' : '▶' }}</span>
+          </div>
+          <transition name="menu-expand">
+            <div 
+              class="nav-group-items" 
+              v-show="isContactMenuExpanded && !isSidebarCollapsed"
+              :style="{ maxHeight: isContactMenuExpanded ? '200px' : '0px', opacity: isContactMenuExpanded ? '1' : '0' }"
+            >
+              <router-link 
+                to="/admin/message" 
+                class="nav-item nav-sub-item" 
+                :class="{ active: $route.path === '/admin/message' }"
+              >
+                <span class="nav-icon">📭</span>
+                <span class="nav-text">留言管理</span>
+              </router-link>
+            </div>
+          </transition>
+        </div>
       </nav>
       
       <div class="sidebar-footer">
@@ -251,6 +279,7 @@ const isHomeMenuExpanded = ref(true)
 const isServiceMenuExpanded = ref(true)
 const isForumMenuExpanded = ref(true)
 const isOrderMenuExpanded = ref(true)
+const isContactMenuExpanded = ref(true)
 
 const showPasswordModal = ref(false)
 const isSubmitting = ref(false)
@@ -278,6 +307,10 @@ const isOrderMenuActive = computed(() => {
   return route.path === '/admin/order'
 })
 
+const isContactMenuActive = computed(() => {
+  return route.path === '/admin/message'
+})
+
 const pageTitle = computed(() => {
   const path = route.path
   if (path === '/admin/carousel') return '轮播图管理'
@@ -287,6 +320,7 @@ const pageTitle = computed(() => {
   if (path === '/admin/forum-category') return '论坛版块管理'
   if (path === '/admin/forum-post') return '帖子管理'
   if (path === '/admin/order') return '订单管理'
+  if (path === '/admin/message') return '留言管理'
   if (path === '/admin/home') return '管理后台首页'
   return '管理后台'
 })
@@ -316,6 +350,12 @@ const toggleForumMenu = () => {
 const toggleOrderMenu = () => {
   if (!isSidebarCollapsed.value) {
     isOrderMenuExpanded.value = !isOrderMenuExpanded.value
+  }
+}
+
+const toggleContactMenu = () => {
+  if (!isSidebarCollapsed.value) {
+    isContactMenuExpanded.value = !isContactMenuExpanded.value
   }
 }
 

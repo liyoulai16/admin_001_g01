@@ -82,3 +82,24 @@ INSERT INTO service_item (category_id, name, icon, description, price, price_val
 (4, '社区活动', '🎉', '丰富多彩的社区活动，增进邻里关系，丰富业余生活。包括亲子活动、健身课程、文化讲座等。', '免费/低收费', 0.00, 4.6, 156, '["丰富多彩", "邻里互动", "专业指导", "安全保障"]', '我们定期组织各种社区活动，包括亲子活动、健身课程、文化讲座、手工制作、节日庆祝等。活动由专业人员指导，安全有保障，欢迎社区居民积极参与。', 1, 1),
 (5, '快递代收', '📦', '便捷的快递代收服务，让您不再错过任何包裹。支持多家快递公司，安全可靠。', '免费', 0.00, 4.5, 312, '["安全可靠", "多家快递", "随时取件", "短信通知"]', '我们的快递代收服务为您提供安全可靠的包裹代收服务。支持顺丰、圆通、中通、申通、韵达等多家快递公司。包裹到达后会有短信通知，您可以随时前来取件。', 1, 1),
 (6, '宠物服务', '🐕', '专业的宠物服务，包括宠物寄养、宠物美容、宠物医疗等。让您的爱宠得到专业照顾。', '¥30起', 30.00, 4.8, 198, '["专业护理", "安全环境", "24小时监护", "健康检查"]', '我们的宠物服务包括宠物寄养、宠物美容、宠物医疗、宠物训练等。由专业的宠物护理人员提供服务，确保您的爱宠得到专业、细心的照顾。', 1, 1);
+
+-- 留言表
+CREATE TABLE IF NOT EXISTS contact_message (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
+    name VARCHAR(50) NOT NULL COMMENT '姓名',
+    phone VARCHAR(20) NOT NULL COMMENT '电话',
+    email VARCHAR(100) DEFAULT NULL COMMENT '邮箱',
+    type VARCHAR(50) DEFAULT NULL COMMENT '咨询类型：service-服务咨询, complaint-投诉建议, cooperation-商务合作, other-其他问题',
+    message TEXT NOT NULL COMMENT '留言内容',
+    status TINYINT DEFAULT 0 COMMENT '状态：0-未处理，1-已处理，2-已回复',
+    reply TEXT DEFAULT NULL COMMENT '回复内容',
+    reply_by BIGINT DEFAULT NULL COMMENT '回复人ID（管理员ID）',
+    reply_time DATETIME DEFAULT NULL COMMENT '回复时间',
+    deleted TINYINT DEFAULT 0 COMMENT '逻辑删除：0-未删除，1-已删除',
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    KEY idx_status (status),
+    KEY idx_type (type),
+    KEY idx_phone (phone),
+    KEY idx_create_time (create_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='联系我们留言表';
