@@ -208,6 +208,58 @@
             </div>
           </transition>
         </div>
+
+        <div class="nav-group">
+          <div 
+            class="nav-item nav-group-header" 
+            :class="{ active: isAboutMenuActive, expanded: isAboutMenuExpanded }"
+            @click="toggleAboutMenu"
+          >
+            <span class="nav-icon">📖</span>
+            <span class="nav-text" v-if="!isSidebarCollapsed">关于我们管理</span>
+            <span class="nav-expand-icon" v-if="!isSidebarCollapsed">{{ isAboutMenuExpanded ? '▼' : '▶' }}</span>
+          </div>
+          <transition name="menu-expand">
+            <div 
+              class="nav-group-items" 
+              v-show="isAboutMenuExpanded && !isSidebarCollapsed"
+              :style="{ maxHeight: isAboutMenuExpanded ? '300px' : '0px', opacity: isAboutMenuExpanded ? '1' : '0' }"
+            >
+              <router-link 
+                to="/admin/about-mission" 
+                class="nav-item nav-sub-item" 
+                :class="{ active: $route.path === '/admin/about-mission' }"
+              >
+                <span class="nav-icon">🎯</span>
+                <span class="nav-text">使命管理</span>
+              </router-link>
+              <router-link 
+                to="/admin/about-value" 
+                class="nav-item nav-sub-item" 
+                :class="{ active: $route.path === '/admin/about-value' }"
+              >
+                <span class="nav-icon">💎</span>
+                <span class="nav-text">价值观管理</span>
+              </router-link>
+              <router-link 
+                to="/admin/about-stat" 
+                class="nav-item nav-sub-item" 
+                :class="{ active: $route.path === '/admin/about-stat' }"
+              >
+                <span class="nav-icon">📊</span>
+                <span class="nav-text">平台数据管理</span>
+              </router-link>
+              <router-link 
+                to="/admin/about-team" 
+                class="nav-item nav-sub-item" 
+                :class="{ active: $route.path === '/admin/about-team' }"
+              >
+                <span class="nav-icon">👥</span>
+                <span class="nav-text">核心团队管理</span>
+              </router-link>
+            </div>
+          </transition>
+        </div>
       </nav>
       
       <div class="sidebar-footer">
@@ -312,6 +364,7 @@ const isServiceMenuExpanded = ref(true)
 const isForumMenuExpanded = ref(true)
 const isOrderMenuExpanded = ref(true)
 const isContactMenuExpanded = ref(true)
+const isAboutMenuExpanded = ref(true)
 
 const showPasswordModal = ref(false)
 const isSubmitting = ref(false)
@@ -347,6 +400,13 @@ const isContactMenuActive = computed(() => {
     route.path === '/admin/feature'
 })
 
+const isAboutMenuActive = computed(() => {
+  return route.path === '/admin/about-mission' ||
+    route.path === '/admin/about-value' ||
+    route.path === '/admin/about-stat' ||
+    route.path === '/admin/about-team'
+})
+
 const pageTitle = computed(() => {
   const path = route.path
   if (path === '/admin/carousel') return '轮播图管理'
@@ -361,6 +421,10 @@ const pageTitle = computed(() => {
   if (path === '/admin/working-hour') return '工作时间管理'
   if (path === '/admin/faq') return '常见问题管理'
   if (path === '/admin/feature') return '特色优势管理'
+  if (path === '/admin/about-mission') return '使命管理'
+  if (path === '/admin/about-value') return '价值观管理'
+  if (path === '/admin/about-stat') return '平台数据管理'
+  if (path === '/admin/about-team') return '核心团队管理'
   if (path === '/admin/home') return '管理后台首页'
   return '管理后台'
 })
@@ -396,6 +460,12 @@ const toggleOrderMenu = () => {
 const toggleContactMenu = () => {
   if (!isSidebarCollapsed.value) {
     isContactMenuExpanded.value = !isContactMenuExpanded.value
+  }
+}
+
+const toggleAboutMenu = () => {
+  if (!isSidebarCollapsed.value) {
+    isAboutMenuExpanded.value = !isAboutMenuExpanded.value
   }
 }
 

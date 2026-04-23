@@ -190,3 +190,87 @@ INSERT INTO feature (icon, title, description, sort_order, status) VALUES
 ('🛡️', '安全保障', '您的个人信息严格保密', 2, 1),
 ('💯', '专业团队', '10年+社区服务经验', 3, 1),
 ('🌟', '用户好评', '98%的用户满意度', 4, 1);
+
+-- 我们的使命表
+CREATE TABLE IF NOT EXISTS about_mission (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
+    title VARCHAR(100) NOT NULL COMMENT '标题',
+    description TEXT COMMENT '描述',
+    image_url VARCHAR(500) DEFAULT NULL COMMENT '图片URL',
+    image_text VARCHAR(100) DEFAULT NULL COMMENT '图片说明文字',
+    status TINYINT DEFAULT 1 COMMENT '状态：1-正常，0-禁用',
+    deleted TINYINT DEFAULT 0 COMMENT '逻辑删除：0-未删除，1-已删除',
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    KEY idx_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='我们的使命表';
+
+-- 插入默认使命数据
+INSERT INTO about_mission (title, description, image_url, image_text, status) VALUES 
+('我们的使命', '社区生活服务平台致力于为社区居民提供便捷、优质的生活服务。我们相信，通过整合社区资源，可以让每一位居民的生活更加便利、更加美好。\n\n我们的平台连接了社区居民与各类服务提供者，包括家政服务、维修服务、配送服务等。通过严格的服务质量把控和用户评价体系，我们确保每一项服务都能达到高标准。', '', '社区服务中心', 1);
+
+-- 我们的价值观表
+CREATE TABLE IF NOT EXISTS about_value (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
+    icon VARCHAR(50) DEFAULT NULL COMMENT '图标',
+    title VARCHAR(100) NOT NULL COMMENT '标题',
+    description VARCHAR(500) NOT NULL COMMENT '描述',
+    sort_order INT DEFAULT 0 COMMENT '排序顺序',
+    status TINYINT DEFAULT 1 COMMENT '状态：1-正常，0-禁用',
+    deleted TINYINT DEFAULT 0 COMMENT '逻辑删除：0-未删除，1-已删除',
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    KEY idx_status (status),
+    KEY idx_sort_order (sort_order)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='我们的价值观表';
+
+-- 插入默认价值观数据
+INSERT INTO about_value (icon, title, description, sort_order, status) VALUES 
+('🎯', '用户至上', '始终将用户需求放在首位，不断优化服务体验，让每一位用户都能感受到贴心的服务。', 1, 1),
+('⭐', '品质保证', '严格筛选服务提供者，建立完善的质量监控体系，确保每一项服务都达到高品质标准。', 2, 1),
+('🤝', '诚信经营', '坚持透明、公正的经营理念，明码标价，无隐藏费用，让用户消费得明明白白。', 3, 1),
+('🚀', '持续创新', '不断探索新的服务模式和技术应用，为用户提供更加便捷、智能的生活服务体验。', 4, 1);
+
+-- 平台数据表
+CREATE TABLE IF NOT EXISTS about_stat (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
+    number_text VARCHAR(50) NOT NULL COMMENT '数字显示文本（如：50,000+）',
+    label VARCHAR(50) NOT NULL COMMENT '标签（如：注册用户）',
+    sort_order INT DEFAULT 0 COMMENT '排序顺序',
+    status TINYINT DEFAULT 1 COMMENT '状态：1-正常，0-禁用',
+    deleted TINYINT DEFAULT 0 COMMENT '逻辑删除：0-未删除，1-已删除',
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    KEY idx_status (status),
+    KEY idx_sort_order (sort_order)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='平台数据表';
+
+-- 插入默认平台数据
+INSERT INTO about_stat (number_text, label, sort_order, status) VALUES 
+('50,000+', '注册用户', 1, 1),
+('1,000+', '服务提供者', 2, 1),
+('100+', '服务项目', 3, 1),
+('98%', '用户满意度', 4, 1);
+
+-- 核心团队表
+CREATE TABLE IF NOT EXISTS about_team (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
+    avatar VARCHAR(50) DEFAULT NULL COMMENT '头像（emoji或URL）',
+    name VARCHAR(50) NOT NULL COMMENT '姓名',
+    role VARCHAR(50) NOT NULL COMMENT '职位',
+    bio VARCHAR(200) DEFAULT NULL COMMENT '简介',
+    sort_order INT DEFAULT 0 COMMENT '排序顺序',
+    status TINYINT DEFAULT 1 COMMENT '状态：1-正常，0-禁用',
+    deleted TINYINT DEFAULT 0 COMMENT '逻辑删除：0-未删除，1-已删除',
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    KEY idx_status (status),
+    KEY idx_sort_order (sort_order)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='核心团队表';
+
+-- 插入默认核心团队数据
+INSERT INTO about_team (avatar, name, role, bio, sort_order, status) VALUES 
+('👨‍💼', '张明', '创始人 & CEO', '拥有10年互联网行业经验，致力于打造最优质的社区生活服务平台。', 1, 1),
+('👩‍💻', '李华', '技术总监', '资深全栈工程师，负责平台技术架构设计和产品开发。', 2, 1),
+('👨‍🎨', '王强', '产品总监', '专注用户体验设计，致力于打造简洁易用的产品界面。', 3, 1),
+('👩‍💼', '陈静', '运营总监', '负责平台运营和用户增长，确保服务质量和用户满意度。', 4, 1);
