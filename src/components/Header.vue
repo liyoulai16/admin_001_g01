@@ -942,18 +942,25 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 0;
+  padding: 16px 0;
+  gap: 24px;
+}
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 24px;
 }
 
 .logo {
   display: flex;
   align-items: center;
-  font-size: 1.45rem;
+  font-size: 1.65rem;
   font-weight: 700;
   color: #2c3e50;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  padding: 8px 16px;
-  border-radius: 14px;
+  padding: 10px 20px;
+  border-radius: 16px;
   position: relative;
   overflow: hidden;
 }
@@ -982,8 +989,8 @@ onMounted(() => {
 }
 
 .logo-icon {
-  font-size: 1.75rem;
-  margin-right: 12px;
+  font-size: 2rem;
+  margin-right: 14px;
   transition: transform 0.3s ease;
   filter: drop-shadow(0 2px 4px rgba(107, 142, 35, 0.2));
 }
@@ -1036,11 +1043,11 @@ onMounted(() => {
 
 .nav {
   display: flex;
-  gap: 8px;
+  gap: 12px;
   flex-shrink: 0;
   background: rgba(248, 250, 252, 0.8);
-  padding: 6px 8px;
-  border-radius: 16px;
+  padding: 8px 12px;
+  border-radius: 18px;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.8);
@@ -1050,13 +1057,13 @@ onMounted(() => {
 }
 
 .nav-link {
-  font-size: 0.95rem;
+  font-size: 1.05rem;
   font-weight: 500;
   color: #64748b;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
-  padding: 10px 20px;
-  border-radius: 12px;
+  padding: 12px 24px;
+  border-radius: 14px;
   overflow: hidden;
   min-width: auto;
   text-align: center;
@@ -1201,19 +1208,19 @@ onMounted(() => {
 .user-info-group {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
 }
 
 .profile-btn {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 18px;
+  gap: 12px;
+  padding: 14px 22px;
   background: linear-gradient(135deg, #556B2F, #6B8E23);
   color: white;
   border: none;
-  border-radius: 12px;
-  font-size: 0.95rem;
+  border-radius: 14px;
+  font-size: 1.05rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -1249,7 +1256,7 @@ onMounted(() => {
 }
 
 .profile-icon {
-  font-size: 1.1rem;
+  font-size: 1.25rem;
 }
 
 .profile-text {
@@ -1257,12 +1264,12 @@ onMounted(() => {
 }
 
 .logout-btn {
-  padding: 10px 20px;
+  padding: 14px 24px;
   background: linear-gradient(135deg, #dc2626, #b91c1c);
   color: white;
   border: none;
-  border-radius: 12px;
-  font-size: 0.95rem;
+  border-radius: 14px;
+  font-size: 1.05rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -1298,11 +1305,11 @@ onMounted(() => {
 }
 
 .login-link {
-  padding: 10px 24px;
+  padding: 14px 28px;
   background: linear-gradient(135deg, #556B2F, #6B8E23);
   color: white;
-  border-radius: 12px;
-  font-size: 0.95rem;
+  border-radius: 14px;
+  font-size: 1.05rem;
   font-weight: 600;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;

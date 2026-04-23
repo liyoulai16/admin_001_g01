@@ -81,7 +81,7 @@
             <p>敬请期待平台最新动态</p>
           </div>
 
-          <div v-if="totalPages > 1" class="pagination-section">
+          <div v-if="announcements.length > 0" class="pagination-section">
             <div class="pagination">
               <button 
                 class="page-btn first-btn" 
