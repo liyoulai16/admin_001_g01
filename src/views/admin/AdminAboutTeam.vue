@@ -27,7 +27,6 @@
         </div>
         <div class="team-actions">
           <button class="action-btn edit" @click="openEditModal(team)">✏️ 编辑</button>
-          <button class="action-btn delete" @click="confirmDelete(team)">🗑️ 删除</button>
           <button 
             class="action-btn toggle" 
             :class="team.status === 1 ? 'disable' : 'enable'"
@@ -35,6 +34,7 @@
           >
             {{ team.status === 1 ? '❌ 禁用' : '✅ 启用' }}
           </button>
+          <button class="action-btn delete" @click="confirmDelete(team)">🗑️ 删除</button>
         </div>
       </div>
     </div>
