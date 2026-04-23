@@ -943,7 +943,8 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 16px 0;
-  gap: 24px;
+  gap: 16px;
+  flex-wrap: nowrap;
 }
 
 .container {
@@ -959,11 +960,12 @@ onMounted(() => {
   font-weight: 700;
   color: #2c3e50;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  padding: 6px 28px;
+  padding: 6px 16px;
   border-radius: 12px;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .logo::before {
@@ -1044,8 +1046,8 @@ onMounted(() => {
 
 .nav {
   display: flex;
-  gap: 12px;
-  flex-shrink: 0;
+  gap: 8px;
+  flex-shrink: 1;
   background: rgba(248, 250, 252, 0.8);
   padding: 8px 12px;
   border-radius: 18px;
@@ -1058,13 +1060,13 @@ onMounted(() => {
 }
 
 .nav-link {
-  font-size: 1.05rem;
+  font-size: 0.95rem;
   font-weight: 500;
   color: #64748b;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
-  padding: 12px 24px;
-  border-radius: 14px;
+  padding: 10px 16px;
+  border-radius: 12px;
   overflow: hidden;
   min-width: auto;
   text-align: center;
@@ -1397,11 +1399,14 @@ onMounted(() => {
   background: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
+  padding-top: 80px;
+  box-sizing: border-box;
   z-index: 2000;
   opacity: 0;
   visibility: hidden;
   transition: all 0.3s ease;
+  overflow-y: auto;
 }
 
 .modal-overlay.show {
@@ -1414,11 +1419,12 @@ onMounted(() => {
   border-radius: 16px;
   width: 90%;
   max-width: 480px;
-  max-height: 85vh;
+  max-height: calc(100vh - 120px);
   overflow-y: auto;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   transform: scale(0.9) translateY(20px);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-bottom: 40px;
 }
 
 .modal-overlay.show .modal-container {

@@ -25,10 +25,11 @@
         <div class="footer-section">
           <h4 class="footer-subtitle">服务项目</h4>
           <ul class="footer-links">
-            <li><router-link to="/services">家政服务</router-link></li>
-            <li><router-link to="/services">维修服务</router-link></li>
-            <li><router-link to="/services">配送服务</router-link></li>
-            <li><router-link to="/services">社区活动</router-link></li>
+            <li v-for="category in categories" :key="category.id">
+              <router-link :to="`/services?category=${encodeURIComponent(category.name)}`">
+                {{ category.icon || '📋' }} {{ category.name }}
+              </router-link>
+            </li>
           </ul>
         </div>
         <div class="footer-section">
@@ -48,6 +49,37 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue'
+import request from '../utils/request'
+
+const categories = ref([])
+
+const fetchCategories = async () => {
+  try {
+    const response = await request('/api/services/categories', {
+      method: 'GET'
+    })
+    
+    if (response.ok) {
+      const data = await response.json()
+      if (data.code === 200 && data.data) {
+        categories.value = data.data.slice(0, 4)
+      }
+    }
+  } catch (error) {
+    console.error('获取服务分类失败:', error)
+    categories.value = [
+      { id: 1, name: '家政服务', icon: '🧹' },
+      { id: 2, name: '维修服务', icon: '🔧' },
+      { id: 3, name: '配送服务', icon: '🚚' },
+      { id: 4, name: '社区活动', icon: '🎉' }
+    ]
+  }
+}
+
+onMounted(() => {
+  fetchCategories()
+})
 </script>
 
 <style scoped>
