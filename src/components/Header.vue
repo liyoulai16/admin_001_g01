@@ -992,17 +992,19 @@ onMounted(() => {
 
 .nav {
   display: flex;
-  gap: 30px;
+  gap: 45px;
 }
 
 .nav-link {
-  font-size: 1rem;
+  font-size: 1.05rem;
   color: #555;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
-  padding: 8px 16px;
+  padding: 10px 24px;
   border-radius: 8px;
   overflow: hidden;
+  min-width: 80px;
+  text-align: center;
 }
 
 .nav-link::before {

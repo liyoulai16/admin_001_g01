@@ -11,14 +11,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/admin/announcements")
+@RequestMapping("/api/admin")
 @CrossOrigin(origins = "*")
 public class AdminAnnouncementController {
     
     @Resource
     private AnnouncementService announcementService;
     
-    @GetMapping
+    @GetMapping("/announcements")
     public Result<Page<Announcement>> getAnnouncementList(
             @RequestParam(defaultValue = "1") int pageNum,
             @RequestParam(defaultValue = "10") int pageSize,
@@ -27,7 +27,7 @@ public class AdminAnnouncementController {
         return Result.success(page);
     }
     
-    @GetMapping("/{id}")
+    @GetMapping("/announcements/{id}")
     public Result<Announcement> getAnnouncementDetail(@PathVariable Long id) {
         Announcement announcement = announcementService.getAnnouncementById(id);
         if (announcement == null || announcement.getDeleted() == 1) {
@@ -36,7 +36,7 @@ public class AdminAnnouncementController {
         return Result.success(announcement);
     }
     
-    @PostMapping
+    @PostMapping("/announcements")
     public Result<Map<String, Object>> createAnnouncement(@RequestBody Announcement announcement) {
         boolean success = announcementService.createAnnouncement(announcement);
         Map<String, Object> result = new HashMap<>();
@@ -48,7 +48,7 @@ public class AdminAnnouncementController {
         }
     }
     
-    @PutMapping("/{id}")
+    @PutMapping("/announcements/{id}")
     public Result<String> updateAnnouncement(@PathVariable Long id, @RequestBody Announcement announcement) {
         announcement.setId(id);
         boolean success = announcementService.updateAnnouncement(announcement);
@@ -59,7 +59,7 @@ public class AdminAnnouncementController {
         }
     }
     
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/announcements/{id}")
     public Result<String> deleteAnnouncement(@PathVariable Long id) {
         boolean success = announcementService.deleteAnnouncement(id);
         if (success) {
@@ -69,7 +69,7 @@ public class AdminAnnouncementController {
         }
     }
     
-    @PutMapping("/{id}/toggle-pin")
+    @PutMapping("/announcements/{id}/toggle-pin")
     public Result<String> togglePin(@PathVariable Long id) {
         boolean success = announcementService.togglePin(id);
         if (success) {
@@ -79,7 +79,7 @@ public class AdminAnnouncementController {
         }
     }
     
-    @PutMapping("/{id}/toggle-status")
+    @PutMapping("/announcements/{id}/toggle-status")
     public Result<String> toggleStatus(@PathVariable Long id) {
         boolean success = announcementService.toggleStatus(id);
         if (success) {
