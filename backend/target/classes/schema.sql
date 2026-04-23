@@ -274,3 +274,29 @@ INSERT INTO about_team (avatar, name, role, bio, sort_order, status) VALUES
 ('👩‍💻', '李华', '技术总监', '资深全栈工程师，负责平台技术架构设计和产品开发。', 2, 1),
 ('👨‍🎨', '王强', '产品总监', '专注用户体验设计，致力于打造简洁易用的产品界面。', 3, 1),
 ('👩‍💼', '陈静', '运营总监', '负责平台运营和用户增长，确保服务质量和用户满意度。', 4, 1);
+
+-- 公告表
+CREATE TABLE IF NOT EXISTS announcement (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
+    title VARCHAR(200) NOT NULL COMMENT '公告标题',
+    content TEXT NOT NULL COMMENT '公告内容',
+    summary VARCHAR(500) DEFAULT NULL COMMENT '公告摘要',
+    cover_image VARCHAR(500) DEFAULT NULL COMMENT '封面图片URL',
+    is_pinned TINYINT DEFAULT 0 COMMENT '是否置顶：0-否，1-是',
+    sort_order INT DEFAULT 0 COMMENT '排序顺序',
+    status TINYINT DEFAULT 0 COMMENT '状态：0-草稿，1-已发布',
+    view_count INT DEFAULT 0 COMMENT '浏览次数',
+    deleted TINYINT DEFAULT 0 COMMENT '逻辑删除：0-未删除，1-已删除',
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    KEY idx_status (status),
+    KEY idx_is_pinned (is_pinned),
+    KEY idx_sort_order (sort_order),
+    KEY idx_create_time (create_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='公告表';
+
+-- 插入示例公告数据
+INSERT INTO announcement (title, content, summary, is_pinned, sort_order, status, view_count) VALUES 
+('平台系统升级通知', '尊敬的用户：\n\n为了提供更好的服务体验，我们计划于本周六（2026年4月25日）凌晨02:00-05:00进行系统升级维护。\n\n升级期间，平台部分功能可能暂时无法使用，请您提前做好安排。\n\n给您带来的不便，敬请谅解！\n\n如有任何问题，请联系客服热线：400-123-4567\n\n社区生活服务平台\n2026年4月23日', '平台将于4月25日凌晨进行系统升级维护', 1, 0, 1, 156),
+('新服务上线通知', '尊敬的用户：\n\n我们很高兴地宣布，平台新增了【宠物护理】服务！\n\n新服务包括：\n1. 宠物美容服务\n2. 宠物寄养服务\n3. 宠物医疗咨询\n4. 宠物训练课程\n\n欢迎广大宠物爱好者体验新服务！现在预约可享受首单8折优惠。\n\n预约方式：进入服务列表，选择【宠物护理】分类即可查看详情。\n\n社区生活服务平台\n2026年4月20日', '平台新增宠物护理服务，首单8折优惠', 1, 1, 1, 89),
+('春季养生小贴士', '春季是万物复苏的季节，也是养生的好时机。以下是一些春季养生小贴士：\n\n1. 饮食宜清淡，多吃新鲜蔬菜和水果\n2. 适当增加户外活动，多晒太阳\n3. 保持充足睡眠，早睡早起\n4. 注意保暖，适时增减衣物\n5. 保持心情舒畅，避免过度焦虑\n\n希望大家都能拥有健康的身体和愉快的心情！\n\n社区生活服务平台\n2026年4月15日', '春季养生小贴士，让您健康度过每一天', 0, 0, 1, 234);

@@ -9,6 +9,7 @@ import Contact from '../views/Contact.vue'
 import Login from '../views/Login.vue'
 import Register from '../views/Register.vue'
 import Orders from '../views/Orders.vue'
+import Announcements from '../views/Announcements.vue'
 import AdminLayout from '../views/admin/AdminLayout.vue'
 import AdminCarousel from '../views/admin/AdminCarousel.vue'
 import AdminIntro from '../views/admin/AdminIntro.vue'
@@ -26,6 +27,7 @@ import AdminAboutMission from '../views/admin/AdminAboutMission.vue'
 import AdminAboutValue from '../views/admin/AdminAboutValue.vue'
 import AdminAboutStat from '../views/admin/AdminAboutStat.vue'
 import AdminAboutTeam from '../views/admin/AdminAboutTeam.vue'
+import AdminAnnouncement from '../views/admin/AdminAnnouncement.vue'
 
 const routes = [
   {
@@ -86,6 +88,12 @@ const routes = [
     path: '/orders',
     name: 'Orders',
     component: Orders,
+    meta: { requiresAuth: true, userType: 'user' }
+  },
+  {
+    path: '/announcements',
+    name: 'Announcements',
+    component: Announcements,
     meta: { requiresAuth: true, userType: 'user' }
   },
   {
@@ -195,6 +203,12 @@ const routes = [
         path: 'about-team',
         name: 'AdminAboutTeam',
         component: AdminAboutTeam,
+        meta: { requiresAuth: true, userType: 'admin' }
+      },
+      {
+        path: 'announcement',
+        name: 'AdminAnnouncement',
+        component: AdminAnnouncement,
         meta: { requiresAuth: true, userType: 'admin' }
       }
     ]
