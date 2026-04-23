@@ -276,7 +276,7 @@ onMounted(() => {
 .image-placeholder {
   width: 100%;
   max-width: 400px;
-  height: 300px;
+  min-height: 300px;
   background: linear-gradient(135deg, #f5f7fa, #e4e8eb);
   border-radius: 15px;
   display: flex;
@@ -289,17 +289,19 @@ onMounted(() => {
 
 .image-placeholder.has-image {
   padding: 0;
+  min-height: auto;
+  height: auto;
 }
 
 .image-display {
   width: 100%;
-  height: 100%;
 }
 
 .image-display img {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: auto;
+  display: block;
+  border-radius: 15px;
 }
 
 .image-icon {
