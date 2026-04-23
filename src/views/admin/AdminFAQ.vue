@@ -23,7 +23,6 @@
         </div>
         <div class="faq-actions">
           <button class="action-btn edit" @click="openEditModal(faq)">✏️ 编辑</button>
-          <button class="action-btn delete" @click="confirmDelete(faq)">🗑️ 删除</button>
           <button 
             class="action-btn toggle" 
             :class="faq.status === 1 ? 'disable' : 'enable'"
@@ -31,9 +30,95 @@
           >
             {{ faq.status === 1 ? '❌ 禁用' : '✅ 启用' }}
           </button>
+          <button class="action-btn delete" @click="confirmDelete(faq)">🗑️ 删除</button>
         </div>
       </div>
     </div>
+    
+    <div class="pagination-section" v-if="faqs.length > 0">
+        <div class="pagination">
+          <button 
+            class="page-btn first-btn" 
+            :disabled="currentPage === 1"
+            @click="goToFirstPage"
+          >
+            首页
+          </button>
+          
+          <button 
+            class="page-btn prev-btn" 
+            :disabled="currentPage === 1"
+            @click="goToPrevPage"
+          >
+            上一页
+          </button>
+          
+          <button 
+            v-for="page in visiblePages" 
+            :key="page"
+            class="page-btn" 
+            :class="{ active: currentPage === page, 'ellipsis': page === '...' }"
+            @click="page !== '...' && goToPage(page)"
+            :disabled="page === '...'"
+          >
+            {{ page }}
+          </button>
+          
+          <button 
+            class="page-btn next-btn" 
+            :disabled="currentPage === totalPages || totalPages === 0"
+            @click="goToNextPage"
+          >
+            下一页
+          </button>
+          
+          <button 
+            class="page-btn last-btn" 
+            :disabled="currentPage === totalPages || totalPages === 0"
+            @click="goToLastPage"
+          >
+            尾页
+          </button>
+          
+          <div class="page-size-select">
+            <span class="size-label">每页显示</span>
+            <select v-model="pageSize" @change="handlePageSizeChange" class="size-select">
+              <option :value="10">10条</option>
+              <option :value="20">20条</option>
+              <option :value="50">50条</option>
+              <option :value="100">100条</option>
+            </select>
+          </div>
+          
+          <div class="page-jump">
+            <span class="jump-label">跳转到</span>
+            <input 
+              type="number" 
+              v-model="jumpPageInput" 
+              min="1"
+              :max="totalPages || 1"
+              @keyup.enter="handleJumpPage"
+              class="jump-input"
+              placeholder="页码"
+            />
+            <span class="jump-label">页</span>
+            <button class="jump-btn" @click="handleJumpPage">
+              确定
+            </button>
+          </div>
+          
+          <div class="page-info">
+            共 <span class="info-highlight">{{ totalPages || 1 }}</span> 页，
+            当前第 <span class="info-highlight">{{ currentPage }}</span> 页，
+            共 <span class="info-highlight">{{ total }}</span> 条记录
+          </div>
+        </div>
+        
+        <div class="pagination-toast" :class="{ show: showToast }">
+          <span class="toast-icon">{{ toastIcon }}</span>
+          <span class="toast-message">{{ toastMessage }}</span>
+        </div>
+      </div>
     
     <div class="empty-state" v-else>
       <div class="empty-icon">❓</div>
@@ -129,7 +214,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import request from '../../utils/request'
 
 const faqs = ref([])
@@ -141,6 +226,15 @@ const isDeleting = ref(false)
 const errorMessage = ref('')
 const successMessage = ref('')
 const deletingFAQ = ref(null)
+const currentPage = ref(1)
+const pageSize = ref(10)
+const total = ref(0)
+const totalPages = ref(0)
+const jumpPageInput = ref('')
+const showToast = ref(false)
+const toastMessage = ref('')
+const toastIcon = ref('⚠️')
+let toastTimer = null
 
 const form = reactive({
   id: null,
@@ -149,6 +243,49 @@ const form = reactive({
   sortOrder: 0,
   status: 1
 })
+
+const visiblePages = computed(() => {
+  const current = currentPage.value
+  const totalPagesVal = totalPages.value
+  const delta = 2
+  const range = []
+  const rangeWithDots = []
+  let l
+
+  for (let i = 1; i <= totalPagesVal; i++) {
+    if (i === 1 || i === totalPagesVal || (i >= current - delta && i <= current + delta)) {
+      range.push(i)
+    }
+  }
+
+  for (const i of range) {
+    if (l) {
+      if (i - l === 2) {
+        rangeWithDots.push(l + 1)
+      } else if (i - l !== 1) {
+        rangeWithDots.push('...')
+      }
+    }
+    rangeWithDots.push(i)
+    l = i
+  }
+
+  return rangeWithDots
+})
+
+const showToastMessage = (message, icon = '⚠️') => {
+  toastMessage.value = message
+  toastIcon.value = icon
+  showToast.value = true
+  
+  if (toastTimer) {
+    clearTimeout(toastTimer)
+  }
+  
+  toastTimer = setTimeout(() => {
+    showToast.value = false
+  }, 2000)
+}
 
 const resetForm = () => {
   form.id = null
@@ -162,11 +299,13 @@ const resetForm = () => {
 
 const loadFAQs = async () => {
   try {
-    const response = await request('/api/admin/faqs?pageNum=1&pageSize=100')
+    const response = await request(`/api/admin/faqs?pageNum=${currentPage.value}&pageSize=${pageSize.value}`)
     const data = await response.json()
     
     if (data.code === 200) {
       faqs.value = data.data.records || []
+      total.value = data.data.total || 0
+      totalPages.value = data.data.pages || 0
     }
   } catch (error) {
     console.error('加载常见问题失败:', error)
@@ -308,6 +447,66 @@ const formatDate = (dateStr) => {
   if (!dateStr) return '-'
   const date = new Date(dateStr)
   return date.toLocaleDateString('zh-CN')
+}
+
+const goToPage = (page) => {
+  if (page < 1 || page > totalPages.value) {
+    showToastMessage('页码超出范围', '⚠️')
+    return
+  }
+  currentPage.value = page
+  loadFAQs()
+}
+
+const goToPrevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--
+    loadFAQs()
+  }
+}
+
+const goToNextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++
+    loadFAQs()
+  }
+}
+
+const goToFirstPage = () => {
+  if (currentPage.value !== 1) {
+    currentPage.value = 1
+    loadFAQs()
+  }
+}
+
+const goToLastPage = () => {
+  if (currentPage.value !== totalPages.value && totalPages.value > 0) {
+    currentPage.value = totalPages.value
+    loadFAQs()
+  }
+}
+
+const handlePageSizeChange = () => {
+  currentPage.value = 1
+  loadFAQs()
+}
+
+const handleJumpPage = () => {
+  const page = parseInt(jumpPageInput.value)
+  
+  if (!jumpPageInput.value || isNaN(page)) {
+    showToastMessage('请输入有效的页码', '⚠️')
+    return
+  }
+  
+  if (page < 1 || page > totalPages.value) {
+    showToastMessage(`请输入1到${totalPages.value}之间的页码`, '⚠️')
+    return
+  }
+  
+  currentPage.value = page
+  jumpPageInput.value = ''
+  loadFAQs()
 }
 
 onMounted(() => {
@@ -749,6 +948,193 @@ onMounted(() => {
   font-size: 0.9rem;
   text-align: center;
   margin: 0 24px 24px;
+}
+
+.pagination-section {
+  margin-top: 24px;
+  position: relative;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 16px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.page-btn {
+  min-width: 40px;
+  height: 40px;
+  padding: 0 14px;
+  border: 2px solid #e4e8eb;
+  background: white;
+  color: #555;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.page-btn:hover:not(:disabled):not(.ellipsis):not(.active) {
+  border-color: #6B8E23;
+  background: #f8faf6;
+  color: #6B8E23;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(107, 142, 35, 0.2);
+}
+
+.page-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #f5f7fa;
+}
+
+.page-btn.active {
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
+  color: white;
+  border-color: #6B8E23;
+  box-shadow: 0 4px 15px rgba(107, 142, 35, 0.4);
+}
+
+.page-btn.first-btn,
+.page-btn.prev-btn,
+.page-btn.next-btn,
+.page-btn.last-btn {
+  padding: 0 16px;
+  min-width: auto;
+}
+
+.page-size-select {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 16px;
+}
+
+.size-label {
+  font-size: 0.9rem;
+  color: #7f8c8d;
+  font-weight: 500;
+}
+
+.size-select {
+  padding: 8px 14px;
+  border: 2px solid #e4e8eb;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  color: #2c3e50;
+  background: white;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.size-select:focus {
+  border-color: #6B8E23;
+  box-shadow: 0 0 0 4px rgba(107, 142, 35, 0.1);
+}
+
+.page-jump {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 16px;
+}
+
+.jump-label {
+  font-size: 0.9rem;
+  color: #7f8c8d;
+  font-weight: 500;
+}
+
+.jump-input {
+  width: 60px;
+  padding: 8px 12px;
+  border: 2px solid #e4e8eb;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  color: #2c3e50;
+  text-align: center;
+  outline: none;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.jump-input:focus {
+  border-color: #6B8E23;
+  box-shadow: 0 0 0 4px rgba(107, 142, 35, 0.1);
+}
+
+.jump-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.jump-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(107, 142, 35, 0.4);
+}
+
+.page-info {
+  font-size: 0.9rem;
+  color: #7f8c8d;
+  margin-left: 16px;
+  font-weight: 500;
+}
+
+.info-highlight {
+  color: #6B8E23;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.pagination-toast {
+  position: absolute;
+  top: -50px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 10px;
+  color: #856404;
+  font-size: 0.9rem;
+  font-weight: 500;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  z-index: 10;
+  box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2);
+}
+
+.pagination-toast.show {
+  opacity: 1;
+  visibility: visible;
+  top: -45px;
+}
+
+.toast-icon {
+  font-size: 1.1rem;
 }
 
 @media (max-width: 768px) {

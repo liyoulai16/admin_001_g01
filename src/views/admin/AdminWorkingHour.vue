@@ -23,7 +23,6 @@
         </div>
         <div class="hour-actions">
           <button class="action-btn edit" @click="openEditModal(hour)">✏️ 编辑</button>
-          <button class="action-btn delete" @click="confirmDelete(hour)">🗑️ 删除</button>
           <button 
             class="action-btn toggle" 
             :class="hour.status === 1 ? 'disable' : 'enable'"
@@ -31,6 +30,7 @@
           >
             {{ hour.status === 1 ? '❌ 禁用' : '✅ 启用' }}
           </button>
+          <button class="action-btn delete" @click="confirmDelete(hour)">🗑️ 删除</button>
         </div>
       </div>
     </div>
