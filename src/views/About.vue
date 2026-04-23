@@ -11,117 +11,64 @@
     </div>
 
     <div class="container">
-      <section class="about-section">
+      <section class="about-section" v-if="mission">
         <div class="about-content">
           <div class="about-text">
-            <h2 class="section-title">我们的使命</h2>
-            <p class="about-description">
-              社区生活服务平台致力于为社区居民提供便捷、优质的生活服务。我们相信，通过整合社区资源，
-              可以让每一位居民的生活更加便利、更加美好。
+            <h2 class="section-title">{{ mission.title || '我们的使命' }}</h2>
+            <p class="about-description" v-if="mission.description">
+              {{ mission.description }}
             </p>
-            <p class="about-description">
-              我们的平台连接了社区居民与各类服务提供者，包括家政服务、维修服务、配送服务等。
-              通过严格的服务质量把控和用户评价体系，我们确保每一项服务都能达到高标准。
+            <p class="about-description" v-else>
+              社区生活服务平台致力于为社区居民提供便捷、优质的生活服务。我们相信，通过整合社区资源，可以让每一位居民的生活更加便利、更加美好。
             </p>
           </div>
           <div class="about-image">
             <div class="image-placeholder">
-              <span class="image-icon">🏘️</span>
-              <span class="image-text">社区服务中心</span>
+              <span class="image-icon">{{ mission.imageUrl || '🏘️' }}</span>
+              <span class="image-text">{{ mission.imageText || '社区服务中心' }}</span>
             </div>
           </div>
         </div>
       </section>
 
-      <section class="values-section">
+      <section class="values-section" v-if="values.length > 0">
         <h2 class="section-title">我们的价值观</h2>
         <div class="values-grid">
-          <div class="value-item">
-            <span class="value-icon">🎯</span>
-            <h3 class="value-title">用户至上</h3>
-            <p class="value-description">
-              始终将用户需求放在首位，不断优化服务体验，让每一位用户都能感受到贴心的服务。
+          <div class="value-item" v-for="value in values" :key="value.id">
+            <span class="value-icon">{{ value.icon || '⭐' }}</span>
+            <h3 class="value-title">{{ value.title || '价值观' }}</h3>
+            <p class="value-description" v-if="value.description">
+              {{ value.description }}
             </p>
-          </div>
-          <div class="value-item">
-            <span class="value-icon">⭐</span>
-            <h3 class="value-title">品质保证</h3>
-            <p class="value-description">
-              严格筛选服务提供者，建立完善的质量监控体系，确保每一项服务都达到高品质标准。
-            </p>
-          </div>
-          <div class="value-item">
-            <span class="value-icon">🤝</span>
-            <h3 class="value-title">诚信经营</h3>
-            <p class="value-description">
-              坚持透明、公正的经营理念，明码标价，无隐藏费用，让用户消费得明明白白。
-            </p>
-          </div>
-          <div class="value-item">
-            <span class="value-icon">🚀</span>
-            <h3 class="value-title">持续创新</h3>
-            <p class="value-description">
-              不断探索新的服务模式和技术应用，为用户提供更加便捷、智能的生活服务体验。
+            <p class="value-description" v-else>
+              提供优质的生活服务，让社区生活更美好。
             </p>
           </div>
         </div>
       </section>
 
-      <section class="stats-section">
+      <section class="stats-section" v-if="stats.length > 0">
         <h2 class="section-title">平台数据</h2>
         <div class="stats-grid">
-          <div class="stat-item">
-            <span class="stat-number">50,000+</span>
-            <span class="stat-label">注册用户</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-number">1,000+</span>
-            <span class="stat-label">服务提供者</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-number">100+</span>
-            <span class="stat-label">服务项目</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-number">98%</span>
-            <span class="stat-label">用户满意度</span>
+          <div class="stat-item" v-for="stat in stats" :key="stat.id">
+            <span class="stat-number">{{ stat.numberText || '0' }}</span>
+            <span class="stat-label">{{ stat.label || '数据' }}</span>
           </div>
         </div>
       </section>
 
-      <section class="team-section">
+      <section class="team-section" v-if="teams.length > 0">
         <h2 class="section-title">核心团队</h2>
         <div class="team-grid">
-          <div class="team-member">
-            <div class="member-avatar">👨‍💼</div>
-            <h3 class="member-name">张明</h3>
-            <p class="member-role">创始人 & CEO</p>
-            <p class="member-bio">
-              拥有10年互联网行业经验，致力于打造最优质的社区生活服务平台。
+          <div class="team-member" v-for="member in teams" :key="member.id">
+            <div class="member-avatar">{{ member.avatar || '👤' }}</div>
+            <h3 class="member-name">{{ member.name || '成员' }}</h3>
+            <p class="member-role">{{ member.role || '职位' }}</p>
+            <p class="member-bio" v-if="member.bio">
+              {{ member.bio }}
             </p>
-          </div>
-          <div class="team-member">
-            <div class="member-avatar">👩‍💻</div>
-            <h3 class="member-name">李华</h3>
-            <p class="member-role">技术总监</p>
-            <p class="member-bio">
-              资深全栈工程师，负责平台技术架构设计和产品开发。
-            </p>
-          </div>
-          <div class="team-member">
-            <div class="member-avatar">👨‍🎨</div>
-            <h3 class="member-name">王强</h3>
-            <p class="member-role">产品总监</p>
-            <p class="member-bio">
-              专注用户体验设计，致力于打造简洁易用的产品界面。
-            </p>
-          </div>
-          <div class="team-member">
-            <div class="member-avatar">👩‍💼</div>
-            <h3 class="member-name">陈静</h3>
-            <p class="member-role">运营总监</p>
-            <p class="member-bio">
-              负责平台运营和用户增长，确保服务质量和用户满意度。
+            <p class="member-bio" v-else>
+              致力于为用户提供优质的服务体验。
             </p>
           </div>
         </div>
@@ -131,6 +78,14 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue'
+import { request } from '../utils/request'
+
+const mission = ref(null)
+const values = ref([])
+const stats = ref([])
+const teams = ref([])
+
 const getParticleStyle = (index) => {
   const size = Math.random() * 8 + 4
   const left = Math.random() * 100
@@ -146,6 +101,39 @@ const getParticleStyle = (index) => {
     opacity: Math.random() * 0.5 + 0.2
   }
 }
+
+const fetchAboutData = async () => {
+  try {
+    const response = await request('/api/about/data')
+    const data = await response.json()
+    
+    if (data.code === 200 || data.success) {
+      const result = data.data || data.result || data
+      
+      if (result.mission) {
+        mission.value = result.mission
+      }
+      
+      if (result.values && Array.isArray(result.values)) {
+        values.value = result.values
+      }
+      
+      if (result.stats && Array.isArray(result.stats)) {
+        stats.value = result.stats
+      }
+      
+      if (result.teams && Array.isArray(result.teams)) {
+        teams.value = result.teams
+      }
+    }
+  } catch (error) {
+    console.error('Failed to fetch about data:', error)
+  }
+}
+
+onMounted(() => {
+  fetchAboutData()
+})
 </script>
 
 <style scoped>

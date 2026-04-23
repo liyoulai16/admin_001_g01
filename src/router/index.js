@@ -22,6 +22,10 @@ import AdminContactCard from '../views/admin/AdminContactCard.vue'
 import AdminWorkingHour from '../views/admin/AdminWorkingHour.vue'
 import AdminFAQ from '../views/admin/AdminFAQ.vue'
 import AdminFeature from '../views/admin/AdminFeature.vue'
+import AdminAboutMission from '../views/admin/AdminAboutMission.vue'
+import AdminAboutValue from '../views/admin/AdminAboutValue.vue'
+import AdminAboutStat from '../views/admin/AdminAboutStat.vue'
+import AdminAboutTeam from '../views/admin/AdminAboutTeam.vue'
 
 const routes = [
   {
@@ -167,6 +171,30 @@ const routes = [
         path: 'feature',
         name: 'AdminFeature',
         component: AdminFeature,
+        meta: { requiresAuth: true, userType: 'admin' }
+      },
+      {
+        path: 'about-mission',
+        name: 'AdminAboutMission',
+        component: AdminAboutMission,
+        meta: { requiresAuth: true, userType: 'admin' }
+      },
+      {
+        path: 'about-value',
+        name: 'AdminAboutValue',
+        component: AdminAboutValue,
+        meta: { requiresAuth: true, userType: 'admin' }
+      },
+      {
+        path: 'about-stat',
+        name: 'AdminAboutStat',
+        component: AdminAboutStat,
+        meta: { requiresAuth: true, userType: 'admin' }
+      },
+      {
+        path: 'about-team',
+        name: 'AdminAboutTeam',
+        component: AdminAboutTeam,
         meta: { requiresAuth: true, userType: 'admin' }
       }
     ]
