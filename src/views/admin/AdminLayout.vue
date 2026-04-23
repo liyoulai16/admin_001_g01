@@ -45,6 +45,14 @@
                 <span class="nav-icon">📋</span>
                 <span class="nav-text">平台简介管理</span>
               </router-link>
+              <router-link 
+                to="/admin/announcement" 
+                class="nav-item nav-sub-item" 
+                :class="{ active: $route.path === '/admin/announcement' }"
+              >
+                <span class="nav-icon">📢</span>
+                <span class="nav-text">公告管理</span>
+              </router-link>
             </div>
           </transition>
         </div>
@@ -377,7 +385,7 @@ const passwordForm = ref({
 })
 
 const isHomeMenuActive = computed(() => {
-  return route.path === '/admin/carousel' || route.path === '/admin/intro'
+  return route.path === '/admin/carousel' || route.path === '/admin/intro' || route.path === '/admin/announcement'
 })
 
 const isServiceMenuActive = computed(() => {
@@ -411,6 +419,7 @@ const pageTitle = computed(() => {
   const path = route.path
   if (path === '/admin/carousel') return '轮播图管理'
   if (path === '/admin/intro') return '平台简介管理'
+  if (path === '/admin/announcement') return '公告管理'
   if (path === '/admin/service-category') return '服务分类管理'
   if (path === '/admin/service') return '服务管理'
   if (path === '/admin/forum-category') return '论坛版块管理'
