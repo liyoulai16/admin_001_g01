@@ -23,9 +23,14 @@
             </p>
           </div>
           <div class="about-image">
-            <div class="image-placeholder">
-              <span class="image-icon">{{ mission.imageUrl || '🏘️' }}</span>
-              <span class="image-text">{{ mission.imageText || '社区服务中心' }}</span>
+            <div class="image-placeholder" :class="{ 'has-image': hasImageUrl }">
+              <div class="image-display" v-if="hasImageUrl">
+                <img :src="mission.imageUrl" alt="图片" @error="handleImageError" />
+              </div>
+              <template v-else>
+                <span class="image-icon">{{ mission.imageUrl || '🏘️' }}</span>
+                <span class="image-text">{{ mission.imageText || '社区服务中心' }}</span>
+              </template>
             </div>
           </div>
         </div>
@@ -78,13 +83,26 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { request } from '../utils/request'
 
 const mission = ref(null)
 const values = ref([])
 const stats = ref([])
 const teams = ref([])
+
+const hasImageUrl = computed(() => {
+  if (!mission.value || !mission.value.imageUrl) {
+    return false
+  }
+  const url = mission.value.imageUrl.trim()
+  return url.startsWith('http://') || url.startsWith('https://')
+})
+
+const handleImageError = (e) => {
+  e.target.style.display = 'none'
+  e.target.parentElement.innerHTML = '<span class="image-icon">🏘️</span>'
+}
 
 const getParticleStyle = (index) => {
   const size = Math.random() * 8 + 4
@@ -266,6 +284,22 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.image-placeholder.has-image {
+  padding: 0;
+}
+
+.image-display {
+  width: 100%;
+  height: 100%;
+}
+
+.image-display img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .image-icon {

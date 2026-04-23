@@ -25,7 +25,6 @@
         </div>
         <div class="stat-actions">
           <button class="action-btn edit" @click="openEditModal(stat)">✏️ 编辑</button>
-          <button class="action-btn delete" @click="confirmDelete(stat)">🗑️ 删除</button>
           <button 
             class="action-btn toggle" 
             :class="stat.status === 1 ? 'disable' : 'enable'"
@@ -33,6 +32,7 @@
           >
             {{ stat.status === 1 ? '❌ 禁用' : '✅ 启用' }}
           </button>
+          <button class="action-btn delete" @click="confirmDelete(stat)">🗑️ 删除</button>
         </div>
       </div>
     </div>
