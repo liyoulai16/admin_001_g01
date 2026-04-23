@@ -367,12 +367,12 @@ const router = useRouter()
 
 const isSidebarCollapsed = ref(false)
 const username = ref(localStorage.getItem('username') || '管理员')
-const isHomeMenuExpanded = ref(true)
-const isServiceMenuExpanded = ref(true)
-const isForumMenuExpanded = ref(true)
-const isOrderMenuExpanded = ref(true)
-const isContactMenuExpanded = ref(true)
-const isAboutMenuExpanded = ref(true)
+const isHomeMenuExpanded = ref(false)
+const isServiceMenuExpanded = ref(false)
+const isForumMenuExpanded = ref(false)
+const isOrderMenuExpanded = ref(false)
+const isContactMenuExpanded = ref(false)
+const isAboutMenuExpanded = ref(false)
 
 const showPasswordModal = ref(false)
 const isSubmitting = ref(false)
@@ -639,6 +639,27 @@ const submitPasswordChange = async () => {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.sidebar-nav::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  transition: all 0.3s ease;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.35);
 }
 
 .nav-group {
