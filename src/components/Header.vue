@@ -959,10 +959,11 @@ onMounted(() => {
   font-weight: 700;
   color: #2c3e50;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  padding: 10px 20px;
-  border-radius: 16px;
+  padding: 6px 28px;
+  border-radius: 12px;
   position: relative;
   overflow: hidden;
+  white-space: nowrap;
 }
 
 .logo::before {
@@ -1214,18 +1215,19 @@ onMounted(() => {
 .profile-btn {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 14px 22px;
+  gap: 10px;
+  padding: 8px 28px;
   background: linear-gradient(135deg, #556B2F, #6B8E23);
   color: white;
   border: none;
-  border-radius: 14px;
+  border-radius: 10px;
   font-size: 1.05rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
+  white-space: nowrap;
   box-shadow: 
     0 2px 8px rgba(85, 107, 47, 0.25),
     inset 0 1px 0 rgba(255, 255, 255, 0.15);
@@ -1264,17 +1266,18 @@ onMounted(() => {
 }
 
 .logout-btn {
-  padding: 14px 24px;
+  padding: 8px 28px;
   background: linear-gradient(135deg, #dc2626, #b91c1c);
   color: white;
   border: none;
-  border-radius: 14px;
+  border-radius: 10px;
   font-size: 1.05rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
+  white-space: nowrap;
   box-shadow: 
     0 2px 8px rgba(220, 38, 38, 0.25),
     inset 0 1px 0 rgba(255, 255, 255, 0.15);
