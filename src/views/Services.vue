@@ -278,7 +278,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import request from '../utils/request'
 
@@ -706,7 +706,7 @@ const handleClickOutside = (e) => {
   }
 }
 
-onMounted(() => {
+const loadFromRouteParams = () => {
   const searchParam = route.query.search
   const categoryParam = route.query.category
   
@@ -716,9 +716,23 @@ onMounted(() => {
   
   if (categoryParam) {
     selectedCategory.value = decodeURIComponent(categoryParam)
+  } else {
+    selectedCategory.value = '全部'
   }
   
+  currentPage.value = 1
   fetchServices()
+}
+
+watch(
+  () => route.query,
+  () => {
+    loadFromRouteParams()
+  }
+)
+
+onMounted(() => {
+  loadFromRouteParams()
   document.addEventListener('click', handleClickOutside)
 })
 
