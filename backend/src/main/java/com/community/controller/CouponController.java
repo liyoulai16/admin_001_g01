@@ -1,5 +1,6 @@
 package com.community.controller;
 
+import com.community.common.PageResult;
 import com.community.common.Result;
 import com.community.entity.Coupon;
 import com.community.entity.UserCoupon;
@@ -40,7 +41,7 @@ public class CouponController {
             userId = 1L;
         }
         
-        var pageResult = userCouponService.getUserCoupons(userId, status, current, size);
+        PageResult<UserCoupon> pageResult = userCouponService.getUserCoupons(userId, status, current, size);
         
         Map<String, Object> result = new HashMap<>();
         result.put("records", pageResult.getRecords());
