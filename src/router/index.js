@@ -29,6 +29,7 @@ import AdminAboutValue from '../views/admin/AdminAboutValue.vue'
 import AdminAboutStat from '../views/admin/AdminAboutStat.vue'
 import AdminAboutTeam from '../views/admin/AdminAboutTeam.vue'
 import AdminAnnouncement from '../views/admin/AdminAnnouncement.vue'
+import AdminCoupon from '../views/admin/AdminCoupon.vue'
 
 const routes = [
   {
@@ -216,6 +217,12 @@ const routes = [
         path: 'announcement',
         name: 'AdminAnnouncement',
         component: AdminAnnouncement,
+        meta: { requiresAuth: true, userType: 'admin' }
+      },
+      {
+        path: 'coupon',
+        name: 'AdminCoupon',
+        component: AdminCoupon,
         meta: { requiresAuth: true, userType: 'admin' }
       }
     ]
