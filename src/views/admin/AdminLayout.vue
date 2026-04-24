@@ -268,6 +268,34 @@
             </div>
           </transition>
         </div>
+
+        <div class="nav-group">
+          <div 
+            class="nav-item nav-group-header" 
+            :class="{ active: isMarketingMenuActive, expanded: isMarketingMenuExpanded }"
+            @click="toggleMarketingMenu"
+          >
+            <span class="nav-icon">🎫</span>
+            <span class="nav-text" v-if="!isSidebarCollapsed">营销管理</span>
+            <span class="nav-expand-icon" v-if="!isSidebarCollapsed">{{ isMarketingMenuExpanded ? '▼' : '▶' }}</span>
+          </div>
+          <transition name="menu-expand">
+            <div 
+              class="nav-group-items" 
+              v-show="isMarketingMenuExpanded && !isSidebarCollapsed"
+              :style="{ maxHeight: isMarketingMenuExpanded ? '100px' : '0px', opacity: isMarketingMenuExpanded ? '1' : '0' }"
+            >
+              <router-link 
+                to="/admin/coupon" 
+                class="nav-item nav-sub-item" 
+                :class="{ active: $route.path === '/admin/coupon' }"
+              >
+                <span class="nav-icon">🎫</span>
+                <span class="nav-text">优惠券管理</span>
+              </router-link>
+            </div>
+          </transition>
+        </div>
       </nav>
       
       <div class="sidebar-footer">
@@ -373,6 +401,7 @@ const isForumMenuExpanded = ref(false)
 const isOrderMenuExpanded = ref(false)
 const isContactMenuExpanded = ref(false)
 const isAboutMenuExpanded = ref(false)
+const isMarketingMenuExpanded = ref(false)
 
 const showPasswordModal = ref(false)
 const isSubmitting = ref(false)
@@ -415,6 +444,10 @@ const isAboutMenuActive = computed(() => {
     route.path === '/admin/about-team'
 })
 
+const isMarketingMenuActive = computed(() => {
+  return route.path === '/admin/coupon'
+})
+
 const pageTitle = computed(() => {
   const path = route.path
   if (path === '/admin/carousel') return '轮播图管理'
@@ -434,6 +467,7 @@ const pageTitle = computed(() => {
   if (path === '/admin/about-value') return '价值观管理'
   if (path === '/admin/about-stat') return '平台数据管理'
   if (path === '/admin/about-team') return '核心团队管理'
+  if (path === '/admin/coupon') return '优惠券管理'
   if (path === '/admin/home') return '管理后台首页'
   return '管理后台'
 })
@@ -475,6 +509,12 @@ const toggleContactMenu = () => {
 const toggleAboutMenu = () => {
   if (!isSidebarCollapsed.value) {
     isAboutMenuExpanded.value = !isAboutMenuExpanded.value
+  }
+}
+
+const toggleMarketingMenu = () => {
+  if (!isSidebarCollapsed.value) {
+    isMarketingMenuExpanded.value = !isMarketingMenuExpanded.value
   }
 }
 

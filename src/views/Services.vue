@@ -12,8 +12,8 @@
           <div class="browsing-info">
             <span class="browsing-icon">⏱️</span>
             <span class="browsing-text">
-              已浏览: <strong>{{ formattedBrowsingTime }}</strong> / 60分钟
-              <span class="reward-hint">（满60分钟可获得优惠券奖励）</span>
+              已浏览: <strong>{{ formattedBrowsingTime }}</strong> / 1分钟
+              <span class="reward-hint">（满1分钟可获得优惠券奖励）</span>
             </span>
           </div>
           <div class="progress-bar-wrapper">
@@ -312,10 +312,10 @@ import {
   getBrowsingTime,
   saveBrowsingTime,
   isBrowseRewardClaimed,
-  setBrowseRewardClaimed,
-  addCoupon,
-  formatTime,
-  COUPON_TYPES
+  fetchBrowsingStatus,
+  updateBrowsingTime,
+  claimBrowseReward,
+  formatTime
 } from '../data/coupons'
 
 const route = useRoute()
@@ -439,8 +439,10 @@ const visiblePages = computed(() => {
   return rangeWithDots
 })
 
+const requiredSeconds = ref(60)
+
 const browsingProgress = computed(() => {
-  const progress = (browsingTime.value / 3600) * 100
+  const progress = (browsingTime.value / requiredSeconds.value) * 100
   return Math.min(progress, 100)
 })
 
@@ -449,15 +451,16 @@ const formattedBrowsingTime = computed(() => {
 })
 
 const canClaimReward = computed(() => {
-  return browsingTime.value >= 3600 && !isRewardClaimed.value
+  return browsingTime.value >= requiredSeconds.value && !isRewardClaimed.value
 })
 
 const startBrowsingTimer = () => {
   if (browsingTimer) return
   
-  browsingTimer = setInterval(() => {
-    if (browsingTime.value < 3600) {
+  browsingTimer = setInterval(async () => {
+    if (browsingTime.value < requiredSeconds.value) {
       browsingTime.value++
+      await updateBrowsingTime(1)
     }
   }, 1000)
 }
@@ -469,35 +472,24 @@ const stopBrowsingTimer = () => {
   }
 }
 
-const claimBrowseReward = () => {
+const loadBrowsingStatus = async () => {
+  const status = await fetchBrowsingStatus()
+  browsingTime.value = status.totalSeconds || 0
+  requiredSeconds.value = status.requiredSeconds || 60
+  isRewardClaimed.value = status.rewardClaimed || false
+}
+
+const claimBrowseReward = async () => {
   if (!canClaimReward.value) return
   
-  const currentDate = new Date()
-  const endDate = new Date(currentDate)
-  endDate.setDate(endDate.getDate() + 30)
+  const result = await claimBrowseReward()
   
-  const coupon = {
-    id: `browse_reward_${Date.now()}`,
-    name: '浏览奖励优惠券',
-    type: COUPON_TYPES.DISCOUNT,
-    discount: 0.85,
-    maxDiscount: 20,
-    amount: null,
-    condition: {
-      minAmount: 0,
-      excludeCategories: []
-    },
-    validFrom: currentDate.toISOString(),
-    validUntil: endDate.toISOString(),
-    description: '感谢您浏览服务满60分钟，赠送8.5折优惠券（最高减免20元）',
-    serviceCategories: []
+  if (result.code === 200) {
+    isRewardClaimed.value = true
+    showToastMessage('🎉 恭喜获得浏览奖励优惠券！', '🎁')
+  } else {
+    showToastMessage(result.message || '领取失败', '⚠️')
   }
-  
-  addCoupon(coupon)
-  setBrowseRewardClaimed()
-  isRewardClaimed.value = true
-  
-  showToastMessage('🎉 恭喜获得浏览奖励优惠券！', '🎁')
 }
 
 const togglePriceFilter = () => {
@@ -832,24 +824,21 @@ watch(
   }
 )
 
-onMounted(() => {
+onMounted(async () => {
   loadFromRouteParams()
   document.addEventListener('click', handleClickOutside)
   
-  browsingTime.value = getBrowsingTime()
-  isRewardClaimed.value = isBrowseRewardClaimed()
+  await loadBrowsingStatus()
   startBrowsingTimer()
 })
 
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
   stopBrowsingTimer()
-  saveBrowsingTime(browsingTime.value)
 })
 
 onBeforeRouteLeave(() => {
   stopBrowsingTimer()
-  saveBrowsingTime(browsingTime.value)
 })
 </script>
 

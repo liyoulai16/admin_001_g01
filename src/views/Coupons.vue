@@ -7,18 +7,18 @@
       <div class="container">
         <h1 class="page-title">我的优惠券</h1>
         <p class="page-subtitle">查看和管理您的专属优惠券</p>
-        <div class="browse-reward-info" v-if="browsingTime < 3600 && !isRewardClaimed">
+        <div class="browse-reward-info" v-if="!canClaimReward && !isRewardClaimed">
           <div class="reward-progress">
             <div class="progress-bar">
               <div class="progress-fill" :style="{ width: progressPercent + '%' }"></div>
             </div>
             <div class="progress-info">
-              <span class="progress-text">浏览服务列表满60分钟可获得优惠券</span>
-              <span class="progress-time">{{ browsingTimeFormatted }} / 60分钟</span>
+              <span class="progress-text">浏览服务列表满1分钟可获得优惠券</span>
+              <span class="progress-time">{{ browsingTimeFormatted }} / 1分钟</span>
             </div>
           </div>
         </div>
-        <div class="reward-available" v-else-if="browsingTime >= 3600 && !isRewardClaimed">
+        <div class="reward-available" v-else-if="canClaimReward && !isRewardClaimed">
           <div class="reward-alert">
             <span class="reward-icon">🎉</span>
             <span class="reward-text">恭喜！您已获得浏览奖励优惠券</span>
@@ -161,13 +161,14 @@ import {
   COUPON_STATUS,
   getUserCoupons,
   getUserCouponsByStatus,
-  addCoupon,
-  getBrowsingTime,
-  saveBrowsingTime,
-  isBrowseRewardClaimed,
-  setBrowseRewardClaimed,
+  fetchUserCoupons,
+  fetchBrowsingStatus,
+  updateBrowsingTime,
+  claimBrowseReward,
   formatTime,
-  getCouponTypeText
+  getCouponTypeText,
+  getCouponDisplayValue,
+  getCouponCondition
 } from '../data/coupons'
 
 const router = useRouter()
@@ -178,6 +179,7 @@ const selectedCoupon = ref(null)
 const showUseModal = ref(false)
 const browsingTime = ref(0)
 const isRewardClaimed = ref(false)
+const requiredSeconds = ref(60)
 let browsingTimer = null
 
 const getParticleStyle = (index) => {
@@ -211,7 +213,7 @@ const filteredCoupons = computed(() => {
 })
 
 const progressPercent = computed(() => {
-  const percent = (browsingTime.value / 3600) * 100
+  const percent = (browsingTime.value / requiredSeconds.value) * 100
   return Math.min(percent, 100)
 })
 
@@ -219,8 +221,17 @@ const browsingTimeFormatted = computed(() => {
   return formatTime(browsingTime.value)
 })
 
-const loadCoupons = () => {
-  coupons.value = getUserCoupons()
+const canClaimReward = computed(() => {
+  return browsingTime.value >= requiredSeconds.value && !isRewardClaimed.value
+})
+
+const loadCoupons = async () => {
+  const result = await fetchUserCoupons(activeTab.value, 1, 50)
+  if (result.records && result.records.length > 0) {
+    coupons.value = result.records
+  } else {
+    coupons.value = getUserCoupons()
+  }
 }
 
 const switchTab = (tabValue) => {
@@ -231,29 +242,6 @@ const getCouponCardClass = (coupon) => {
   if (coupon.status === COUPON_STATUS.USED) return 'used'
   if (coupon.status === COUPON_STATUS.EXPIRED) return 'expired'
   if (coupon.type === COUPON_TYPES.DISCOUNT) return 'discount'
-  return ''
-}
-
-const getCouponDisplayValue = (coupon) => {
-  if (coupon.type === COUPON_TYPES.FULL_REDUCTION) {
-    return coupon.discountAmount
-  }
-  if (coupon.type === COUPON_TYPES.DISCOUNT) {
-    return Math.round(coupon.discountPercent * 10)
-  }
-  return 0
-}
-
-const getCouponCondition = (coupon) => {
-  if (coupon.type === COUPON_TYPES.FULL_REDUCTION) {
-    return `满${coupon.minSpend}元可用`
-  }
-  if (coupon.type === COUPON_TYPES.DISCOUNT) {
-    if (coupon.maxDiscount) {
-      return `最高减${coupon.maxDiscount}元`
-    }
-    return '无门槛'
-  }
   return ''
 }
 
@@ -286,35 +274,40 @@ const goToServices = () => {
   router.push('/services')
 }
 
-const claimReward = () => {
-  if (isRewardClaimed.value || browsingTime.value < 3600) return
+const claimReward = async () => {
+  if (isRewardClaimed.value || browsingTime.value < requiredSeconds.value) return
   
-  const rewardCoupon = {
-    name: '浏览奖励专享券',
-    type: COUPON_TYPES.FULL_REDUCTION,
-    description: '满100减30',
-    discountAmount: 30,
-    minSpend: 100,
-    discountPercent: null,
-    maxDiscount: null,
-    validFrom: new Date().toISOString().split('T')[0],
-    validTo: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    category: null,
-    serviceId: null
+  const result = await claimBrowseReward()
+  
+  if (result.code === 200) {
+    isRewardClaimed.value = true
+    loadCoupons()
+    const coupon = result.data?.coupon
+    if (coupon) {
+      alert(`🎉 恭喜！您已成功领取浏览奖励优惠券！\n\n获得：${coupon.name}`)
+    } else {
+      alert('🎉 恭喜！您已成功领取浏览奖励优惠券！')
+    }
+  } else {
+    alert(`领取失败：${result.message || '未知错误'}`)
   }
-  
-  addCoupon(rewardCoupon)
-  setBrowseRewardClaimed()
-  isRewardClaimed.value = true
-  loadCoupons()
-  
-  alert('🎉 恭喜！您已成功领取浏览奖励优惠券！\n\n获得：浏览奖励专享券（满100减30）')
+}
+
+const loadBrowsingStatus = async () => {
+  const status = await fetchBrowsingStatus()
+  browsingTime.value = status.totalSeconds || 0
+  requiredSeconds.value = status.requiredSeconds || 60
+  isRewardClaimed.value = status.rewardClaimed || false
 }
 
 const startBrowsingTimer = () => {
-  browsingTimer = setInterval(() => {
-    browsingTime.value++
-    saveBrowsingTime(browsingTime.value)
+  if (browsingTimer) return
+  
+  browsingTimer = setInterval(async () => {
+    if (browsingTime.value < requiredSeconds.value) {
+      browsingTime.value++
+      await updateBrowsingTime(1)
+    }
   }, 1000)
 }
 
@@ -325,10 +318,9 @@ const stopBrowsingTimer = () => {
   }
 }
 
-onMounted(() => {
-  loadCoupons()
-  browsingTime.value = getBrowsingTime()
-  isRewardClaimed.value = isBrowseRewardClaimed()
+onMounted(async () => {
+  await loadCoupons()
+  await loadBrowsingStatus()
   startBrowsingTimer()
 })
 

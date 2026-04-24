@@ -1,12 +1,206 @@
-const COUPON_TYPES = {
+import request from '../utils/request'
+
+export const COUPON_TYPES = {
   DISCOUNT: 'discount',
   FULL_REDUCTION: 'full_reduction'
 }
 
-const COUPON_STATUS = {
+export const COUPON_STATUS = {
   AVAILABLE: 'available',
   USED: 'used',
   EXPIRED: 'expired'
+}
+
+const getCurrentUserId = () => {
+  return localStorage.getItem('userId') || '1'
+}
+
+export const fetchUserCoupons = async (status = 'all', page = 1, size = 20) => {
+  try {
+    const userId = getCurrentUserId()
+    const params = new URLSearchParams()
+    params.append('userId', userId)
+    params.append('status', status)
+    params.append('current', page)
+    params.append('size', size)
+    
+    const response = await request(`/api/coupons/my?${params.toString()}`, {
+      method: 'GET'
+    })
+    
+    const data = await response.json()
+    if (data.code === 200) {
+      return data.data || { records: [], total: 0 }
+    }
+    return { records: [], total: 0 }
+  } catch (error) {
+    console.error('获取用户优惠券失败:', error)
+    return { records: [], total: 0 }
+  }
+}
+
+export const fetchAvailableCoupons = async () => {
+  try {
+    const userId = getCurrentUserId()
+    const response = await request(`/api/coupons/available?userId=${userId}`, {
+      method: 'GET'
+    })
+    
+    const data = await response.json()
+    if (data.code === 200) {
+      return data.data || []
+    }
+    return []
+  } catch (error) {
+    console.error('获取可用优惠券失败:', error)
+    return []
+  }
+}
+
+export const fetchBrowsingStatus = async () => {
+  try {
+    const userId = getCurrentUserId()
+    const response = await request(`/api/browse/status?userId=${userId}`, {
+      method: 'GET'
+    })
+    
+    const data = await response.json()
+    if (data.code === 200) {
+      return data.data || { totalSeconds: 0, requiredSeconds: 60, canClaimReward: false, rewardClaimed: false }
+    }
+    return { totalSeconds: 0, requiredSeconds: 60, canClaimReward: false, rewardClaimed: false }
+  } catch (error) {
+    console.error('获取浏览状态失败:', error)
+    return { totalSeconds: 0, requiredSeconds: 60, canClaimReward: false, rewardClaimed: false }
+  }
+}
+
+export const updateBrowsingTime = async (seconds = 1) => {
+  try {
+    const userId = getCurrentUserId()
+    const params = new URLSearchParams()
+    params.append('userId', userId)
+    params.append('seconds', seconds)
+    
+    const response = await request(`/api/browse/update-time?${params.toString()}`, {
+      method: 'POST'
+    })
+    
+    const data = await response.json()
+    if (data.code === 200) {
+      return data.data
+    }
+    return null
+  } catch (error) {
+    console.error('更新浏览时间失败:', error)
+    return null
+  }
+}
+
+export const claimBrowseReward = async () => {
+  try {
+    const userId = getCurrentUserId()
+    const response = await request(`/api/browse/claim-reward?userId=${userId}`, {
+      method: 'POST'
+    })
+    
+    const data = await response.json()
+    return data
+  } catch (error) {
+    console.error('领取浏览奖励失败:', error)
+    return { code: 500, message: '网络错误' }
+  }
+}
+
+export const claimCoupon = async (couponId) => {
+  try {
+    const userId = getCurrentUserId()
+    const response = await request(`/api/coupons/claim/${couponId}?userId=${userId}`, {
+      method: 'POST'
+    })
+    
+    const data = await response.json()
+    return data
+  } catch (error) {
+    console.error('领取优惠券失败:', error)
+    return { code: 500, message: '网络错误' }
+  }
+}
+
+export const formatTime = (seconds) => {
+  const hours = Math.floor(seconds / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
+  const secs = seconds % 60
+  
+  if (hours > 0) {
+    return `${hours}小时${minutes}分钟`
+  } else if (minutes > 0) {
+    return `${minutes}分钟${secs}秒`
+  } else {
+    return `${secs}秒`
+  }
+}
+
+export const getCouponTypeText = (type) => {
+  if (type === COUPON_TYPES.DISCOUNT) return '折扣券'
+  if (type === COUPON_TYPES.FULL_REDUCTION) return '满减券'
+  return '优惠券'
+}
+
+export const getCouponStatusText = (status) => {
+  if (status === COUPON_STATUS.AVAILABLE) return '可使用'
+  if (status === COUPON_STATUS.USED) return '已使用'
+  if (status === COUPON_STATUS.EXPIRED) return '已过期'
+  return '未知'
+}
+
+export const getCouponDisplayValue = (coupon) => {
+  if (coupon.type === COUPON_TYPES.FULL_REDUCTION) {
+    return coupon.discountAmount || 0
+  }
+  if (coupon.type === COUPON_TYPES.DISCOUNT) {
+    return Math.round((coupon.discountPercent || 0) * 10)
+  }
+  return 0
+}
+
+export const getCouponCondition = (coupon) => {
+  if (coupon.type === COUPON_TYPES.FULL_REDUCTION) {
+    return `满${coupon.minSpend || 0}元可用`
+  }
+  if (coupon.type === COUPON_TYPES.DISCOUNT) {
+    if (coupon.maxDiscount) {
+      return `最高减${coupon.maxDiscount}元`
+    }
+    return '无门槛'
+  }
+  return ''
+}
+
+export const calculateDiscount = (coupon, originalPrice) => {
+  if (!coupon || !originalPrice) return 0
+  
+  const price = Number(originalPrice)
+  
+  if (coupon.type === COUPON_TYPES.FULL_REDUCTION) {
+    const minSpend = Number(coupon.minSpend) || 0
+    if (price >= minSpend) {
+      return Number(coupon.discountAmount) || 0
+    }
+    return 0
+  }
+  
+  if (coupon.type === COUPON_TYPES.DISCOUNT) {
+    const discountPercent = Number(coupon.discountPercent) || 1
+    let discount = price * (1 - discountPercent)
+    const maxDiscount = Number(coupon.maxDiscount)
+    if (maxDiscount && discount > maxDiscount) {
+      discount = maxDiscount
+    }
+    return Math.round(discount * 100) / 100
+  }
+  
+  return 0
 }
 
 const getCurrentUserCouponsKey = () => {
@@ -36,74 +230,6 @@ const mockCoupons = [
     useTime: null,
     category: null,
     serviceId: null
-  },
-  {
-    id: 'c2',
-    name: '服务折扣券',
-    type: COUPON_TYPES.DISCOUNT,
-    description: '全场8折，最高减30元',
-    discountAmount: null,
-    minSpend: 0,
-    discountPercent: 0.8,
-    maxDiscount: 30,
-    status: COUPON_STATUS.AVAILABLE,
-    validFrom: '2024-01-01',
-    validTo: '2026-12-31',
-    obtainTime: '2024-02-15 14:30:00',
-    useTime: null,
-    category: null,
-    serviceId: null
-  },
-  {
-    id: 'c3',
-    name: '保洁服务专享券',
-    type: COUPON_TYPES.FULL_REDUCTION,
-    description: '保洁服务满200减50',
-    discountAmount: 50,
-    minSpend: 200,
-    discountPercent: null,
-    maxDiscount: null,
-    status: COUPON_STATUS.AVAILABLE,
-    validFrom: '2024-01-01',
-    validTo: '2026-06-30',
-    obtainTime: '2024-03-01 09:00:00',
-    useTime: null,
-    category: '保洁服务',
-    serviceId: null
-  },
-  {
-    id: 'c4',
-    name: '已使用优惠券',
-    type: COUPON_TYPES.FULL_REDUCTION,
-    description: '满50减10',
-    discountAmount: 10,
-    minSpend: 50,
-    discountPercent: null,
-    maxDiscount: null,
-    status: COUPON_STATUS.USED,
-    validFrom: '2024-01-01',
-    validTo: '2025-12-31',
-    obtainTime: '2024-01-15 10:00:00',
-    useTime: '2024-02-20 15:30:00',
-    category: null,
-    serviceId: null
-  },
-  {
-    id: 'c5',
-    name: '已过期优惠券',
-    type: COUPON_TYPES.DISCOUNT,
-    description: '过期券示例',
-    discountAmount: null,
-    minSpend: 0,
-    discountPercent: 0.9,
-    maxDiscount: 20,
-    status: COUPON_STATUS.EXPIRED,
-    validFrom: '2023-01-01',
-    validTo: '2023-12-31',
-    obtainTime: '2023-01-01 10:00:00',
-    useTime: null,
-    category: null,
-    serviceId: null
   }
 ]
 
@@ -115,14 +241,14 @@ const initUserCoupons = () => {
   }
 }
 
-const getUserCoupons = () => {
+export const getUserCoupons = () => {
   initUserCoupons()
   const key = getCurrentUserCouponsKey()
   const coupons = JSON.parse(localStorage.getItem(key) || '[]')
   return coupons
 }
 
-const getUserCouponsByStatus = (status) => {
+export const getUserCouponsByStatus = (status) => {
   const coupons = getUserCoupons()
   if (status === 'all') {
     return coupons
@@ -130,7 +256,7 @@ const getUserCouponsByStatus = (status) => {
   return coupons.filter(c => c.status === status)
 }
 
-const getAvailableCouponsForService = (servicePrice, category = null, serviceId = null) => {
+export const getAvailableCouponsForService = (servicePrice, category = null, serviceId = null) => {
   const coupons = getUserCouponsByStatus(COUPON_STATUS.AVAILABLE)
   const now = new Date()
   
@@ -150,28 +276,7 @@ const getAvailableCouponsForService = (servicePrice, category = null, serviceId 
   })
 }
 
-const calculateDiscount = (coupon, originalPrice) => {
-  if (!coupon) return 0
-  
-  if (coupon.type === COUPON_TYPES.FULL_REDUCTION) {
-    if (originalPrice >= coupon.minSpend) {
-      return coupon.discountAmount
-    }
-    return 0
-  }
-  
-  if (coupon.type === COUPON_TYPES.DISCOUNT) {
-    let discount = originalPrice * (1 - coupon.discountPercent)
-    if (coupon.maxDiscount && discount > coupon.maxDiscount) {
-      discount = coupon.maxDiscount
-    }
-    return Math.round(discount * 100) / 100
-  }
-  
-  return 0
-}
-
-const useCoupon = (couponId, orderId) => {
+export const useCoupon = (couponId, orderId) => {
   const key = getCurrentUserCouponsKey()
   const coupons = getUserCoupons()
   const couponIndex = coupons.findIndex(c => c.id === couponId)
@@ -192,7 +297,7 @@ const useCoupon = (couponId, orderId) => {
   return true
 }
 
-const addCoupon = (coupon) => {
+export const addCoupon = (coupon) => {
   const key = getCurrentUserCouponsKey()
   const coupons = getUserCoupons()
   const newCoupon = {
@@ -214,78 +319,31 @@ const addCoupon = (coupon) => {
   return newCoupon
 }
 
-const getBrowsingTime = () => {
+export const getBrowsingTime = () => {
   const key = getBrowsingTimeKey()
   const data = localStorage.getItem(key)
   if (!data) return 0
   return parseInt(data) || 0
 }
 
-const saveBrowsingTime = (seconds) => {
+export const saveBrowsingTime = (seconds) => {
   const key = getBrowsingTimeKey()
   localStorage.setItem(key, seconds.toString())
 }
 
-const resetBrowsingTime = () => {
+export const resetBrowsingTime = () => {
   const key = getBrowsingTimeKey()
   localStorage.setItem(key, '0')
 }
 
-const isBrowseRewardClaimed = () => {
+export const isBrowseRewardClaimed = () => {
   const userId = localStorage.getItem('userId') || 'guest'
   const key = `browse_reward_claimed_${userId}`
   return localStorage.getItem(key) === 'true'
 }
 
-const setBrowseRewardClaimed = () => {
+export const setBrowseRewardClaimed = () => {
   const userId = localStorage.getItem('userId') || 'guest'
   const key = `browse_reward_claimed_${userId}`
   localStorage.setItem(key, 'true')
-}
-
-const formatTime = (seconds) => {
-  const hours = Math.floor(seconds / 3600)
-  const minutes = Math.floor((seconds % 3600) / 60)
-  const secs = seconds % 60
-  
-  if (hours > 0) {
-    return `${hours}小时${minutes}分钟`
-  } else if (minutes > 0) {
-    return `${minutes}分钟${secs}秒`
-  } else {
-    return `${secs}秒`
-  }
-}
-
-const getCouponTypeText = (type) => {
-  if (type === COUPON_TYPES.DISCOUNT) return '折扣券'
-  if (type === COUPON_TYPES.FULL_REDUCTION) return '满减券'
-  return '优惠券'
-}
-
-const getCouponStatusText = (status) => {
-  if (status === COUPON_STATUS.AVAILABLE) return '可使用'
-  if (status === COUPON_STATUS.USED) return '已使用'
-  if (status === COUPON_STATUS.EXPIRED) return '已过期'
-  return '未知'
-}
-
-export {
-  COUPON_TYPES,
-  COUPON_STATUS,
-  initUserCoupons,
-  getUserCoupons,
-  getUserCouponsByStatus,
-  getAvailableCouponsForService,
-  calculateDiscount,
-  useCoupon,
-  addCoupon,
-  getBrowsingTime,
-  saveBrowsingTime,
-  resetBrowsingTime,
-  isBrowseRewardClaimed,
-  setBrowseRewardClaimed,
-  formatTime,
-  getCouponTypeText,
-  getCouponStatusText
 }
