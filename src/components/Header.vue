@@ -10,6 +10,10 @@
           <router-link to="/" class="nav-link" :class="{ active: $route.path === '/' }">首页</router-link>
           <router-link to="/services" class="nav-link" :class="{ active: $route.path === '/services' }">服务列表</router-link>
           <router-link to="/orders" class="nav-link" :class="{ active: $route.path === '/orders' }">我的订单</router-link>
+          <router-link to="/coupons" class="nav-link" :class="{ active: $route.path === '/coupons' }">
+            我的优惠券
+            <span v-if="availableCouponCount > 0" class="coupon-badge">{{ availableCouponCount }}</span>
+          </router-link>
           <router-link to="/forum" class="nav-link" :class="{ active: $route.path === '/forum' }">社区论坛</router-link>
           <router-link to="/announcements" class="nav-link" :class="{ active: $route.path === '/announcements' }">公告信息</router-link>
           <router-link to="/about" class="nav-link" :class="{ active: $route.path === '/about' }">关于我们</router-link>
@@ -39,6 +43,10 @@
         <router-link to="/" class="mobile-nav-link" @click="closeMobileMenu">首页</router-link>
         <router-link to="/services" class="mobile-nav-link" @click="closeMobileMenu">服务列表</router-link>
         <router-link to="/orders" class="mobile-nav-link" @click="closeMobileMenu">我的订单</router-link>
+        <router-link to="/coupons" class="mobile-nav-link" @click="closeMobileMenu">
+          我的优惠券
+          <span v-if="availableCouponCount > 0" class="mobile-coupon-badge">{{ availableCouponCount }}</span>
+        </router-link>
         <router-link to="/forum" class="mobile-nav-link" @click="closeMobileMenu">社区论坛</router-link>
         <router-link to="/announcements" class="mobile-nav-link" @click="closeMobileMenu">公告信息</router-link>
         <router-link to="/about" class="mobile-nav-link" @click="closeMobileMenu">关于我们</router-link>
@@ -393,14 +401,17 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, reactive, onMounted, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import request, { removeToken, setToken, getToken } from '../utils/request'
+import { getUserCouponsByStatus, COUPON_STATUS } from '../data/coupons'
 
 const router = useRouter()
+const route = useRoute()
 const isMobileMenuOpen = ref(false)
 const isLoggedIn = ref(false)
 const username = ref('')
+const availableCouponCount = ref(0)
 const showProfileModal = ref(false)
 const userInfo = ref(null)
 const activeTab = ref('profile')
@@ -443,6 +454,20 @@ const checkLoginStatus = () => {
   const nickname = localStorage.getItem('nickname')
   const storedUsername = localStorage.getItem('username') || ''
   username.value = nickname || storedUsername
+  
+  if (isLoggedIn.value) {
+    const availableCoupons = getUserCouponsByStatus(COUPON_STATUS.AVAILABLE)
+    availableCouponCount.value = availableCoupons.length
+  } else {
+    availableCouponCount.value = 0
+  }
+}
+
+const updateCouponCount = () => {
+  if (isLoggedIn.value) {
+    const availableCoupons = getUserCouponsByStatus(COUPON_STATUS.AVAILABLE)
+    availableCouponCount.value = availableCoupons.length
+  }
 }
 
 const toggleMobileMenu = () => {
@@ -915,6 +940,13 @@ const confirmQrPayment = async () => {
 onMounted(() => {
   checkLoginStatus()
 })
+
+watch(
+  () => route.path,
+  () => {
+    updateCouponCount()
+  }
+)
 </script>
 
 <style scoped>
@@ -1133,6 +1165,42 @@ onMounted(() => {
   width: 60%;
   bottom: 4px;
   background: rgba(255, 255, 255, 0.7);
+}
+
+.coupon-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: linear-gradient(135deg, #E74C3C, #C0392B);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.mobile-coupon-badge {
+  background: linear-gradient(135deg, #E74C3C, #C0392B);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+  margin-left: 8px;
 }
 
 .mobile-menu-btn {

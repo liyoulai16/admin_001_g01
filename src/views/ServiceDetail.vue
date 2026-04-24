@@ -80,6 +80,49 @@
               <span class="price-label">价格</span>
               <span class="price-value">{{ service.price }}</span>
             </div>
+            
+            <div class="coupon-section" v-if="isLoggedIn">
+              <div class="coupon-selector" @click="showCouponSelector = true">
+                <div class="coupon-label">
+                  <span class="coupon-icon">🎫</span>
+                  <span>优惠券</span>
+                </div>
+                <div class="coupon-value" :class="{ selected: selectedCoupon }">
+                  <template v-if="selectedCoupon">
+                    <span class="coupon-name">-¥{{ discountAmount }}</span>
+                    <span class="coupon-arrow">›</span>
+                  </template>
+                  <template v-else>
+                    <span v-if="hasAvailableCoupons" class="has-coupon">
+                      有{{ availableCoupons.length }}张可用
+                    </span>
+                    <span v-else class="no-coupon">无可用优惠券</span>
+                    <span class="coupon-arrow">›</span>
+                  </template>
+                </div>
+              </div>
+              
+              <div class="discount-display" v-if="selectedCoupon">
+                <div class="discount-row">
+                  <span class="discount-label">原价</span>
+                  <span class="original-price">¥{{ servicePrice }}</span>
+                </div>
+                <div class="discount-row">
+                  <span class="discount-label">优惠券减免</span>
+                  <span class="discount-price">-¥{{ discountAmount }}</span>
+                </div>
+                <div class="discount-row final">
+                  <span class="discount-label">实付</span>
+                  <span class="final-price">¥{{ finalPrice }}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="coupon-login-hint" v-else>
+              <span>登录后可使用优惠券</span>
+              <router-link to="/login" class="login-link">去登录</router-link>
+            </div>
+            
             <div class="booking-form">
               <div class="form-group">
                 <label class="form-label">预约日期</label>
@@ -169,12 +212,83 @@
     <p>您访问的服务可能已下架或不存在</p>
     <router-link to="/services" class="back-btn">返回服务列表</router-link>
   </div>
+  
+  <div class="coupon-modal-overlay" :class="{ show: showCouponSelector }" @click="closeCouponSelector">
+    <div class="coupon-modal" @click.stop>
+      <div class="coupon-modal-header">
+        <h3 class="coupon-modal-title">选择优惠券</h3>
+        <button class="coupon-modal-close" @click="closeCouponSelector">×</button>
+      </div>
+      <div class="coupon-modal-body">
+        <div v-if="availableCoupons.length === 0" class="no-coupons-hint">
+          <span class="no-coupons-icon">🎫</span>
+          <p>暂无可用优惠券</p>
+          <p class="hint-text">前往服务列表浏览满60分钟可获得优惠券</p>
+        </div>
+        <div v-else class="coupon-list">
+          <div 
+            v-for="coupon in availableCoupons" 
+            :key="coupon.id"
+            class="coupon-item"
+            :class="{ 
+              selected: selectedCoupon?.id === coupon.id,
+              'full-reduction': coupon.type === COUPON_TYPES.FULL_REDUCTION,
+              'discount': coupon.type === COUPON_TYPES.DISCOUNT
+            }"
+            @click="selectCoupon(coupon)"
+          >
+            <div class="coupon-left">
+              <div class="coupon-value-display">
+                <template v-if="coupon.type === COUPON_TYPES.FULL_REDUCTION">
+                  <span class="currency">¥</span>
+                  <span class="amount">{{ coupon.amount }}</span>
+                </template>
+                <template v-else>
+                  <span class="discount-text">{{ Math.round(coupon.discount * 10) }}折</span>
+                </template>
+              </div>
+              <div class="coupon-type-label">
+                {{ coupon.type === COUPON_TYPES.FULL_REDUCTION ? '满减券' : '折扣券' }}
+              </div>
+            </div>
+            <div class="coupon-right">
+              <div class="coupon-info">
+                <h4 class="coupon-name">{{ coupon.name }}</h4>
+                <p class="coupon-condition">
+                  {{ coupon.condition.minAmount > 0 ? `满${coupon.condition.minAmount}元可用` : '无门槛' }}
+                  <template v-if="coupon.type === COUPON_TYPES.DISCOUNT && coupon.maxDiscount">
+                    （最高减¥{{ coupon.maxDiscount }}）
+                  </template>
+                </p>
+                <p class="coupon-validity">
+                  有效期至 {{ formatCouponDate(coupon.validUntil) }}
+                </p>
+              </div>
+              <div class="coupon-selected-mark" v-if="selectedCoupon?.id === coupon.id">
+                ✓ 已选择
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="coupon-modal-footer">
+        <button class="btn-cancel" @click="closeCouponSelector">取消</button>
+        <button class="btn-confirm" @click="confirmCoupon">确认使用</button>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import request from '../utils/request'
+import {
+  getAvailableCouponsForService,
+  calculateDiscount,
+  COUPON_TYPES,
+  useCoupon
+} from '../data/coupons'
 
 const route = useRoute()
 const router = useRouter()
@@ -204,9 +318,37 @@ const phone = ref('')
 const address = ref('')
 const notes = ref('')
 
+const selectedCoupon = ref(null)
+const showCouponSelector = ref(false)
+const isLoggedIn = ref(false)
+
 const todayDate = computed(() => {
   const today = new Date()
   return today.toISOString().split('T')[0]
+})
+
+const servicePrice = computed(() => {
+  if (!service.value) return 0
+  const priceStr = String(service.value.price).replace(/[^0-9.]/g, '')
+  return parseFloat(priceStr) || 0
+})
+
+const availableCoupons = computed(() => {
+  if (!service.value) return []
+  return getAvailableCouponsForService(service.value.category, servicePrice.value)
+})
+
+const discountAmount = computed(() => {
+  if (!selectedCoupon.value || servicePrice.value === 0) return 0
+  return calculateDiscount(selectedCoupon.value, servicePrice.value)
+})
+
+const finalPrice = computed(() => {
+  return Math.max(0, servicePrice.value - discountAmount.value)
+})
+
+const hasAvailableCoupons = computed(() => {
+  return availableCoupons.value.length > 0 && isLoggedIn.value
 })
 
 const timeSlots = [
@@ -282,6 +424,27 @@ const fetchServiceDetail = async () => {
   }
 }
 
+const formatCouponDate = (dateString) => {
+  const date = new Date(dateString)
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+}
+
+const selectCoupon = (coupon) => {
+  if (selectedCoupon.value?.id === coupon.id) {
+    selectedCoupon.value = null
+  } else {
+    selectedCoupon.value = coupon
+  }
+}
+
+const closeCouponSelector = () => {
+  showCouponSelector.value = false
+}
+
+const confirmCoupon = () => {
+  closeCouponSelector()
+}
+
 const handleBooking = async () => {
   if (!bookingDate.value) {
     alert('请选择预约日期')
@@ -324,7 +487,11 @@ const handleBooking = async () => {
       contactName: contactName.value,
       contactPhone: phone.value,
       remark: notes.value,
-      payMethod: 0
+      payMethod: 0,
+      couponId: selectedCoupon.value?.id || null,
+      couponDiscount: discountAmount.value || 0,
+      originalPrice: servicePrice.value,
+      finalPrice: finalPrice.value
     }
     
     console.log('创建订单数据:', orderData)
@@ -338,7 +505,15 @@ const handleBooking = async () => {
     console.log('订单创建响应:', data)
     
     if (data.code === 200 && data.data) {
-      alert(`订单创建成功！\n订单编号：${data.data.orderNo}\n服务：${service.value.name}\n预约时间：${bookingDate.value} ${bookingTime.value}\n\n请前往订单页面完成支付。`)
+      if (selectedCoupon.value) {
+        useCoupon(selectedCoupon.value.id)
+      }
+      
+      const discountInfo = selectedCoupon.value 
+        ? `\n优惠券减免：-¥${discountAmount.value}\n实付金额：¥${finalPrice.value}`
+        : ''
+      
+      alert(`订单创建成功！\n订单编号：${data.data.orderNo}\n服务：${service.value.name}\n预约时间：${bookingDate.value} ${bookingTime.value}${discountInfo}\n\n请前往订单页面完成支付。`)
       router.push('/orders')
     } else {
       alert(data.message || '订单创建失败，请重试')
@@ -351,6 +526,8 @@ const handleBooking = async () => {
 
 onMounted(() => {
   fetchServiceDetail()
+  
+  isLoggedIn.value = localStorage.getItem('isLoggedIn') === 'true' && localStorage.getItem('token')
   
   const today = new Date()
   bookingDate.value = today.toISOString().split('T')[0]
@@ -726,6 +903,399 @@ onMounted(() => {
 .booking-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 10px 20px rgba(107, 142, 35, 0.3);
+}
+
+.coupon-section {
+  margin-bottom: 15px;
+}
+
+.coupon-selector {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.coupon-selector:hover {
+  background: #e9ecef;
+  border-color: #6B8E23;
+}
+
+.coupon-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  color: #555;
+}
+
+.coupon-icon {
+  font-size: 1.2rem;
+}
+
+.coupon-value {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.coupon-value.selected .coupon-name {
+  color: #E74C3C;
+  font-weight: bold;
+}
+
+.has-coupon {
+  color: #E74C3C;
+  font-weight: 500;
+}
+
+.no-coupon {
+  color: #999;
+}
+
+.coupon-arrow {
+  color: #999;
+  font-size: 1.2rem;
+}
+
+.discount-display {
+  margin-top: 12px;
+  padding: 12px;
+  background: linear-gradient(135deg, #FFF8E7, #FFF3E0);
+  border-radius: 8px;
+  border: 1px solid #FFE0B2;
+}
+
+.discount-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 0.9rem;
+}
+
+.discount-row.final {
+  margin-top: 8px;
+  padding-top: 10px;
+  border-top: 1px dashed #FFE0B2;
+}
+
+.discount-label {
+  color: #666;
+}
+
+.original-price {
+  color: #999;
+  text-decoration: line-through;
+}
+
+.discount-price {
+  color: #E74C3C;
+  font-weight: 500;
+}
+
+.discount-row.final .discount-label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.final-price {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: #E74C3C;
+}
+
+.coupon-login-hint {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.login-link {
+  color: #6B8E23;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.login-link:hover {
+  text-decoration: underline;
+}
+
+.coupon-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.coupon-modal-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.coupon-modal {
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(20px);
+  transition: transform 0.3s ease;
+}
+
+.coupon-modal-overlay.show .coupon-modal {
+  transform: translateY(0);
+}
+
+.coupon-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e4e8eb;
+}
+
+.coupon-modal-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0;
+}
+
+.coupon-modal-close {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f7fa;
+  border: none;
+  border-radius: 50%;
+  font-size: 1.5rem;
+  color: #999;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.coupon-modal-close:hover {
+  background: #e4e8eb;
+  color: #666;
+}
+
+.coupon-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.no-coupons-hint {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.no-coupons-icon {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 15px;
+}
+
+.no-coupons-hint p {
+  color: #666;
+  margin: 0 0 8px 0;
+}
+
+.no-coupons-hint .hint-text {
+  color: #999;
+  font-size: 0.9rem;
+}
+
+.coupon-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.coupon-item {
+  display: flex;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.coupon-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.coupon-item.selected {
+  border-color: #6B8E23;
+  box-shadow: 0 0 0 3px rgba(107, 142, 35, 0.15);
+}
+
+.coupon-item.full-reduction {
+  background: linear-gradient(135deg, #FF6B6B, #EE5A5A);
+}
+
+.coupon-item.discount {
+  background: linear-gradient(135deg, #4ECDC4, #44B7AF);
+}
+
+.coupon-left {
+  width: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  padding: 15px 10px;
+  position: relative;
+}
+
+.coupon-left::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1px;
+  height: 60%;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.coupon-value-display {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+}
+
+.coupon-value-display .currency {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.coupon-value-display .amount {
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.coupon-value-display .discount-text {
+  font-size: 1.8rem;
+  font-weight: bold;
+}
+
+.coupon-type-label {
+  font-size: 0.8rem;
+  opacity: 0.9;
+  margin-top: 5px;
+}
+
+.coupon-right {
+  flex: 1;
+  background: white;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+}
+
+.coupon-info {
+  flex: 1;
+}
+
+.coupon-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0 0 8px 0;
+}
+
+.coupon-condition {
+  font-size: 0.85rem;
+  color: #666;
+  margin: 0 0 6px 0;
+}
+
+.coupon-validity {
+  font-size: 0.8rem;
+  color: #999;
+  margin: 0;
+}
+
+.coupon-selected-mark {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
+  color: white;
+  font-size: 0.8rem;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.coupon-modal-footer {
+  display: flex;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid #e4e8eb;
+}
+
+.btn-cancel,
+.btn-confirm {
+  flex: 1;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.btn-cancel {
+  background: #f5f7fa;
+  color: #666;
+}
+
+.btn-cancel:hover {
+  background: #e4e8eb;
+}
+
+.btn-confirm {
+  background: linear-gradient(135deg, #6B8E23, #8FBC8F);
+  color: white;
+}
+
+.btn-confirm:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 15px rgba(107, 142, 35, 0.3);
 }
 
 .contact-list {
