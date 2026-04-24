@@ -29,6 +29,14 @@ public class Result<T> {
         return result;
     }
     
+    public static <T> Result<T> success(Object message, T data) {
+        Result<T> result = new Result<>();
+        result.setCode(200);
+        result.setMessage(message != null ? message.toString() : "操作成功");
+        result.setData(data);
+        return result;
+    }
+    
     public static <T> Result<T> error(String message) {
         return error(400, message);
     }

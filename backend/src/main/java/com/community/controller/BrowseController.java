@@ -45,7 +45,7 @@ public class BrowseController {
         Map<String, Object> result = browseRecordService.claimBrowseReward(userId);
         
         if ((Boolean) result.get("success")) {
-            return Result.success(result.get("message"), result);
+            return Result.success((String) result.get("message"), result);
         } else {
             return Result.error((String) result.get("message"));
         }
