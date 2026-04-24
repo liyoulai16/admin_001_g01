@@ -500,20 +500,6 @@ const claimBrowseReward = () => {
   showToastMessage('🎉 恭喜获得浏览奖励优惠券！', '🎁')
 }
 
-const showToastMessage = (message, icon = '⚠️') => {
-  toastMessage.value = message
-  toastIcon.value = icon
-  showToast.value = true
-  
-  if (toastTimer) {
-    clearTimeout(toastTimer)
-  }
-  
-  toastTimer = setTimeout(() => {
-    showToast.value = false
-  }, 3000)
-}
-
 const togglePriceFilter = () => {
   if (!showPriceFilter.value) {
     tempMinPrice.value = minPrice.value
