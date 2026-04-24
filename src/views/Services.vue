@@ -23,7 +23,7 @@
             <button 
               v-if="canClaimReward" 
               class="claim-reward-btn"
-              @click="claimBrowseReward"
+              @click="claimReward"
             >
               领取奖励 🎁
             </button>
@@ -479,7 +479,7 @@ const loadBrowsingStatus = async () => {
   isRewardClaimed.value = status.rewardClaimed || false
 }
 
-const claimBrowseReward = async () => {
+const claimReward = async () => {
   if (!canClaimReward.value) return
   
   const result = await claimBrowseReward()

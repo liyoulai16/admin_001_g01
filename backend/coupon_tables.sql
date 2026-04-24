@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS user_coupon (
     valid_to DATE NOT NULL COMMENT '有效期结束日期',
     order_id BIGINT DEFAULT NULL COMMENT '使用订单ID',
     status TINYINT DEFAULT 1 COMMENT '状态：1-可用，2-已使用，3-已过期',
-    delete TINYINT DEFAULT 0 COMMENT '逻辑删除：0-未删除，1-已删除',
+    deleted TINYINT DEFAULT 0 COMMENT '逻辑删除：0-未删除，1-已删除',
     create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '领取时间',
     update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     used_time DATETIME DEFAULT NULL COMMENT '使用时间',
@@ -77,14 +77,15 @@ CREATE TABLE IF NOT EXISTS browse_record (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='浏览记录表';
 
 -- 插入示例优惠券数据
+-- 满减券
 INSERT INTO coupon (name, type, discount_amount, min_spend, total_quantity, per_user_limit, category, description, valid_from, valid_to, sort_order, status) VALUES 
 ('浏览奖励10元券', 'full_reduction', 10.00, 50.00, 1000, 1, '浏览奖励', '浏览服务列表满1分钟即可领取，满50元可减10元', DATE_FORMAT(NOW(), '%Y-%m-%d'), DATE_FORMAT(DATE_ADD(NOW(), INTERVAL 30 DAY), '%Y-%m-%d'), 1, 1),
 ('浏览奖励20元券', 'full_reduction', 20.00, 100.00, 500, 1, '浏览奖励', '浏览服务列表满1分钟即可领取，满100元可减20元', DATE_FORMAT(NOW(), '%Y-%m-%d'), DATE_FORMAT(DATE_ADD(NOW(), INTERVAL 30 DAY), '%Y-%m-%d'), 2, 1),
 ('浏览奖励5元无门槛', 'full_reduction', 5.00, 0.00, 2000, 1, '浏览奖励', '浏览服务列表满1分钟即可领取，无门槛使用', DATE_FORMAT(NOW(), '%Y-%m-%d'), DATE_FORMAT(DATE_ADD(NOW(), INTERVAL 30 DAY), '%Y-%m-%d'), 3, 1),
-('浏览奖励85折券', 'discount', NULL, 0.85, 50.00, 800, 1, '浏览奖励', '浏览服务列表满1分钟即可领取，全场85折，最高减免50元', DATE_FORMAT(NOW(), '%Y-%m-%d'), DATE_FORMAT(DATE_ADD(NOW(), INTERVAL 30 DAY), '%Y-%m-%d'), 4, 1),
 ('新用户专享券', 'full_reduction', 15.00, 30.00, 1000, 1, '新用户', '新用户注册专享，满30元减15元', DATE_FORMAT(NOW(), '%Y-%m-%d'), DATE_FORMAT(DATE_ADD(NOW(), INTERVAL 30 DAY), '%Y-%m-%d'), 5, 1),
 ('节日特惠券', 'full_reduction', 30.00, 150.00, 300, 1, '节日活动', '节日特惠，满150元减30元', DATE_FORMAT(NOW(), '%Y-%m-%d'), DATE_FORMAT(DATE_ADD(NOW(), INTERVAL 7 DAY), '%Y-%m-%d'), 6, 1);
 
--- 插入折扣券示例数据
+-- 折扣券
 INSERT INTO coupon (name, type, discount_percent, max_discount, min_spend, total_quantity, per_user_limit, category, description, valid_from, valid_to, sort_order, status) VALUES 
+('浏览奖励85折券', 'discount', 0.85, 50.00, 0.00, 800, 1, '浏览奖励', '浏览服务列表满1分钟即可领取，全场85折，最高减免50元', DATE_FORMAT(NOW(), '%Y-%m-%d'), DATE_FORMAT(DATE_ADD(NOW(), INTERVAL 30 DAY), '%Y-%m-%d'), 4, 1),
 ('会员专享8折券', 'discount', 0.80, 100.00, 0.00, 200, 1, '会员专享', '会员专享优惠，全场8折，最高减免100元', DATE_FORMAT(NOW(), '%Y-%m-%d'), DATE_FORMAT(DATE_ADD(NOW(), INTERVAL 60 DAY), '%Y-%m-%d'), 7, 1);
