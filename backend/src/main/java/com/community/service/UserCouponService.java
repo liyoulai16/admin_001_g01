@@ -17,6 +17,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class UserCouponService {
@@ -45,12 +46,11 @@ public class UserCouponService {
         wrapper.orderByDesc(UserCoupon::getObtainTime);
         Page<UserCoupon> result = userCouponMapper.selectPage(page, wrapper);
         
-        return new PageResult<>(
-            result.getCurrent(),
-            result.getSize(),
+        return PageResult.of(
+            result.getRecords(),
             result.getTotal(),
-            result.getPages(),
-            result.getRecords()
+            result.getCurrent(),
+            result.getSize()
         );
     }
     
@@ -91,7 +91,7 @@ public class UserCouponService {
                 }
                 return true;
             })
-            .toList();
+            .collect(Collectors.toList());
     }
     
     @Transactional
