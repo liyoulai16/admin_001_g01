@@ -7,6 +7,33 @@
       <div class="container">
         <h1 class="page-title">服务列表</h1>
         <p class="page-subtitle">为您提供全方位的社区生活服务</p>
+        
+        <div class="browsing-progress-section" v-if="!isRewardClaimed">
+          <div class="browsing-info">
+            <span class="browsing-icon">⏱️</span>
+            <span class="browsing-text">
+              已浏览: <strong>{{ formattedBrowsingTime }}</strong> / 60分钟
+              <span class="reward-hint">（满60分钟可获得优惠券奖励）</span>
+            </span>
+          </div>
+          <div class="progress-bar-wrapper">
+            <div class="progress-bar">
+              <div class="progress-fill" :style="{ width: browsingProgress + '%' }"></div>
+            </div>
+            <button 
+              v-if="canClaimReward" 
+              class="claim-reward-btn"
+              @click="claimBrowseReward"
+            >
+              领取奖励 🎁
+            </button>
+          </div>
+        </div>
+        
+        <div class="reward-claimed-section" v-else>
+          <span class="claimed-icon">✅</span>
+          <span class="claimed-text">您已领取今日浏览奖励，感谢您的支持！</span>
+        </div>
       </div>
     </div>
 
@@ -279,11 +306,24 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 import request from '../utils/request'
+import {
+  getBrowsingTime,
+  saveBrowsingTime,
+  isBrowseRewardClaimed,
+  setBrowseRewardClaimed,
+  addCoupon,
+  formatTime,
+  COUPON_TYPES
+} from '../data/coupons'
 
 const route = useRoute()
 const router = useRouter()
+
+const browsingTime = ref(0)
+const isRewardClaimed = ref(false)
+let browsingTimer = null
 
 const getParticleStyle = (index) => {
   const size = Math.random() * 8 + 4
@@ -398,6 +438,81 @@ const visiblePages = computed(() => {
 
   return rangeWithDots
 })
+
+const browsingProgress = computed(() => {
+  const progress = (browsingTime.value / 3600) * 100
+  return Math.min(progress, 100)
+})
+
+const formattedBrowsingTime = computed(() => {
+  return formatTime(browsingTime.value)
+})
+
+const canClaimReward = computed(() => {
+  return browsingTime.value >= 3600 && !isRewardClaimed.value
+})
+
+const startBrowsingTimer = () => {
+  if (browsingTimer) return
+  
+  browsingTimer = setInterval(() => {
+    if (browsingTime.value < 3600) {
+      browsingTime.value++
+    }
+  }, 1000)
+}
+
+const stopBrowsingTimer = () => {
+  if (browsingTimer) {
+    clearInterval(browsingTimer)
+    browsingTimer = null
+  }
+}
+
+const claimBrowseReward = () => {
+  if (!canClaimReward.value) return
+  
+  const currentDate = new Date()
+  const endDate = new Date(currentDate)
+  endDate.setDate(endDate.getDate() + 30)
+  
+  const coupon = {
+    id: `browse_reward_${Date.now()}`,
+    name: '浏览奖励优惠券',
+    type: COUPON_TYPES.DISCOUNT,
+    discount: 0.85,
+    maxDiscount: 20,
+    amount: null,
+    condition: {
+      minAmount: 0,
+      excludeCategories: []
+    },
+    validFrom: currentDate.toISOString(),
+    validUntil: endDate.toISOString(),
+    description: '感谢您浏览服务满60分钟，赠送8.5折优惠券（最高减免20元）',
+    serviceCategories: []
+  }
+  
+  addCoupon(coupon)
+  setBrowseRewardClaimed()
+  isRewardClaimed.value = true
+  
+  showToastMessage('🎉 恭喜获得浏览奖励优惠券！', '🎁')
+}
+
+const showToastMessage = (message, icon = '⚠️') => {
+  toastMessage.value = message
+  toastIcon.value = icon
+  showToast.value = true
+  
+  if (toastTimer) {
+    clearTimeout(toastTimer)
+  }
+  
+  toastTimer = setTimeout(() => {
+    showToast.value = false
+  }, 3000)
+}
 
 const togglePriceFilter = () => {
   if (!showPriceFilter.value) {
@@ -734,10 +849,21 @@ watch(
 onMounted(() => {
   loadFromRouteParams()
   document.addEventListener('click', handleClickOutside)
+  
+  browsingTime.value = getBrowsingTime()
+  isRewardClaimed.value = isBrowseRewardClaimed()
+  startBrowsingTimer()
 })
 
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
+  stopBrowsingTimer()
+  saveBrowsingTime(browsingTime.value)
+})
+
+onBeforeRouteLeave(() => {
+  stopBrowsingTimer()
+  saveBrowsingTime(browsingTime.value)
 })
 </script>
 
@@ -798,6 +924,139 @@ onUnmounted(() => {
 .page-subtitle {
   font-size: 1.1rem;
   opacity: 0.9;
+}
+
+.browsing-progress-section {
+  margin-top: 25px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.browsing-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.browsing-icon {
+  font-size: 1.5rem;
+}
+
+.browsing-text {
+  font-size: 1rem;
+}
+
+.browsing-text strong {
+  color: #FFD700;
+  font-size: 1.1rem;
+}
+
+.reward-hint {
+  opacity: 0.85;
+  margin-left: 10px;
+  font-size: 0.9rem;
+}
+
+.progress-bar-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #FFD700, #FFA500);
+  border-radius: 6px;
+  transition: width 0.3s ease;
+  position: relative;
+}
+
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.claim-reward-btn {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #E74C3C, #C0392B);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(231, 76, 60, 0.4);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(231, 76, 60, 0.6);
+  }
+}
+
+.claim-reward-btn:hover {
+  background: linear-gradient(135deg, #C0392B, #A93226);
+  transform: scale(1.08);
+}
+
+.reward-claimed-section {
+  margin-top: 25px;
+  padding: 15px 25px;
+  background: rgba(39, 174, 96, 0.2);
+  border-radius: 12px;
+  border: 1px solid rgba(39, 174, 96, 0.4);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.claimed-icon {
+  font-size: 1.3rem;
+}
+
+.claimed-text {
+  color: #2ECC71;
+  font-weight: 500;
 }
 
 .services-content {

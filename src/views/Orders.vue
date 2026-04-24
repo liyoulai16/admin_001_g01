@@ -101,6 +101,12 @@
                 <span class="price-label">数量</span>
                 <span class="price-value">× {{ order.quantity }}</span>
               </div>
+              <div class="price-row discount-row" v-if="order.discount > 0">
+                <span class="price-label">
+                  <span class="coupon-tag">🎫 优惠券</span>
+                </span>
+                <span class="price-value discount-price">- ¥{{ order.discount }}</span>
+              </div>
               <div class="price-row total">
                 <span class="price-label">订单金额</span>
                 <span class="price-value total-price">¥{{ order.totalAmount }}</span>
@@ -1360,6 +1366,26 @@ onMounted(() => {
   margin-top: 8px;
   padding-top: 8px;
   border-top: 1px solid #e4e8eb;
+}
+
+.price-row.discount-row {
+  background: linear-gradient(135deg, #FFF8E7, #FFF3E0);
+  padding: 6px 10px;
+  border-radius: 8px;
+  margin: 4px 0;
+}
+
+.coupon-tag {
+  background: linear-gradient(135deg, #FF6B6B, #EE5A5A);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+}
+
+.discount-price {
+  color: #E74C3C;
+  font-weight: 600;
 }
 
 .price-row.total .price-label {

@@ -10,6 +10,7 @@ import Login from '../views/Login.vue'
 import Register from '../views/Register.vue'
 import Orders from '../views/Orders.vue'
 import Announcements from '../views/Announcements.vue'
+import Coupons from '../views/Coupons.vue'
 import AdminLayout from '../views/admin/AdminLayout.vue'
 import AdminCarousel from '../views/admin/AdminCarousel.vue'
 import AdminIntro from '../views/admin/AdminIntro.vue'
@@ -94,6 +95,12 @@ const routes = [
     path: '/announcements',
     name: 'Announcements',
     component: Announcements,
+    meta: { requiresAuth: true, userType: 'user' }
+  },
+  {
+    path: '/coupons',
+    name: 'Coupons',
+    component: Coupons,
     meta: { requiresAuth: true, userType: 'user' }
   },
   {
