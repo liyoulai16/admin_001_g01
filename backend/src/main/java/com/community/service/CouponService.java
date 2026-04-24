@@ -32,12 +32,11 @@ public class CouponService {
         wrapper.orderByDesc(Coupon::getCreateTime);
         Page<Coupon> result = couponMapper.selectPage(page, wrapper);
         
-        return new PageResult<>(
-            result.getCurrent(),
-            result.getSize(),
+        return PageResult.of(
+            result.getRecords(),
             result.getTotal(),
-            result.getPages(),
-            result.getRecords()
+            result.getCurrent(),
+            result.getSize()
         );
     }
     
